@@ -10,4 +10,5 @@ public interface IUtilisateurService {
     Optional<Utilisateur> findById(Long id);
     Utilisateur save(Utilisateur utilisateur);
     void delete(Long id);
+    Utilisateur ajouterClient(Utilisateur utilisateur, String password);
 }
