@@ -5,6 +5,7 @@ import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
+import java.awt.*;
 import java.util.List;
 
 @Entity
@@ -21,6 +22,7 @@ public class Utilisateur {
     long id;
     String nom;
     String prenom;
+    String imageUrl;
     String email;
     String telephone;
     String motDePasse;
