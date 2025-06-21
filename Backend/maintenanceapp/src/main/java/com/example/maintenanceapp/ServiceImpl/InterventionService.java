@@ -13,23 +13,7 @@ import java.util.Optional;
 @AllArgsConstructor
 @Slf4j
 public class InterventionService implements IInterventionService {
-    @Override
-    public List<Intervention> findAll() {
-        return List.of();
-    }
 
-    @Override
-    public Optional<Intervention> findById(Long id) {
-        return Optional.empty();
-    }
 
-    @Override
-    public Intervention save(Intervention intervention) {
-        return null;
-    }
 
-    @Override
-    public void delete(Long id) {
-
-    }
 }

@@ -37,6 +37,11 @@ public class ContratController {
     public Contrat update(@PathVariable long id,@RequestBody Contrat contrat) {
         return contratService.update(id, contrat);
     }
+   /* @PutMapping("/update/{encryptedId}")
+    public Contrat update(@PathVariable String encryptedId,@RequestBody Contrat contrat) {
+        Long id = encryptionUtil.decrypt(encryptedId);
+        return contratService.update(id, contrat);
+    }*/
 
     IContratService contratService;
 }

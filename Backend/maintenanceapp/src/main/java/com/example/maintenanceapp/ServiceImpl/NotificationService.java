@@ -13,23 +13,5 @@ import java.util.Optional;
 @AllArgsConstructor
 @Slf4j
 public class NotificationService implements INotificationService {
-    @Override
-    public List<Notification> findAll() {
-        return List.of();
-    }
 
-    @Override
-    public Optional<Notification> findById(Long id) {
-        return Optional.empty();
-    }
-
-    @Override
-    public Notification save(Notification notification) {
-        return null;
-    }
-
-    @Override
-    public void delete(Long id) {
-
-    }
 }

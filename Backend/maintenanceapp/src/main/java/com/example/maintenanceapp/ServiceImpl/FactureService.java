@@ -13,23 +13,5 @@ import java.util.Optional;
 @AllArgsConstructor
 @Slf4j
 public class FactureService implements IFactureService {
-    @Override
-    public List<Facture> findAll() {
-        return List.of();
-    }
 
-    @Override
-    public Optional<Facture> findById(Long id) {
-        return Optional.empty();
-    }
-
-    @Override
-    public Facture save(Facture facture) {
-        return null;
-    }
-
-    @Override
-    public void delete(Long id) {
-
-    }
 }

@@ -44,8 +44,12 @@ public class JwtUtil {
                 .getBody();
     }
 
-    private boolean isTokenExpired(String token) {
-        return extractExpiration(token).before(new Date());
+    public boolean isTokenExpired(String token) {
+        try {
+            return extractExpiration(token).before(new Date());
+        } catch (Exception e) {
+            return true; // if expiration can't be read, consider expired
+        }
     }
 
     public boolean validateToken(String token, UserDetails userDetails) {
@@ -55,14 +59,14 @@ public class JwtUtil {
 
     public String generateToken(String username, Role role) {
         Map<String, Object> claims = new HashMap<>();
-        return createToken(claims, username, role);
+        claims.put("role", role.name());
+        return createToken(claims, username);
     }
 
-    private String createToken(Map<String, Object> claims, String username, Role role) {
+    private String createToken(Map<String, Object> claims, String subject) {
         return Jwts.builder()
                 .setClaims(claims)
-                .setSubject(username)
-                .claim("role", role)
+                .setSubject(subject)
                 .setIssuedAt(new Date(System.currentTimeMillis()))
                 .setExpiration(new Date(System.currentTimeMillis() + jwtExpiration))
                 .signWith(getSignKey(), SignatureAlgorithm.HS256)
@@ -73,5 +77,4 @@ public class JwtUtil {
         byte[] keyBytes = Decoders.BASE64.decode(secret);
         return Keys.hmacShaKeyFor(keyBytes);
     }
-
 }
