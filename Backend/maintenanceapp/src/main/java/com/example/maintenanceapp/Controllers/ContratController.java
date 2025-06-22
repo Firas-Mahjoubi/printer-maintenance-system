@@ -43,5 +43,7 @@ public class ContratController {
         return contratService.update(id, contrat);
     }*/
 
+
+
     IContratService contratService;
 }

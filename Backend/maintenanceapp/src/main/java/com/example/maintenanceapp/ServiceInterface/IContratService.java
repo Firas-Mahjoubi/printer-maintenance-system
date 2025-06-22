@@ -11,4 +11,6 @@ public interface IContratService {
     Contrat save(Contrat contrat);
     void delete(Long id);
     Contrat update(long id,Contrat contrat);
-}
+    List<Contrat> getContratsProchesDeLEcheance(int joursAvant) ;
+    void verifierContratsProchesExpiration() ;
+    }
