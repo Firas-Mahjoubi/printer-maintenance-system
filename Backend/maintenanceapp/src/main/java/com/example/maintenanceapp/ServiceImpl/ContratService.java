@@ -45,6 +45,7 @@ public class ContratService implements IContratService {
         existing.setNumeroContrat(contrat.getNumeroContrat());
         existing.setDateDebut(contrat.getDateDebut());
         existing.setDateFin(contrat.getDateFin());
+        existing.setConditions_contrat(contrat.getConditions_contrat());
         existing.setStatutContrat(contrat.getStatutContrat());
 
 
@@ -66,21 +67,46 @@ public class ContratService implements IContratService {
         for (Contrat contrat : contrats) {
             System.out.println("🔔 Contrat à renouveler bientôt : " + contrat.getNumeroContrat()
                     + " (Expire le : " + contrat.getDateFin() + ")");
-            // You can add email notification here
+            // add email notification here
         }
     }
-    @Scheduled(cron = "0 0 9 * * *") // Runs every day at 08:00 AM
+    @Scheduled(cron = "0 0 9 * * *") // Runs every day at 09:00 AM
     public void mettreAJourContratsExpires() {
         LocalDate aujourdHui = LocalDate.now();
-
-        // Fetch contracts that ended before today and are not already marked as expired
         List<Contrat> contratsAExpirer = contratRepositorie.findByDateFinBeforeAndStatutContratNot(aujourdHui, StatutContrat.EXPIRE);
-
         for (Contrat contrat : contratsAExpirer) {
             contrat.setStatutContrat(StatutContrat.EXPIRE);
             contratRepositorie.save(contrat);
             System.out.println("Contrat expiré mis à jour : " + contrat.getNumeroContrat());
         }
     }
+    @Override
+    public Contrat renouvelerContrat(Long oldContratId, Contrat newContratData) {
+        Contrat oldContrat = contratRepositorie.findById(oldContratId)
+                .orElseThrow(() -> new RuntimeException("Contrat not found"));
+
+        // Step 1: mark old as renewed
+        oldContrat.setStatutContrat(StatutContrat.RENOUVELE);
+        contratRepositorie.save(oldContrat);
+
+        // Step 2: create new contrat
+        Contrat newContrat = Contrat.builder()
+                .numeroContrat(newContratData.getNumeroContrat())
+                .dateDebut(newContratData.getDateDebut())
+                .dateFin(newContratData.getDateFin())
+                .client(oldContrat.getClient())
+                .intervention(null)
+                .statutContrat(StatutContrat.ACTIF)
+                .contratPrecedent(oldContrat) // optional
+                .build();
+
+        return contratRepositorie.save(newContrat);
+    }
+
+    @Override
+    public List<Contrat> getContratsHistorie() {
+        return contratRepositorie.findByStatutContratNot(StatutContrat.ACTIF);
+    }
+
 
 }

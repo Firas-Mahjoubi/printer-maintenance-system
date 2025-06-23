@@ -13,4 +13,6 @@ public interface IContratService {
     Contrat update(long id,Contrat contrat);
     List<Contrat> getContratsProchesDeLEcheance(int joursAvant) ;
     void verifierContratsProchesExpiration() ;
+    Contrat renouvelerContrat(Long oldContratId, Contrat newContratData) ;
+    List<Contrat> getContratsHistorie();
     }

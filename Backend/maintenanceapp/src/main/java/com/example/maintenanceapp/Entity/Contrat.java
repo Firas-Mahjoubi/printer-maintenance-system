@@ -1,6 +1,7 @@
 package com.example.maintenanceapp.Entity;
 
 import com.example.maintenanceapp.Entity.Enum.StatutContrat;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
@@ -26,14 +27,19 @@ public class Contrat {
     LocalDate dateFin;
     @Enumerated(EnumType.STRING)
     StatutContrat statutContrat;
+    String conditions_contrat;
     @ManyToOne
      Utilisateur client;
 
     @OneToMany(cascade = CascadeType.ALL,mappedBy = "contrat")
-     List<Imprimante> imprimantes;
+    @JsonIgnore
+    List<Imprimante> imprimantes;
 
     @OneToOne(cascade = CascadeType.ALL,mappedBy = "contrat")
      Facture facture;
     @OneToOne
     Intervention intervention;
+    @ManyToOne
+    Contrat contratPrecedent;
+
 }

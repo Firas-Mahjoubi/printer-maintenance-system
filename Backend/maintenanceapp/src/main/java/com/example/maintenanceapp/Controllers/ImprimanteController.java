@@ -49,6 +49,10 @@ public class ImprimanteController {
     public void deleteAllImprimantesByContratId(@PathVariable Long contratId) {
         imprimanteService.deleteAllImprimantesByContratId(contratId);
     }
+    @PostMapping("/assign-multiple")
+    public List<Imprimante> assignImprimantesToContrat(@RequestParam List<Long> imprimanteIds,@RequestParam Long contratId) {
+        return imprimanteService.assignImprimantesToContrat(imprimanteIds, contratId);
+    }
 
     IImprimanteService imprimanteService;
 }

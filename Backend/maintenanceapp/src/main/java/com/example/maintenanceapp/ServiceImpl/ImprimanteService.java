@@ -17,6 +17,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.List;
 
 
@@ -81,5 +82,21 @@ public class ImprimanteService implements IImprimanteService {
     @Override
     public void deleteAllImprimantesByContratId(Long contratId) {
         imprimanteRepositorie.deleteAllByContrat_Id(contratId);
+    }
+
+    @Override
+    public List<Imprimante> assignImprimantesToContrat(List<Long> imprimanteIds, Long contratId) {
+        Contrat contrat = contratRepository.findById(contratId)
+                .orElseThrow(() -> new RuntimeException("Contrat not found"));
+
+        List<Imprimante> updated = new ArrayList<>();
+        for (Long id : imprimanteIds) {
+            Imprimante imp = imprimanteRepositorie.findById(id)
+                    .orElseThrow(() -> new RuntimeException("Imprimante ID not found: " + id));
+            imp.setContrat(contrat);
+            updated.add(imprimanteRepositorie.save(imp));
+        }
+
+        return updated;
     }
 }

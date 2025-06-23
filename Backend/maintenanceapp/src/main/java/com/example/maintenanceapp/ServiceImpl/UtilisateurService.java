@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.UUID;
 
 @Service
 @AllArgsConstructor
@@ -21,6 +22,7 @@ public class UtilisateurService implements IUtilisateurService {
 
     UtilisateurRepositorie utilisateurRepositorie;
     private final PasswordEncoder passwordEncoder;
+    private final EmailService emailService;
 
 
 
@@ -55,5 +57,20 @@ public class UtilisateurService implements IUtilisateurService {
     @Override
     public Utilisateur getUserByEmail(String email) {
         return utilisateurRepositorie.getRolFromUser(email); // assure-toi que cette méthode renvoie bien un Utilisateur
+    }
+    public String generateRandomPassword() {
+        return UUID.randomUUID().toString().substring(0, 8);
+    }
+
+    @Override
+    public Utilisateur addUserWithTempPassword(Utilisateur user) {
+        String tempPassword = generateRandomPassword(); // You can define this method
+        user.setMotDePasse(passwordEncoder.encode(tempPassword));
+        user.setMustResetPassword(true); // Flag to force password reset
+        utilisateurRepositorie.save(user);
+
+        emailService.sendAccountCreationEmail(user.getEmail(), tempPassword);
+
+        return user;
     }
 }

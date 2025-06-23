@@ -13,5 +13,5 @@ public interface IImprimanteService {
     List<Imprimante> getAllImprimante(Long contratId);
     void deleteImprimante(Long imprimanteId);
     void deleteAllImprimantesByContratId(Long contratId);
-
+    List<Imprimante> assignImprimantesToContrat(List<Long> imprimanteIds, Long contratId) ;
 }

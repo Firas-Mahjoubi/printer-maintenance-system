@@ -28,6 +28,9 @@ public class Utilisateur {
     String motDePasse;
     @Enumerated(EnumType.STRING)
     Role role;
+    @Column(name = "must_reset_password")
+    boolean mustResetPassword;
+
 
 
 

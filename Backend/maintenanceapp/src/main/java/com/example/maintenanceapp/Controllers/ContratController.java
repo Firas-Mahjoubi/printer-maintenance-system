@@ -43,7 +43,14 @@ public class ContratController {
         return contratService.update(id, contrat);
     }*/
 
-
+    @PostMapping("/renouveler/{id}")
+    public Contrat renouvelerContrat(@PathVariable Long id,@RequestBody Contrat newContratData) {
+        return contratService.renouvelerContrat(id, newContratData);
+    }
+@GetMapping("/getContratsHistorie")
+    public List<Contrat> getContratsHistorie() {
+        return contratService.getContratsHistorie();
+    }
 
     IContratService contratService;
 }

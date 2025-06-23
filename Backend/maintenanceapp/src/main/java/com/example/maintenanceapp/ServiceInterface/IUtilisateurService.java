@@ -20,4 +20,7 @@ public interface IUtilisateurService {
     Utilisateur getUserByEmail(String email);
 
 
-}
+    Utilisateur addUserWithTempPassword(Utilisateur user) ;
+
+
+    }
