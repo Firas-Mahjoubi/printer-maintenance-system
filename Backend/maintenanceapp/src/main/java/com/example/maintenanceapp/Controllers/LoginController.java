@@ -14,6 +14,8 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Collections;
+
 @RestController
 @RequestMapping("/login")
 @RequiredArgsConstructor
@@ -44,6 +46,6 @@ public class LoginController {
                 userRepository.getRolFromUser(userDetails.getUsername()).getRole()
         );
 
-        return ResponseEntity.ok(jwt);
+        return ResponseEntity.ok(Collections.singletonMap("token", jwt));
     }
 }

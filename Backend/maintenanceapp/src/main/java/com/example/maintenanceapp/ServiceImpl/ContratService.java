@@ -2,7 +2,9 @@ package com.example.maintenanceapp.ServiceImpl;
 
 import com.example.maintenanceapp.Entity.Contrat;
 import com.example.maintenanceapp.Entity.Enum.StatutContrat;
+import com.example.maintenanceapp.Entity.Imprimante;
 import com.example.maintenanceapp.Repositories.ContratRepositorie;
+import com.example.maintenanceapp.Repositories.ImprimanteRepositorie;
 import com.example.maintenanceapp.ServiceInterface.IContratService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -18,6 +20,7 @@ import java.util.Optional;
 @Slf4j
 public class ContratService implements IContratService {
     ContratRepositorie contratRepositorie;
+    ImprimanteRepositorie imprimanteRepositorie;
     @Override
     public List<Contrat> findAll() {
         return contratRepositorie.findAll();
@@ -80,27 +83,29 @@ public class ContratService implements IContratService {
             System.out.println("Contrat expiré mis à jour : " + contrat.getNumeroContrat());
         }
     }
+
     @Override
     public Contrat renouvelerContrat(Long oldContratId, Contrat newContratData) {
-        Contrat oldContrat = contratRepositorie.findById(oldContratId)
-                .orElseThrow(() -> new RuntimeException("Contrat not found"));
+        Contrat ancienContrat = contratRepositorie.findById(oldContratId)
+                .orElseThrow(() -> new RuntimeException("Ancien contrat non trouvé"));
 
-        // Step 1: mark old as renewed
-        oldContrat.setStatutContrat(StatutContrat.RENOUVELE);
-        contratRepositorie.save(oldContrat);
+        // 1. Update old contract
+        ancienContrat.setStatutContrat(StatutContrat.RENOUVELE);
+        contratRepositorie.save(ancienContrat);
 
-        // Step 2: create new contrat
-        Contrat newContrat = Contrat.builder()
-                .numeroContrat(newContratData.getNumeroContrat())
-                .dateDebut(newContratData.getDateDebut())
-                .dateFin(newContratData.getDateFin())
-                .client(oldContrat.getClient())
-                .intervention(null)
-                .statutContrat(StatutContrat.ACTIF)
-                .contratPrecedent(oldContrat) // optional
-                .build();
+        // 2. Set link and status for the new contract
+        newContratData.setContratPrecedent(ancienContrat);
+        newContratData.setStatutContrat(StatutContrat.ACTIF);
+        contratRepositorie.save(newContratData);
 
-        return contratRepositorie.save(newContrat);
+        // 3. Fetch and transfer imprimantes
+        List<Imprimante> imprimantes = imprimanteRepositorie.findByContrat_Id(oldContratId);
+        for (Imprimante i : imprimantes) {
+            i.setContrat(newContratData);
+            imprimanteRepositorie.save(i);
+        }
+
+        return newContratData;
     }
 
     @Override
