@@ -1,0 +1,33 @@
+<!-- contrat.component.html -->
+<div class="card">
+  <div class="card-header d-flex justify-content-between">
+    <h5>Liste des Contrats</h5>
+    <button class="btn btn-primary" (click)="newContrat()">Ajouter</button>
+  </div>
+  <div class="card-body">
+    <table class="table table-striped">
+      <thead>
+        <tr>
+          <th>Numéro du contrat</th>
+          <th>Date début</th>
+          <th>Date fin</th>
+          <th>Statut Contrat</th>
+            <th>Client</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let contrat of contrats">
+          <td>{{ contrat.numeroContrat }}</td>
+          <td>{{ contrat.dateDebut }}</td>
+          <td>{{ contrat.dateFin }}</td>
+          <td>{{ contrat.statutContrat }}</td>
+          <td>{{ contrat.client?.nom }}</td>
+          <td>
+            <button class="btn btn-warning btn-sm me-1" (click)="editContrat(contrat)">Modifier</button>
+            <button class="btn btn-danger btn-sm" (click)="deleteContrat(contrat.id)">Supprimer</button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>

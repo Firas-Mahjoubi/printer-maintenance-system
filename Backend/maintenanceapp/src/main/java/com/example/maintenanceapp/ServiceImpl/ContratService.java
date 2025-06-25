@@ -1,10 +1,13 @@
 package com.example.maintenanceapp.ServiceImpl;
 
+import ch.qos.logback.core.net.server.Client;
 import com.example.maintenanceapp.Entity.Contrat;
 import com.example.maintenanceapp.Entity.Enum.StatutContrat;
 import com.example.maintenanceapp.Entity.Imprimante;
+import com.example.maintenanceapp.Entity.Utilisateur;
 import com.example.maintenanceapp.Repositories.ContratRepositorie;
 import com.example.maintenanceapp.Repositories.ImprimanteRepositorie;
+import com.example.maintenanceapp.Repositories.UtilisateurRepositorie;
 import com.example.maintenanceapp.ServiceInterface.IContratService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -21,9 +24,10 @@ import java.util.Optional;
 public class ContratService implements IContratService {
     ContratRepositorie contratRepositorie;
     ImprimanteRepositorie imprimanteRepositorie;
+    UtilisateurRepositorie utilisateurRepositorie;
     @Override
     public List<Contrat> findAll() {
-        return contratRepositorie.findAll();
+        return contratRepositorie.findByStatutContrat(StatutContrat.ACTIF);
     }
 
     @Override
@@ -32,7 +36,9 @@ public class ContratService implements IContratService {
     }
 
     @Override
-    public Contrat save(Contrat contrat) {
+    public Contrat save(Contrat contrat, long clientId) {
+        Utilisateur utilisateur = utilisateurRepositorie.getReferenceById(clientId);
+        contrat.setClient(utilisateur);
         return contratRepositorie.save(contrat);
     }
 

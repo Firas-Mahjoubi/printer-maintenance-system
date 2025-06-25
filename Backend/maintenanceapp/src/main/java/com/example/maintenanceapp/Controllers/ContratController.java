@@ -17,9 +17,9 @@ import java.util.List;
 @RequestMapping("api/Contrat")
 public class ContratController {
 
-    @PostMapping("/save")
-    public Contrat save(@RequestBody Contrat contrat) {
-        return contratService.save(contrat);
+    @PostMapping("/save/{clientId}")
+    public Contrat save(@RequestBody Contrat contrat,@PathVariable long clientId) {
+        return contratService.save(contrat,clientId);
     }
 @GetMapping("/findAll")
     public List<Contrat> findAll() {

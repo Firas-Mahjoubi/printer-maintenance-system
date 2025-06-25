@@ -11,6 +11,10 @@ import { FormsModule } from '@angular/forms';
 import { SidebarComponent } from './layout/sidebar/sidebar.component';
 import { NavbarComponent } from './layout/navbar/navbar.component';
 import { DashboardComponent } from './dashboard/dashboard.component';
+import { LandingComponent } from './pages/landing/landing.component';
+import { ContratComponent } from './components/contrat/contrat.component';
+import { ContratFormComponent } from './components/contrat-form/contrat-form.component';
+
 
 @NgModule({
   declarations: [
@@ -18,7 +22,10 @@ import { DashboardComponent } from './dashboard/dashboard.component';
     LoginComponent,
     SidebarComponent,
     NavbarComponent,
-    DashboardComponent
+    DashboardComponent,
+    LandingComponent,
+    ContratComponent,
+    ContratFormComponent,
   ],
   imports: [
     HttpClientModule,

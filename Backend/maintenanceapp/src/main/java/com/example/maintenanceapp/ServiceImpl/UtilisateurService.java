@@ -1,5 +1,6 @@
 package com.example.maintenanceapp.ServiceImpl;
 
+import com.example.maintenanceapp.Entity.Enum.Role;
 import com.example.maintenanceapp.Entity.Utilisateur;
 import com.example.maintenanceapp.Repositories.UtilisateurRepositorie;
 import com.example.maintenanceapp.ServiceInterface.IUtilisateurService;
@@ -73,4 +74,11 @@ public class UtilisateurService implements IUtilisateurService {
 
         return user;
     }
+
+    @Override
+    public List<Utilisateur> getAllClients() {
+        return utilisateurRepositorie.findByRole(Role.CLIENT);
+    }
+
+
 }

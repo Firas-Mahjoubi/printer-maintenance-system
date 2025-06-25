@@ -1,9 +1,9 @@
-<div class="app-container">
-  <app-navbar></app-navbar>
-  <div class="main-container">
+<body [ngClass]="{ 'no-layout': !showLayout }">
+  <ng-container *ngIf="showLayout">
+    <app-navbar></app-navbar>
     <app-sidebar></app-sidebar>
-    <div class="content">
-      <router-outlet></router-outlet>
-    </div>
-  </div>
-</div>
+  </ng-container>
+ <main id="main" class="main">
+    <router-outlet></router-outlet>
+  </main>
+</body>

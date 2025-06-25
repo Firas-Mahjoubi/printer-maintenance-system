@@ -1,0 +1,93 @@
+<div class="card">
+  <div class="card-header">
+    <h5>Ajouter un Contrat</h5>
+  </div>
+  <div class="card-body">
+    <form class="row g-3 needs-validation" 
+          #contratForm="ngForm" 
+          (ngSubmit)="onSubmit(contratForm)" 
+          novalidate>
+      
+      <div class="col-md-6">
+        <label for="numeroContrat" class="form-label">Numéro du contrat</label>
+        <input type="text" 
+               class="form-control" 
+               id="numeroContrat" 
+               required 
+               [(ngModel)]="contrat.numeroContrat" 
+               name="numeroContrat" 
+               #numeroContrat="ngModel">
+        <div *ngIf="numeroContrat.invalid && numeroContrat.touched" class="text-danger">
+          Veuillez entrer un numéro de contrat.
+        </div>
+      </div>
+
+      <div class="col-md-6">
+        <label for="statutContrat" class="form-label">Statut du contrat</label>
+        <select class="form-select" 
+                id="statutContrat" 
+                required 
+                [(ngModel)]="contrat.statutContrat" 
+                name="statutContrat"
+                #statutContrat="ngModel">
+          <option [ngValue]="null">Choisir...</option>
+          <option value="ACTIF">ACTIF</option>
+          <option value="EXPIRE">EXPIRÉ</option>
+          <option value="SUSPENDU">SUSPENDU</option>
+        </select>
+        <div *ngIf="statutContrat.invalid && statutContrat.touched" class="text-danger">
+          Veuillez sélectionner un statut.
+        </div>
+      </div>
+
+      <div class="col-md-6">
+        <label for="dateDebut" class="form-label">Date début</label>
+        <input type="date" 
+               class="form-control" 
+               id="dateDebut" 
+               required 
+               [(ngModel)]="contrat.dateDebut" 
+               name="dateDebut" 
+               #dateDebut="ngModel">
+        <div *ngIf="dateDebut.invalid && dateDebut.touched" class="text-danger">
+          Veuillez fournir une date de début.
+        </div>
+      </div>
+
+      <div class="col-md-6">
+        <label for="dateFin" class="form-label">Date fin</label>
+        <input type="date" 
+               class="form-control" 
+               id="dateFin" 
+               required 
+               [(ngModel)]="contrat.dateFin" 
+               name="dateFin" 
+               #dateFin="ngModel">
+        <div *ngIf="dateFin.invalid && dateFin.touched" class="text-danger">
+          Veuillez fournir une date de fin.
+        </div>
+      </div>
+
+      <!-- Optional: Client selector -->
+      <div class="col-md-6" *ngIf="clients?.length">
+        <label for="clientId" class="form-label">Client</label>
+        <select class="form-select" 
+                id="clientId" 
+                required 
+                [(ngModel)]="contrat.clientId" 
+                name="clientId"
+                #clientId="ngModel">
+          <option [ngValue]="null">Sélectionner un client</option>
+          <option *ngFor="let client of clients" [ngValue]="client.id">{{ client.nom }}</option>
+        </select>
+        <div *ngIf="clientId.invalid && clientId.touched" class="text-danger">
+          Veuillez sélectionner un client.
+        </div>
+      </div>
+
+      <div class="col-12">
+        <button class="btn btn-success" type="submit" [disabled]="contratForm.invalid">Enregistrer</button>
+      </div>
+    </form>
+  </div>
+</div>

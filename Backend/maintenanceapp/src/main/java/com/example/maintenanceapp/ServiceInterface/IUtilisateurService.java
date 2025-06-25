@@ -21,6 +21,7 @@ public interface IUtilisateurService {
 
 
     Utilisateur addUserWithTempPassword(Utilisateur user) ;
+    List<Utilisateur> getAllClients();
 
 
     }

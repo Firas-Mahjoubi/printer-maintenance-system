@@ -20,3 +20,13 @@
   color: #333;
   font-weight: 500;
 }
+.sidebar .nav-content a.active {
+  background-color: #e0e7ff;
+  color: #4154f1;
+  font-weight: bold;
+}
+
+.sidebar .nav-content a.active i {
+  color: #4154f1;
+}
+

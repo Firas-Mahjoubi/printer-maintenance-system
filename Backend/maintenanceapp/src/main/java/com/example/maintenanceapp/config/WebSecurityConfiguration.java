@@ -33,7 +33,12 @@ public class WebSecurityConfiguration {
         http
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/login", "/api/Utilisateur/add").permitAll() // allow login & user registration
+                        .requestMatchers(
+                                "/login",
+                                "/v3/api-docs/**",
+                                "/swagger-ui/**",
+                                "/swagger-ui.html"
+                        ).permitAll() // allow login & user registration
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session

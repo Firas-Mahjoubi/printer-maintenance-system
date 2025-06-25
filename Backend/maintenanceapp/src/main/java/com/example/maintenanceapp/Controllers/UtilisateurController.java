@@ -66,6 +66,10 @@ public class UtilisateurController {
     public Utilisateur addUserWithTempPassword(@RequestBody Utilisateur user) {
         return utilisateurService.addUserWithTempPassword(user);
     }
+@GetMapping("/getAllClients")
+    public List<Utilisateur> getAllClients() {
+        return utilisateurService.getAllClients();
+    }
 
     IUtilisateurService utilisateurService;
 
