@@ -1,93 +1,286 @@
-<div class="card">
-  <div class="card-header">
-    <h5>Ajouter un Contrat</h5>
-  </div>
-  <div class="card-body">
-    <form class="row g-3 needs-validation" 
-          #contratForm="ngForm" 
-          (ngSubmit)="onSubmit(contratForm)" 
-          novalidate>
-      
-      <div class="col-md-6">
-        <label for="numeroContrat" class="form-label">Numéro du contrat</label>
-        <input type="text" 
-               class="form-control" 
-               id="numeroContrat" 
-               required 
-               [(ngModel)]="contrat.numeroContrat" 
-               name="numeroContrat" 
-               #numeroContrat="ngModel">
-        <div *ngIf="numeroContrat.invalid && numeroContrat.touched" class="text-danger">
-          Veuillez entrer un numéro de contrat.
+<div class="container-fluid py-4">
+  <div class="row justify-content-center">
+    <div class="col-lg-8 col-xl-6">
+      <div class="card border-0 shadow-lg">
+        <div class="card-header bg-primary text-white py-4">
+          <div class="d-flex align-items-center">
+            <div class="bg-white bg-opacity-20 rounded-circle p-2 me-3">
+              <span class="text-white fs-4">📄</span>
+            </div>
+            <div>
+              <h4 class="mb-1 fw-bold">Nouveau Contrat</h4>
+              <p class="mb-0 text-white-50">Créer un nouveau contrat de maintenance</p>
+            </div>
+          </div>
+        </div>
+        
+        <div class="card-body p-4">
+          <!-- Indicateur de progression -->
+          <div class="progress mb-4" style="height: 6px;">
+            <div class="progress-bar bg-primary" 
+                 role="progressbar" 
+                 [style.width.%]="getFormProgress()" 
+                 [attr.aria-valuenow]="getFormProgress()" 
+                 aria-valuemin="0" 
+                 aria-valuemax="100">
+            </div>
+          </div>
+          <small class="text-muted mb-4 d-block">
+            Progression du formulaire : {{ getFormProgress() }}% complété
+          </small>
+
+          <form class="needs-validation" 
+                #contratForm="ngForm" 
+                (ngSubmit)="onSubmit(contratForm)" 
+                novalidate>
+            
+            <!-- Section 1: Informations de base -->
+            <div class="form-section mb-5">
+              <h6 class="text-primary fw-bold mb-3 d-flex align-items-center">
+                <span class="bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center me-2" style="width: 24px; height: 24px; font-size: 12px;">1</span>
+                Informations de base
+              </h6>
+              
+              <div class="row g-3">
+                <div class="col-md-6">
+                  <label for="numeroContrat" class="form-label fw-semibold">
+                    <span class="text-danger">*</span> Numéro du contrat
+                  </label>
+                  <div class="input-group">
+                    <span class="input-group-text bg-light">
+                      <span class="text-primary">#</span>
+                    </span>
+                    <input type="text" 
+                           class="form-control" 
+                           id="numeroContrat" 
+                           required 
+                           [(ngModel)]="contrat.numeroContrat" 
+                           name="numeroContrat" 
+                           #numeroContrat="ngModel"
+                           placeholder="Ex: C-2025-001"
+                           [class.is-valid]="numeroContrat.valid && numeroContrat.touched"
+                           [class.is-invalid]="numeroContrat.invalid && numeroContrat.touched">
+                  </div>
+                  <div *ngIf="numeroContrat.invalid && numeroContrat.touched" class="invalid-feedback d-block">
+                    <small><strong>⚠️ Erreur :</strong> Le numéro de contrat est obligatoire</small>
+                  </div>
+                  <div *ngIf="numeroContrat.valid && numeroContrat.touched" class="valid-feedback d-block">
+                    <small><strong>✅ Parfait !</strong> Numéro de contrat valide</small>
+                  </div>
+                </div>
+
+                <div class="col-md-6">
+                  <label for="statutContrat" class="form-label fw-semibold">
+                    <span class="text-danger">*</span> Statut du contrat
+                  </label>
+                  <select class="form-select" 
+                          id="statutContrat" 
+                          required 
+                          [(ngModel)]="contrat.statutContrat" 
+                          name="statutContrat"
+                          #statutContrat="ngModel"
+                          [class.is-valid]="statutContrat.valid && statutContrat.touched"
+                          [class.is-invalid]="statutContrat.invalid && statutContrat.touched">
+                    <option [ngValue]="null" disabled>Sélectionner un statut...</option>
+                    <option value="ACTIF">🟢 ACTIF - Contrat en cours</option>
+                    <option value="BROUILLON">📝 BROUILLON - En préparation</option>
+                    <option value="SUSPENDU">⏸️ SUSPENDU - Temporairement arrêté</option>
+                    <option value="EXPIRE">🔴 EXPIRÉ - Contrat terminé</option>
+                  </select>
+                  <div *ngIf="statutContrat.invalid && statutContrat.touched" class="invalid-feedback d-block">
+                    <small><strong>⚠️ Erreur :</strong> Veuillez sélectionner un statut</small>
+                  </div>
+                  <div *ngIf="statutContrat.valid && statutContrat.touched" class="valid-feedback d-block">
+                    <small><strong>✅ Parfait !</strong> Statut sélectionné</small>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Section 2: Période de validité -->
+            <div class="form-section mb-5">
+              <h6 class="text-primary fw-bold mb-3 d-flex align-items-center">
+                <span class="bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center me-2" style="width: 24px; height: 24px; font-size: 12px;">2</span>
+                Période de validité
+              </h6>
+              
+              <div class="row g-3">
+                <div class="col-md-6">
+                  <label for="dateDebut" class="form-label fw-semibold">
+                    <span class="text-danger">*</span> Date de début
+                  </label>
+                  <div class="input-group">
+                    <span class="input-group-text bg-light">
+                      <span class="text-primary">📅</span>
+                    </span>
+                    <input type="date" 
+                           class="form-control" 
+                           id="dateDebut" 
+                           required 
+                           [(ngModel)]="contrat.dateDebut" 
+                           name="dateDebut" 
+                           #dateDebut="ngModel"
+                           [min]="today"
+                           [class.is-valid]="dateDebut.valid && dateDebut.touched"
+                           [class.is-invalid]="dateDebut.invalid && dateDebut.touched">
+                  </div>
+                  <div *ngIf="dateDebut.invalid && dateDebut.touched" class="invalid-feedback d-block">
+                    <small><strong>⚠️ Erreur :</strong> La date de début est obligatoire</small>
+                  </div>
+                  <div *ngIf="dateDebut.valid && dateDebut.touched" class="valid-feedback d-block">
+                    <small><strong>✅ Parfait !</strong> Date de début valide</small>
+                  </div>
+                </div>
+
+                <div class="col-md-6">
+                  <label for="dateFin" class="form-label fw-semibold">
+                    <span class="text-danger">*</span> Date de fin
+                  </label>
+                  <div class="input-group">
+                    <span class="input-group-text bg-light">
+                      <span class="text-primary">🏁</span>
+                    </span>
+                    <input type="date" 
+                           class="form-control" 
+                           id="dateFin" 
+                           required 
+                           [(ngModel)]="contrat.dateFin" 
+                           name="dateFin" 
+                           #dateFin="ngModel"
+                           [min]="contrat.dateDebut || today"
+                           [class.is-valid]="dateFin.valid && dateFin.touched"
+                           [class.is-invalid]="dateFin.invalid && dateFin.touched">
+                  </div>
+                  <div *ngIf="dateFin.invalid && dateFin.touched" class="invalid-feedback d-block">
+                    <small><strong>⚠️ Erreur :</strong> La date de fin est obligatoire</small>
+                  </div>
+                  <div *ngIf="dateFin.valid && dateFin.touched" class="valid-feedback d-block">
+                    <small><strong>✅ Parfait !</strong> Date de fin valide</small>
+                  </div>
+                  <!-- Affichage de la durée du contrat -->
+                  <div *ngIf="contrat.dateDebut && contrat.dateFin" class="mt-2">
+                    <div class="alert alert-info py-2">
+                      <small><strong>📊 Durée :</strong> {{ calculateDuration() }} jour(s)</small>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Section 3: Attribution du client -->
+            <div class="form-section mb-5" *ngIf="clients?.length">
+              <h6 class="text-primary fw-bold mb-3 d-flex align-items-center">
+                <span class="bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center me-2" style="width: 24px; height: 24px; font-size: 12px;">3</span>
+                Attribution du client
+              </h6>
+              
+              <div class="col-md-8">
+                <label for="clientId" class="form-label fw-semibold">
+                  <span class="text-danger">*</span> Client assigné
+                </label>
+                <div class="input-group">
+                  <span class="input-group-text bg-light">
+                    <span class="text-primary">👤</span>
+                  </span>
+                  <select class="form-select" 
+                          id="clientId" 
+                          required 
+                          [(ngModel)]="contrat.clientId" 
+                          name="clientId"
+                          #clientId="ngModel"
+                          [class.is-valid]="clientId.valid && clientId.touched"
+                          [class.is-invalid]="clientId.invalid && clientId.touched">
+                    <option [ngValue]="null" disabled>Sélectionner un client...</option>
+                    <option *ngFor="let client of clients" [ngValue]="client.id">
+                      {{ client.nom }} (ID: #{{ client.id }})
+                    </option>
+                  </select>
+                </div>
+                <div *ngIf="clientId.invalid && clientId.touched" class="invalid-feedback d-block">
+                  <small><strong>⚠️ Erreur :</strong> Veuillez sélectionner un client</small>
+                </div>
+                <div *ngIf="clientId.valid && clientId.touched" class="valid-feedback d-block">
+                  <small><strong>✅ Parfait !</strong> Client sélectionné</small>
+                </div>
+              </div>
+            </div>
+
+            <!-- Section 4: Conditions détaillées -->
+            <div class="form-section mb-5">
+              <h6 class="text-primary fw-bold mb-3 d-flex align-items-center">
+                <span class="bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center me-2" style="width: 24px; height: 24px; font-size: 12px;">4</span>
+                Conditions détaillées
+              </h6>
+              
+              <div class="mb-3">
+                <label for="conditionsContrat" class="form-label fw-semibold">
+                  Conditions du contrat
+                  <span class="text-muted small">(optionnel)</span>
+                </label>
+                <textarea
+                  class="form-control"
+                  id="conditionsContrat"
+                  name="conditions_contrat"
+                  [(ngModel)]="contrat.conditions_contrat"
+                  rows="6"
+                  placeholder="Décrivez les conditions spécifiques du contrat de maintenance...
+
+Exemples :
+• Interventions préventives mensuelles
+• Support technique 24h/7j
+• Garantie sur les pièces de rechange
+• Délai d'intervention : 4h maximum"
+                  style="resize: vertical;">
+                </textarea>
+                <div class="form-text">
+                  <small class="text-muted">
+                    💡 <strong>Conseil :</strong> Soyez précis sur les services inclus, les délais d'intervention et les garanties offertes.
+                  </small>
+                </div>
+              </div>
+            </div>
+
+            <!-- Boutons d'action -->
+            <div class="d-flex justify-content-between align-items-center pt-4 border-top">
+              <button type="button" class="btn btn-outline-secondary">
+                <span class="me-2">↩️</span> Annuler
+              </button>
+              
+              <div class="d-flex gap-2">
+                <button type="button" 
+                        class="btn btn-outline-primary"
+                        [disabled]="contratForm.invalid">
+                  <span class="me-2">💾</span> Enregistrer comme brouillon
+                </button>
+                
+                <button class="btn btn-success px-4" 
+                        type="submit" 
+                        [disabled]="contratForm.invalid || isSubmitting">
+                  <span *ngIf="!isSubmitting" class="me-2">✅</span>
+                  <span *ngIf="isSubmitting" class="spinner-border spinner-border-sm me-2" role="status"></span>
+                  {{ isSubmitting ? 'Enregistrement...' : 'Créer le contrat' }}
+                </button>
+              </div>
+            </div>
+
+            <!-- Aide et informations -->
+            <div class="mt-4 p-3 bg-light rounded">
+              <div class="d-flex align-items-start">
+                <span class="text-primary me-2 mt-1">💡</span>
+                <div>
+                  <h6 class="mb-2 text-primary">Aide et conseils</h6>
+                  <ul class="small text-muted mb-0 ps-3">
+                    <li>Les champs marqués d'un <span class="text-danger">*</span> sont obligatoires</li>
+                    <li>La date de fin doit être postérieure à la date de début</li>
+                    <li>Un contrat peut être modifié après sa création</li>
+                    <li>Les brouillons ne sont pas visibles par les clients</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </form>
         </div>
       </div>
-
-      <div class="col-md-6">
-        <label for="statutContrat" class="form-label">Statut du contrat</label>
-        <select class="form-select" 
-                id="statutContrat" 
-                required 
-                [(ngModel)]="contrat.statutContrat" 
-                name="statutContrat"
-                #statutContrat="ngModel">
-          <option [ngValue]="null">Choisir...</option>
-          <option value="ACTIF">ACTIF</option>
-          <option value="EXPIRE">EXPIRÉ</option>
-          <option value="SUSPENDU">SUSPENDU</option>
-        </select>
-        <div *ngIf="statutContrat.invalid && statutContrat.touched" class="text-danger">
-          Veuillez sélectionner un statut.
-        </div>
-      </div>
-
-      <div class="col-md-6">
-        <label for="dateDebut" class="form-label">Date début</label>
-        <input type="date" 
-               class="form-control" 
-               id="dateDebut" 
-               required 
-               [(ngModel)]="contrat.dateDebut" 
-               name="dateDebut" 
-               #dateDebut="ngModel">
-        <div *ngIf="dateDebut.invalid && dateDebut.touched" class="text-danger">
-          Veuillez fournir une date de début.
-        </div>
-      </div>
-
-      <div class="col-md-6">
-        <label for="dateFin" class="form-label">Date fin</label>
-        <input type="date" 
-               class="form-control" 
-               id="dateFin" 
-               required 
-               [(ngModel)]="contrat.dateFin" 
-               name="dateFin" 
-               #dateFin="ngModel">
-        <div *ngIf="dateFin.invalid && dateFin.touched" class="text-danger">
-          Veuillez fournir une date de fin.
-        </div>
-      </div>
-
-      <!-- Optional: Client selector -->
-      <div class="col-md-6" *ngIf="clients?.length">
-        <label for="clientId" class="form-label">Client</label>
-        <select class="form-select" 
-                id="clientId" 
-                required 
-                [(ngModel)]="contrat.clientId" 
-                name="clientId"
-                #clientId="ngModel">
-          <option [ngValue]="null">Sélectionner un client</option>
-          <option *ngFor="let client of clients" [ngValue]="client.id">{{ client.nom }}</option>
-        </select>
-        <div *ngIf="clientId.invalid && clientId.touched" class="text-danger">
-          Veuillez sélectionner un client.
-        </div>
-      </div>
-
-      <div class="col-12">
-        <button class="btn btn-success" type="submit" [disabled]="contratForm.invalid">Enregistrer</button>
-      </div>
-    </form>
+    </div>
   </div>
 </div>

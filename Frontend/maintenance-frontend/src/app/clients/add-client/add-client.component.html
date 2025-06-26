@@ -1,0 +1,214 @@
+<div class="add-client-container">
+  <!-- Header Section -->
+  <div class="header-section">
+    <div class="title-section">
+      <h1 class="page-title">
+        <i class="fas fa-user-plus"></i>
+        Ajouter un Client
+      </h1>
+      <p class="page-subtitle">Créez un nouveau profil client</p>
+    </div>
+    <div class="breadcrumb">
+      <a routerLink="/clients" class="breadcrumb-link">
+        <i class="fas fa-users"></i>
+        Clients
+      </a>
+      <i class="fas fa-chevron-right"></i>
+      <span class="breadcrumb-current">Ajouter Client</span>
+    </div>
+  </div>
+
+  <!-- Success Message -->
+  <div class="success-container" *ngIf="success">
+    <div class="success-card">
+      <i class="fas fa-check-circle"></i>
+      <h3>Client créé avec succès!</h3>
+      <p>Redirection vers la liste des clients...</p>
+    </div>
+  </div>
+
+  <!-- Form Container -->
+  <div class="form-container" *ngIf="!success">
+    <form [formGroup]="clientForm" (ngSubmit)="onSubmit()" class="client-form">
+      
+      <!-- Personal Information Section -->
+      <div class="form-section">
+        <h3 class="section-title">
+          <i class="fas fa-user"></i>
+          Informations Personnelles
+        </h3>
+        
+        <div class="form-row">
+          <div class="form-group">
+            <label for="prenom" class="form-label">
+              Prénom <span class="required">*</span>
+            </label>
+            <input
+              type="text"
+              id="prenom"
+              formControlName="prenom"
+              class="form-input"
+              [class.error]="isFieldInvalid('prenom')"
+              placeholder="Entrez le prénom"
+            >
+            <div class="error-message" *ngIf="isFieldInvalid('prenom')">
+              {{ getFieldError('prenom') }}
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="nom" class="form-label">
+              Nom <span class="required">*</span>
+            </label>
+            <input
+              type="text"
+              id="nom"
+              formControlName="nom"
+              class="form-input"
+              [class.error]="isFieldInvalid('nom')"
+              placeholder="Entrez le nom de famille"
+            >
+            <div class="error-message" *ngIf="isFieldInvalid('nom')">
+              {{ getFieldError('nom') }}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Contact Information Section -->
+      <div class="form-section">
+        <h3 class="section-title">
+          <i class="fas fa-address-book"></i>
+          Informations de Contact
+        </h3>
+        
+        <div class="form-row">
+          <div class="form-group">
+            <label for="email" class="form-label">
+              Email <span class="required">*</span>
+            </label>
+            <div class="input-group">
+              <i class="fas fa-envelope input-icon"></i>
+              <input
+                type="email"
+                id="email"
+                formControlName="email"
+                class="form-input with-icon"
+                [class.error]="isFieldInvalid('email')"
+                placeholder="exemple@email.com"
+              >
+            </div>
+            <div class="error-message" *ngIf="isFieldInvalid('email')">
+              {{ getFieldError('email') }}
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="telephone" class="form-label">
+              Téléphone <span class="required">*</span>
+            </label>
+            <div class="input-group">
+              <i class="fas fa-phone input-icon"></i>
+              <input
+                type="tel"
+                id="telephone"
+                formControlName="telephone"
+                class="form-input with-icon"
+                [class.error]="isFieldInvalid('telephone')"
+                placeholder="+33 1 23 45 67 89"
+              >
+            </div>
+            <div class="error-message" *ngIf="isFieldInvalid('telephone')">
+              {{ getFieldError('telephone') }}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Optional Information Section -->
+      <div class="form-section">
+        <h3 class="section-title">
+          <i class="fas fa-image"></i>
+          Informations Optionnelles
+        </h3>
+        
+        <div class="form-group">
+          <label for="imageUrl" class="form-label">
+            URL de l'Image de Profil
+          </label>
+          <div class="input-group">
+            <i class="fas fa-link input-icon"></i>
+            <input
+              type="url"
+              id="imageUrl"
+              formControlName="imageUrl"
+              class="form-input with-icon"
+              [class.error]="isFieldInvalid('imageUrl')"
+              placeholder="https://exemple.com/photo.jpg"
+            >
+          </div>
+          <div class="error-message" *ngIf="isFieldInvalid('imageUrl')">
+            {{ getFieldError('imageUrl') }}
+          </div>
+          <div class="help-text">
+            Formats acceptés: JPG, JPEG, PNG, GIF, BMP, WebP
+          </div>
+        </div>
+
+        <!-- Image Preview -->
+        <div class="image-preview" *ngIf="clientForm.get('imageUrl')?.valid && clientForm.get('imageUrl')?.value">
+          <label class="form-label">Aperçu de l'Image</label>
+          <div class="preview-container">
+            <img 
+              [src]="clientForm.get('imageUrl')?.value" 
+              alt="Aperçu de l'image de profil"
+              class="preview-image"
+              (error)="clientForm.get('imageUrl')?.setErrors({pattern: true})"
+            >
+          </div>
+        </div>
+      </div>
+
+      <!-- Error Message -->
+      <div class="error-container" *ngIf="error">
+        <div class="error-card">
+          <i class="fas fa-exclamation-triangle"></i>
+          <p>{{ error }}</p>
+        </div>
+      </div>
+
+      <!-- Form Actions -->
+      <div class="form-actions">
+        <button 
+          type="button" 
+          class="btn btn-secondary"
+          (click)="onCancel()"
+          [disabled]="loading"
+        >
+          <i class="fas fa-times"></i>
+          Annuler
+        </button>
+        
+        <button 
+          type="button" 
+          class="btn btn-outline"
+          (click)="onReset()"
+          [disabled]="loading"
+        >
+          <i class="fas fa-undo"></i>
+          Réinitialiser
+        </button>
+        
+        <button 
+          type="submit" 
+          class="btn btn-primary"
+          [disabled]="loading || clientForm.invalid"
+        >
+          <i class="fas fa-spinner fa-spin" *ngIf="loading"></i>
+          <i class="fas fa-save" *ngIf="!loading"></i>
+          {{ loading ? 'Création en cours...' : 'Créer le Client' }}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

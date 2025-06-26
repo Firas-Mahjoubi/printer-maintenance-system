@@ -1,5 +1,7 @@
 <aside id="sidebar" [ngClass]="{ 'd-none': !isVisible }" class="sidebar">
   <ul class="sidebar-nav" id="sidebar-nav">
+
+    <!-- Dashboard -->
     <li class="nav-item">
       <a class="nav-link"
          routerLink="/dashboard"
@@ -10,6 +12,7 @@
       </a>
     </li>
 
+    <!-- Contrats Section -->
     <li class="nav-item">
       <a class="nav-link collapsed"
          data-bs-target="#components-nav"
@@ -17,7 +20,6 @@
          href="#">
         <i class="bi bi-menu-button-wide"></i><span>Contrats</span><i class="bi bi-chevron-down ms-auto"></i>
       </a>
-
       <ul id="components-nav" class="nav-content collapse show" data-bs-parent="#sidebar-nav">
         <li>
           <a routerLink="/contrats"
@@ -35,5 +37,32 @@
         </li>
       </ul>
     </li>
+
+    <!-- ✅ Clients Section -->
+    <li class="nav-item">
+      <a class="nav-link collapsed"
+         data-bs-target="#clients-nav"
+         data-bs-toggle="collapse"
+         href="#">
+        <i class="bi bi-person"></i><span>Clients</span><i class="bi bi-chevron-down ms-auto"></i>
+      </a>
+      <ul id="clients-nav" class="nav-content collapse" data-bs-parent="#sidebar-nav">
+        <li>
+          <a routerLink="/clients"
+             routerLinkActive="active"
+             [routerLinkActiveOptions]="{ exact: true }">
+            <i class="bi bi-circle"></i><span>Liste des Clients</span>
+          </a>
+        </li>
+        <li>
+          <a routerLink="/clients/add"
+             routerLinkActive="active"
+             [routerLinkActiveOptions]="{ exact: true }">
+            <i class="bi bi-circle"></i><span>Ajouter un Client</span>
+          </a>
+        </li>
+      </ul>
+    </li>
+
   </ul>
 </aside>

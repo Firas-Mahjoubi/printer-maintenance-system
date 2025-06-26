@@ -16,6 +16,7 @@ export interface Contrat {
   statutContrat: string;
   clientId?: number;          // For creating new contract with clientId
   client?: Utilisateur;       // For displaying associated client
+  conditions_contrat: string; // HTML content for contract conditions
 }
 
 @Injectable({

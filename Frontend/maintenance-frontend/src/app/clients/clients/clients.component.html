@@ -1,0 +1,145 @@
+<div class="clients-container">
+  <!-- Header Section -->
+  <div class="header-section">
+    <div class="title-section">
+      <h1 class="page-title">
+        <i class="fas fa-users"></i>
+        Clients
+      </h1>
+      <p class="page-subtitle">Gérez votre base de données clients</p>
+    </div>
+    <div class="action-section">
+      <button class="btn btn-refresh" (click)="refreshClients()" [disabled]="loading">
+        <i class="fas fa-sync-alt" [class.spinning]="loading"></i>
+        Actualiser
+      </button>
+      <button class="btn btn-primary" routerLink="/clients/add">
+        <i class="fas fa-plus"></i>
+        Ajouter Client
+      </button>
+    </div>
+  </div>
+
+  <!-- Search and Filter Section -->
+  <div class="search-section">
+    <div class="search-box">
+      <i class="fas fa-search search-icon"></i>
+      <input 
+        type="text" 
+        placeholder="Rechercher des clients par nom, email ou téléphone..."
+        [(ngModel)]="searchTerm"
+        (input)="onSearchChange()"
+        class="search-input"
+      >
+    </div>
+    <div class="results-count" *ngIf="!loading">
+      <span>{{ filteredClients.length }} sur {{ clients.length }} clients</span>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  <div class="loading-container" *ngIf="loading">
+    <div class="loading-spinner">
+      <i class="fas fa-spinner fa-spin"></i>
+    </div>
+    <p>Chargement des clients...</p>
+  </div>
+
+  <!-- Error State -->
+  <div class="error-container" *ngIf="error && !loading">
+    <div class="error-card">
+      <i class="fas fa-exclamation-triangle"></i>
+      <h3>Erreur</h3>
+      <p>{{ error }}</p>
+      <button class="btn btn-secondary" (click)="refreshClients()">
+        <i class="fas fa-redo"></i>
+        Réessayer
+      </button>
+    </div>
+  </div>
+
+  <!-- Clients Grid -->
+  <div class="clients-grid" *ngIf="!loading && !error">
+    <!-- Empty State -->
+    <div class="empty-state" *ngIf="filteredClients.length === 0 && clients.length === 0">
+      <div class="empty-illustration">
+        <i class="fas fa-user-friends"></i>
+      </div>
+      <h3>Aucun client pour le moment</h3>
+      <p>Commencez par ajouter votre premier client au système.</p>
+      <button class="btn btn-primary" routerLink="/clients/add">
+        <i class="fas fa-plus"></i>
+        Ajouter le Premier Client
+      </button>
+    </div>
+
+    <!-- No Search Results -->
+    <div class="empty-state" *ngIf="filteredClients.length === 0 && clients.length > 0">
+      <div class="empty-illustration">
+        <i class="fas fa-search"></i>
+      </div>
+      <h3>Aucun client trouvé</h3>
+      <p>Essayez d'ajuster vos critères de recherche.</p>
+      <button class="btn btn-secondary" (click)="searchTerm = ''; onSearchChange()">
+        <i class="fas fa-times"></i>
+        Effacer la Recherche
+      </button>
+    </div>
+
+    <!-- Client Cards -->
+    <div class="client-card" *ngFor="let client of filteredClients; trackBy: trackByClientId">
+      <div class="client-header">
+        <div class="client-avatar">
+          <img 
+            *ngIf="client.imageUrl" 
+            [src]="client.imageUrl" 
+            [alt]="client.nom + ' ' + client.prenom"
+            class="avatar-img"
+          >
+          <div *ngIf="!client.imageUrl" class="avatar-placeholder">
+            {{ getInitials(client.nom, client.prenom) }}
+          </div>
+        </div>
+        <div class="client-info">
+          <h3 class="client-name">{{ client.prenom }} {{ client.nom }}</h3>
+          <span class="client-id">ID: {{ client.id }}</span>
+        </div>
+        <div class="client-actions">
+          <button class="btn-icon" title="Modifier Client">
+            <i class="fas fa-edit"></i>
+          </button>
+          <button class="btn-icon" title="Voir Détails">
+            <i class="fas fa-eye"></i>
+          </button>
+          <button class="btn-icon btn-danger" title="Supprimer Client">
+            <i class="fas fa-trash"></i>
+          </button>
+        </div>
+      </div>
+      
+      <div class="client-details">
+        <div class="detail-item">
+          <i class="fas fa-envelope"></i>
+          <span class="detail-label">Email :</span>
+          <a [href]="'mailto:' + client.email" class="detail-value email-link">{{ client.email }}</a>
+        </div>
+        <div class="detail-item">
+          <i class="fas fa-phone"></i>
+          <span class="detail-label">Téléphone :</span>
+          <a [href]="'tel:' + client.telephone" class="detail-value phone-link">{{ client.telephone }}</a>
+        </div>
+      </div>
+
+      <div class="client-footer">
+        <button class="btn btn-outline-primary btn-sm">
+          <i class="fas fa-file-contract"></i>
+          Voir Contrats
+        </button>
+        <button class="btn btn-outline-secondary btn-sm">
+          <i class="fas fa-history"></i>
+          Historique
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
