@@ -9,16 +9,51 @@ import { ContratDetailsComponent } from './components/contrat-details/contrat-de
 import { ClientService } from './service/client.service';
 import { ClientsComponent } from './clients/clients/clients.component';
 import { AddClientComponent } from './clients/add-client/add-client.component';
+import { NotificationsComponent } from './components/notifications/notifications.component';
+import { TicketCreationComponent } from './components/ticket-creation/ticket-creation.component';
+import { TicketListComponent } from './components/ticket-list/ticket-list.component';
+import { TicketDetailsComponent } from './components/ticket-details/ticket-details.component';
+import { PrinterHistoryComponent } from './components/printer-history/printer-history.component';
+import { PrinterListComponent } from './components/printer-list/printer-list.component';
+import { PrinterHistorySelectorComponent } from './components/printer-history-selector/printer-history-selector.component';
+import { ClientLandingComponent } from './components/client-landing/client-landing.component';
+import { ClientDashboardComponent } from './client-dashboard/client-dashboard.component';
+import { ClientRequestsComponent } from './client-requests/client-requests.component';
+import { ClientNewRequestComponent } from './client-new-request/client-new-request.component';
+import { ClientEquipmentComponent } from './client-equipment/client-equipment.component';
+import { ClientHistoryComponent } from './client-history/client-history.component';
 
 const routes: Routes = [
-  { path: '', redirectTo: 'login', pathMatch: 'full' },
+  { path: '', component: ClientLandingComponent },
+  { path: 'home', component: ClientLandingComponent },
   { path: 'login', component: LoginComponent },
-  { path: 'contrats/add', component: ContratFormComponent, canActivate: [AuthGuard] },
+  { path: 'admin', redirectTo: '/login', pathMatch: 'full' },
+  
+  // Admin routes
   { path: 'dashboard', component: DashboardComponent, canActivate: [AuthGuard] },
-  { path: 'contrats/details/:id', component: ContratDetailsComponent, canActivate: [AuthGuard] },
+  
+  // Client routes
+  { path: 'client-dashboard', component: ClientDashboardComponent, canActivate: [AuthGuard] },
+  { path: 'client-requests', component: ClientRequestsComponent, canActivate: [AuthGuard] },
+  { path: 'client-new-request', component: ClientNewRequestComponent, canActivate: [AuthGuard] },
+  { path: 'client-equipment', component: ClientEquipmentComponent, canActivate: [AuthGuard] },
+  { path: 'client-history', component: ClientHistoryComponent, canActivate: [AuthGuard] },
+  
+  // Shared routes (both admin and client can access)
   { path: 'contrats', component: ContratComponent, canActivate: [AuthGuard] },
-  {path:  'clients', component: ClientsComponent, canActivate: [AuthGuard]},
-    {path:  'clients/add', component: AddClientComponent, canActivate: [AuthGuard]},
+  { path: 'contrats/add', component: ContratFormComponent, canActivate: [AuthGuard] },
+  { path: 'contrats/details/:id', component: ContratDetailsComponent, canActivate: [AuthGuard] },
+  { path: 'clients', component: ClientsComponent, canActivate: [AuthGuard] },
+  { path: 'clients/add', component: AddClientComponent, canActivate: [AuthGuard] },
+  { path: 'notifications', component: NotificationsComponent, canActivate: [AuthGuard] },
+  { path: 'tickets', component: TicketListComponent, canActivate: [AuthGuard] },
+  { path: 'tickets/create', component: TicketCreationComponent, canActivate: [AuthGuard] },
+  { path: 'tickets/:id', component: TicketDetailsComponent, canActivate: [AuthGuard] },
+  { path: 'printers', component: PrinterListComponent, canActivate: [AuthGuard] },
+  { path: 'printers/history', component: PrinterHistorySelectorComponent, canActivate: [AuthGuard] },
+  { path: 'printers/:id/history', component: PrinterHistoryComponent, canActivate: [AuthGuard] },
+  { path: 'printer-history-selector', component: PrinterHistorySelectorComponent, canActivate: [AuthGuard] },
+  { path: 'client-landing', component: ClientLandingComponent, canActivate: [AuthGuard] },
 
   // fallback route
   { path: '**', redirectTo: 'login' }

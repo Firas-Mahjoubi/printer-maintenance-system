@@ -64,5 +64,69 @@
       </ul>
     </li>
 
+    <!-- Tickets de Maintenance Section -->
+    <li class="nav-item">
+      <a class="nav-link collapsed"
+         data-bs-target="#tickets-nav"
+         data-bs-toggle="collapse"
+         href="#">
+        <i class="bi bi-tools"></i><span>Tickets de Maintenance</span><i class="bi bi-chevron-down ms-auto"></i>
+      </a>
+      <ul id="tickets-nav" class="nav-content collapse" data-bs-parent="#sidebar-nav">
+        <li>
+          <a routerLink="/tickets"
+             routerLinkActive="active"
+             [routerLinkActiveOptions]="{ exact: true }">
+            <i class="bi bi-circle"></i><span>Liste des Tickets</span>
+          </a>
+        </li>
+        <li>
+          <a routerLink="/tickets/create"
+             routerLinkActive="active"
+             [routerLinkActiveOptions]="{ exact: true }">
+            <i class="bi bi-circle"></i><span>Créer un Ticket</span>
+          </a>
+        </li>
+      </ul>
+    </li>
+
+    <!-- Imprimantes Section -->
+    <li class="nav-item">
+      <a class="nav-link collapsed"
+         data-bs-target="#printers-nav"
+         data-bs-toggle="collapse"
+         href="#">
+        <i class="bi bi-printer"></i><span>Imprimantes</span><i class="bi bi-chevron-down ms-auto"></i>
+      </a>
+      <ul id="printers-nav" class="nav-content collapse" data-bs-parent="#sidebar-nav">
+        <li>
+          <a routerLink="/printers"
+             routerLinkActive="active"
+             [routerLinkActiveOptions]="{ exact: true }">
+            <i class="bi bi-circle"></i><span>Liste des Imprimantes</span>
+          </a>
+        </li>
+        <li>
+          <a routerLink="/printers/history"
+             routerLinkActive="active"
+             [routerLinkActiveOptions]="{ exact: true }">
+            <i class="bi bi-circle"></i><span>Historique par Imprimante</span>
+          </a>
+        </li>
+      </ul>
+    </li>
+
+    <!-- 🔔 Notifications Section -->
+    <li class="nav-item">
+      <a class="nav-link"
+         routerLink="/notifications"
+         routerLinkActive="active"
+         [routerLinkActiveOptions]="{ exact: true }">
+        <i class="bi bi-bell"></i>
+        <span>Notifications</span>
+        <span class="badge bg-danger ms-auto" *ngIf="unreadCount > 0">{{ unreadCount }}</span>
+      </a>
+    </li>
+
   </ul>
 </aside>

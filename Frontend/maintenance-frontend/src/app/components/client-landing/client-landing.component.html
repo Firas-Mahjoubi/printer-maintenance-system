@@ -1,0 +1,478 @@
+<!-- Modern Printer Maintenance Landing Page -->
+<section class="hero-section" #heroSection id="hero">
+  <!-- Gradient Overlay -->
+  <div class="gradient-overlay"></div>
+  
+  <!-- Animated Background Pattern -->
+  <div class="printer-pattern-bg">
+    <div class="pattern-grid">
+      <div class="grid-item" *ngFor="let item of [1,2,3,4,5,6,7,8,9,10,11,12]"></div>
+    </div>
+    <div class="floating-printers">
+      <div class="printer-icon printer-1"><i class="fas fa-print"></i></div>
+      <div class="printer-icon printer-2"><i class="fas fa-desktop"></i></div>
+      <div class="printer-icon printer-3"><i class="fas fa-tools"></i></div>
+      <div class="printer-icon printer-4"><i class="fas fa-cog"></i></div>
+      <div class="printer-icon printer-5"><i class="fas fa-wrench"></i></div>
+    </div>
+    <!-- Floating Particles -->
+    <div class="particles">
+      <div class="particle" *ngFor="let particle of [1,2,3,4,5,6,7,8,9,10]"></div>
+    </div>
+  </div>
+  
+  <!-- Navigation -->
+  <nav class="modern-navbar">
+    <div class="nav-container">
+      <div class="nav-brand">
+        <div class="brand-logo-container">
+          <img src="assets/img/logo.png" alt="PrinterCare Logo" class="brand-logo-img">
+          <div class="brand-icon">
+            <i class="fas fa-print"></i>
+          </div>
+        </div>
+        <div class="brand-text-container">
+          <span class="brand-text">PrinterCare</span>
+          <span class="brand-subtitle">Solutions</span>
+        </div>
+      </div>
+      <div class="nav-menu">
+        <a href="#services" class="nav-link" (click)="scrollToSection('services')">Services</a>
+        <a href="#about" class="nav-link" (click)="scrollToSection('stats')">À Propos</a>
+        <a href="#contact" class="nav-link" (click)="scrollToSection('contact')">Contact</a>
+        <button class="login-btn" (click)="goToLogin()">
+          <i class="fas fa-user-circle me-2"></i>
+          Espace Client
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Hero Content -->
+  <div class="hero-main-content">
+    <div class="content-wrapper">
+      <div class="hero-text-section">
+        <div class="hero-badge">
+          <i class="fas fa-shield-alt"></i>
+          <span>Service Professionnel Certifié</span>
+        </div>
+        
+        <h1 class="hero-main-title">
+          Maintenance & Réparation
+          <span class="title-highlight">d'Imprimantes</span>
+          Professionnelles
+        </h1>
+        
+        <p class="hero-description">
+          Expert en maintenance préventive et corrective d'imprimantes professionnelles. 
+          Garantissez la continuité de votre activité avec nos interventions rapides et efficaces.
+        </p>
+        
+        <div class="hero-features">
+          <div class="feature-item">
+            <i class="fas fa-clock"></i>
+            <span>Intervention 24h/7j</span>
+          </div>
+          <div class="feature-item">
+            <i class="fas fa-tools"></i>
+            <span>Techniciens Certifiés</span>
+          </div>
+          <div class="feature-item">
+            <i class="fas fa-shield-check"></i>
+            <span>Garantie 6 Mois</span>
+          </div>
+        </div>
+        
+        <div class="hero-actions">
+          <button class="btn-primary-hero" (click)="createTicket()">
+            <i class="fas fa-calendar-plus"></i>
+            <span>Planifier une Intervention</span>
+          </button>
+          <button class="btn-secondary-hero" (click)="scrollToSection('services')">
+            <i class="fas fa-info-circle"></i>
+            <span>Découvrir nos Services</span>
+          </button>
+        </div>
+        
+        <div class="trust-indicators">
+          <div class="trust-item">
+            <div class="trust-number">500+</div>
+            <div class="trust-label">Entreprises Clientes</div>
+          </div>
+          <div class="trust-item">
+            <div class="trust-number">98%</div>
+            <div class="trust-label">Satisfaction Client</div>
+          </div>
+          <div class="trust-item">
+            <div class="trust-number">24h</div>
+            <div class="trust-label">Temps de Réponse</div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="hero-visual-section">
+        <div class="hero-image-container">
+          <img src="assets/img/slides-1.jpg" alt="Maintenance Professionnelle" class="hero-main-image">
+          <div class="image-overlay">
+            <div class="overlay-content">
+              <i class="fas fa-tools overlay-icon"></i>
+              <span class="overlay-text">Expertise Technique</span>
+            </div>
+          </div>
+        </div>
+        
+        <div class="printer-workspace">
+          <div class="workspace-header">
+            <div class="workspace-title">Centre de Maintenance</div>
+            <div class="status-indicator">
+              <span class="status-dot online"></span>
+              <span>En ligne</span>
+            </div>
+          </div>
+          
+          <div class="workspace-content">
+            <div class="printer-status-card">
+              <div class="printer-model">HP LaserJet Pro M404dn</div>
+              <div class="status-badge status-ok">Fonctionnel</div>
+              <div class="maintenance-info">
+                <div class="info-row">
+                  <span>Dernière maintenance:</span>
+                  <span>15/06/2025</span>
+                </div>
+                <div class="info-row">
+                  <span>Prochaine maintenance:</span>
+                  <span>15/09/2025</span>
+                </div>
+              </div>
+            </div>
+            
+            <div class="printer-status-card">
+              <div class="printer-model">Canon imageRUNNER C5535i</div>
+              <div class="status-badge status-warning">Maintenance requise</div>
+              <div class="maintenance-info">
+                <div class="info-row">
+                  <span>Problème détecté:</span>
+                  <span>Toner faible</span>
+                </div>
+                <div class="info-row">
+                  <span>Action requise:</span>
+                  <span>Sous 3 jours</span>
+                </div>
+              </div>
+            </div>
+            
+            <div class="performance-chart">
+              <div class="chart-title">Performance du Parc</div>
+              <div class="chart-visual">
+                <div class="performance-bar">
+                  <div class="bar-fill" style="width: 95%"></div>
+                  <span class="bar-label">95% Uptime</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Services Professionnels -->
+<section class="services-section" id="services">
+  <div class="section-container">
+    <div class="section-header-modern">
+      <div class="section-tag">Nos Expertises</div>
+      <h2 class="section-title-modern">
+        Solutions Complètes de
+        <span class="title-accent">Maintenance d'Imprimantes</span>
+      </h2>
+      <p class="section-description">
+        De la maintenance préventive aux réparations d'urgence, nous couvrons tous vos besoins
+      </p>
+    </div>
+
+    <div class="services-modern-grid">
+      <div class="service-modern-card" *ngFor="let service of services; let i = index">
+        <div class="service-background" [style.background-image]="'url(assets/img/product-' + (i + 1) + '.jpg)'"></div>
+        <div class="service-content">
+          <div class="service-icon-modern">
+            <i [class]="service.icon"></i>
+          </div>
+          <h3 class="service-title-modern">{{ service.title }}</h3>
+          <p class="service-description-modern">{{ service.description }}</p>
+          <div class="service-features">
+            <div class="feature-check" *ngFor="let feature of service.features">
+              <i class="fas fa-check-circle"></i>
+              <span>{{ feature }}</span>
+            </div>
+          </div>
+          <button class="service-btn" (click)="createTicket()">
+            Demander un Devis
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Processus de Maintenance -->
+<section class="process-section">
+  <div class="process-floating-elements">
+    <i class="fas fa-cog floating-gear gear-1"></i>
+    <i class="fas fa-tools floating-gear gear-2"></i>
+    <i class="fas fa-wrench floating-gear gear-3"></i>
+  </div>
+  
+  <div class="section-container">
+    <div class="section-header-modern">
+      <div class="section-tag">Notre Méthode</div>
+      <h2 class="section-title-modern">
+        Processus de Maintenance
+        <span class="title-accent">en 4 Étapes</span>
+      </h2>
+    </div>
+
+    <div class="process-timeline">
+      <div class="process-step" *ngFor="let step of processSteps; let i = index">
+        <div class="step-number">{{ i + 1 }}</div>
+        <div class="step-content" [attr.data-step]="i + 1">
+          <div class="step-icon">
+            <i [class]="step.icon"></i>
+          </div>
+          <h4 class="step-title">{{ step.title }}</h4>
+          <p class="step-description">{{ step.description }}</p>
+          <div class="step-progress"></div>
+        </div>
+        <div class="step-connector" *ngIf="i < processSteps.length - 1"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Statistiques et Garanties -->
+<section class="stats-modern-section" id="stats">
+  <div class="section-container">
+    <div class="stats-content">
+      <div class="stats-text">
+        <h2 class="stats-title">
+          Des Résultats qui Parlent
+          <span class="title-accent">d'Eux-Mêmes</span>
+        </h2>
+        <p class="stats-description">
+          Notre expertise et notre engagement se reflètent dans nos performances exceptionnelles
+        </p>
+        
+        <div class="guarantees-list">
+          <div class="guarantee-item">
+            <i class="fas fa-shield-alt"></i>
+            <span>Garantie 6 mois sur toutes nos interventions</span>
+          </div>
+          <div class="guarantee-item">
+            <i class="fas fa-clock"></i>
+            <span>Intervention sous 24h en cas d'urgence</span>
+          </div>
+          <div class="guarantee-item">
+            <i class="fas fa-medal"></i>
+            <span>Techniciens certifiés par les constructeurs</span>
+          </div>
+        </div>
+      </div>
+      
+      <div class="stats-grid">
+        <div class="stat-modern-card" *ngFor="let stat of stats; let i = index">
+          <div class="stat-icon">
+            <i [class]="stat.icon"></i>
+          </div>
+          <div class="stat-content">
+            <div class="stat-number">{{ stat.number }}</div>
+            <div class="stat-label">{{ stat.label }}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Témoignages Clients -->
+<section class="testimonials-modern-section">
+  <div class="section-container">
+    <div class="section-header-modern">
+      <div class="section-tag">Témoignages</div>
+      <h2 class="section-title-modern">
+        Ce que Disent nos
+        <span class="title-accent">Clients Professionnels</span>
+      </h2>
+    </div>
+
+    <div class="testimonials-modern-grid">
+      <div class="testimonial-modern-card" *ngFor="let testimonial of testimonials">
+        <div class="testimonial-header">
+          <div class="testimonial-avatar">
+            <img [src]="testimonial.avatar" [alt]="testimonial.name">
+          </div>
+          <div class="testimonial-info">
+            <div class="testimonial-name">{{ testimonial.name }}</div>
+            <div class="testimonial-role">{{ testimonial.role }}</div>
+            <div class="testimonial-company">{{ testimonial.company }}</div>
+          </div>
+          <div class="testimonial-rating">
+            <i class="fas fa-star" *ngFor="let star of getStars(testimonial.rating)"></i>
+          </div>
+        </div>
+        <p class="testimonial-text">{{ testimonial.message }}</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Contact et Action -->
+<section class="cta-modern-section" id="contact">
+  <div class="section-container">
+    <div class="cta-modern-content">
+      <div class="cta-text">
+        <h2 class="cta-title">
+          Besoin d'une Intervention
+          <span class="title-accent">Rapide ?</span>
+        </h2>
+        <p class="cta-description">
+          Contactez nos experts dès maintenant pour un diagnostic gratuit 
+          et une intervention dans les plus brefs délais.
+        </p>
+        
+        <div class="contact-methods">
+          <div class="contact-method">
+            <div class="contact-icon">
+              <i class="fas fa-phone"></i>
+            </div>
+            <div class="contact-info">
+              <div class="contact-label">Urgence 24h/7j</div>
+              <div class="contact-value">+33 1 23 45 67 89</div>
+            </div>
+          </div>
+          
+          <div class="contact-method">
+            <div class="contact-icon">
+              <i class="fas fa-envelope"></i>
+            </div>
+            <div class="contact-info">
+              <div class="contact-label">Email Support</div>
+              <div class="contact-value">support&#64;printercare.fr</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="cta-actions">
+        <button class="btn-cta-primary" (click)="createTicket()">
+          <i class="fas fa-tools"></i>
+          <span>Demander une Intervention</span>
+        </button>
+        <button class="btn-cta-secondary" (click)="goToLogin()">
+          <i class="fas fa-calculator"></i>
+          <span>Devis Gratuit</span>
+        </button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Footer Professionnel -->
+<footer class="modern-footer">
+  <div class="footer-container">
+    <div class="footer-main">
+      <div class="footer-brand">
+        <div class="footer-logo">
+          <img src="assets/img/logo.png" alt="PrinterCare Logo" class="footer-logo-img">
+          <div class="brand-icon">
+            <i class="fas fa-print"></i>
+          </div>
+          <div class="brand-info">
+            <span class="brand-text">PrinterCare</span>
+            <span class="brand-subtitle">Solutions</span>
+          </div>
+        </div>
+        <p class="footer-description">
+          Spécialiste en maintenance d'imprimantes professionnelles depuis 2015. 
+          Nous garantissons la continuité de votre activité.
+        </p>
+        <div class="footer-certifications">
+          <div class="cert-badge">
+            <i class="fas fa-certificate"></i>
+            <span>ISO 9001</span>
+          </div>
+          <div class="cert-badge">
+            <i class="fas fa-award"></i>
+            <span>Certifié HP</span>
+          </div>
+          <div class="cert-badge">
+            <i class="fas fa-handshake"></i>
+            <span>Partner Canon</span>
+          </div>
+          <div class="cert-badge">
+            <i class="fas fa-shield-alt"></i>
+            <span>CGV</span>
+          </div>
+        </div>
+      </div>
+      
+      <div class="footer-links-grid">
+        <div class="footer-section">
+          <h4 class="footer-section-title">Services</h4>
+          <ul class="footer-links">
+            <li><a href="#" (click)="scrollToSection('services')">Maintenance Préventive</a></li>
+            <li><a href="#" (click)="scrollToSection('services')">Réparation d'Urgence</a></li>
+            <li><a href="#" (click)="scrollToSection('services')">Contrat de Maintenance</a></li>
+            <li><a href="#" (click)="scrollToSection('services')">Support Technique</a></li>
+          </ul>
+        </div>
+        
+        <div class="footer-section">
+          <h4 class="footer-section-title">Contact</h4>
+          <ul class="footer-contact">
+            <li>
+              <i class="fas fa-map-marker-alt"></i>
+              <span>123 Avenue des Entreprises<br>75001 Paris, France</span>
+            </li>
+            <li>
+              <i class="fas fa-phone"></i>
+              <span>+33 1 23 45 67 89</span>
+            </li>
+            <li>
+              <i class="fas fa-envelope"></i>
+              <span>contact&#64;printercare.fr</span>
+            </li>
+          </ul>
+        </div>
+        
+        <div class="footer-section">
+          <h4 class="footer-section-title">Horaires</h4>
+          <ul class="footer-schedule">
+            <li>
+              <span class="day">Lun - Ven</span>
+              <span class="hours">8h00 - 18h00</span>
+            </li>
+            <li>
+              <span class="day">Samedi</span>
+              <span class="hours">9h00 - 16h00</span>
+            </li>
+            <li>
+              <span class="day">Urgences</span>
+              <span class="hours">24h/7j</span>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    
+    <div class="footer-bottom">
+      <div class="footer-bottom-content">
+        <p>&copy; 2025 PrinterCare Solutions. Tous droits réservés.</p>
+        <div class="footer-legal">
+          <a href="#">Mentions Légales</a>
+          <a href="#">Politique de Confidentialité</a>
+          <a href="#">CGV</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</footer>

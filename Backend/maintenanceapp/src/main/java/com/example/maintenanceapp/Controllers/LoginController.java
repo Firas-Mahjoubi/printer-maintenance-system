@@ -41,11 +41,13 @@ public class LoginController {
         }
 
         final UserDetails userDetails = userService.loadUserByUsername(loginRequest.getEmail());
+        var user = userRepository.getRolFromUser(userDetails.getUsername());
         final String jwt = jwtUtil.generateToken(
                 userDetails.getUsername(),
-                userRepository.getRolFromUser(userDetails.getUsername()).getRole()
+                user.getRole(),
+                user.getId()
         );
 
-        return ResponseEntity.ok(Collections.singletonMap("token", jwt));
+        return ResponseEntity.ok(Collections.singletonMap("jwtToken", jwt));
     }
 }

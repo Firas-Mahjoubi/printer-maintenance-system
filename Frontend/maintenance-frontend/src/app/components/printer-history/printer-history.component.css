@@ -1,0 +1,126 @@
+.printer-history-container {
+  background-color: #f8f9fa;
+  min-height: 100vh;
+}
+
+.stats-card {
+  transition: transform 0.2s ease-in-out;
+}
+
+.stats-card:hover {
+  transform: translateY(-2px);
+}
+
+.intervention-row {
+  transition: background-color 0.2s ease-in-out;
+}
+
+.intervention-row:hover {
+  background-color: rgba(0, 123, 255, 0.05);
+}
+
+.badge {
+  font-size: 0.75rem;
+  padding: 0.5em 0.75em;
+}
+
+.table th {
+  font-weight: 600;
+  color: #495057;
+  border-bottom: 2px solid #dee2e6;
+}
+
+.text-truncate {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.card {
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.btn {
+  border-radius: 8px;
+  font-weight: 500;
+}
+
+.form-select, .form-control {
+  border-radius: 8px;
+  border: 1px solid #ced4da;
+}
+
+.form-select:focus, .form-control:focus {
+  border-color: #0d6efd;
+  box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+}
+
+.display-6 {
+  font-size: 2rem;
+  font-weight: 700;
+}
+
+.timeline-item {
+  position: relative;
+  padding-left: 2rem;
+  margin-bottom: 1.5rem;
+}
+
+.timeline-item:before {
+  content: '';
+  position: absolute;
+  left: 0.5rem;
+  top: 0.5rem;
+  width: 0.75rem;
+  height: 0.75rem;
+  background-color: #0d6efd;
+  border-radius: 50%;
+  border: 2px solid #ffffff;
+  box-shadow: 0 0 0 2px #0d6efd;
+}
+
+.timeline-item:after {
+  content: '';
+  position: absolute;
+  left: 0.8125rem;
+  top: 1.25rem;
+  width: 2px;
+  height: calc(100% - 0.75rem);
+  background-color: #e9ecef;
+}
+
+.timeline-item:last-child:after {
+  display: none;
+}
+
+.printer-header {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border-radius: 12px;
+  padding: 2rem;
+  margin-bottom: 2rem;
+}
+
+.export-btn {
+  transition: all 0.2s ease-in-out;
+}
+
+.export-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+@media (max-width: 768px) {
+  .table-responsive {
+    font-size: 0.875rem;
+  }
+  
+  .display-6 {
+    font-size: 1.5rem;
+  }
+  
+  .card-body {
+    padding: 1rem;
+  }
+}

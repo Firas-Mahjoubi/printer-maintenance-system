@@ -1,0 +1,70 @@
+<div class="container-fluid py-4">
+  <div class="row">
+    <div class="col-12">
+      <div class="card shadow-sm">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          <h5 class="card-title mb-0">
+            <i class="fas fa-print me-2"></i>
+            Liste des Imprimantes
+          </h5>
+        </div>
+        
+        <div class="card-body">
+          <div class="table-responsive">
+            <table class="table table-hover">
+              <thead class="table-light">
+                <tr>
+                  <th>ID</th>
+                  <th>Modèle</th>
+                  <th>Client</th>
+                  <th>Statut</th>
+                  <th>Nb. Interventions</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let printer of printers">
+                  <td>{{ printer.id }}</td>
+                  <td>
+                    <div class="d-flex align-items-center">
+                      <div class="avatar-sm bg-primary rounded-circle me-2 d-flex align-items-center justify-content-center">
+                        <i class="fas fa-print text-white"></i>
+                      </div>
+                      {{ printer.modele }}
+                    </div>
+                  </td>
+                  <td>{{ printer.client }}</td>
+                  <td>
+                    <span [class]="getStatusBadgeClass(printer.statut)">
+                      {{ printer.statut }}
+                    </span>
+                  </td>
+                  <td>
+                    <span class="badge bg-info">{{ printer.interventions }}</span>
+                  </td>
+                  <td>
+                    <button 
+                      type="button" 
+                      class="btn btn-sm btn-outline-primary"
+                      (click)="viewHistory(printer.id)"
+                      title="Voir l'historique des interventions">
+                      <i class="fas fa-history me-1"></i>
+                      Historique
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          
+          <div class="text-center mt-4" *ngIf="printers.length === 0">
+            <div class="text-muted">
+              <i class="fas fa-print fa-3x mb-3"></i>
+              <p>Aucune imprimante enregistrée</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

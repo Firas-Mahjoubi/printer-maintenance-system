@@ -27,6 +27,7 @@ public class UtilisateurController {
         return utilisateurService.retrieveAllUser();
     }
 
+
     @PostMapping("/add")
     public Utilisateur addUser(@RequestBody Utilisateur user) {
         return utilisateurService.addUser(user);

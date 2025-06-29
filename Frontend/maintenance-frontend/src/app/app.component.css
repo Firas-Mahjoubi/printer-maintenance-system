@@ -1,0 +1,30 @@
+/* Main layout styles */
+body {
+  margin: 0;
+  padding: 0;
+  transition: all 0.3s ease;
+}
+
+/* When layout is hidden (for login and client pages) */
+body.no-layout {
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+body.no-layout .main {
+  margin: 0 !important;
+  padding: 0 !important;
+  width: 100% !important;
+  transform: none !important;
+}
+
+/* Main content area */
+.main {
+  transition: all 0.3s ease;
+}
+
+/* Ensure full width for no-layout pages */
+.no-layout .main {
+  margin-left: 0 !important;
+  width: 100% !important;
+}

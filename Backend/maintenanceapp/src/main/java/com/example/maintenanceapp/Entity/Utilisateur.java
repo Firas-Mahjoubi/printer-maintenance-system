@@ -1,7 +1,7 @@
 package com.example.maintenanceapp.Entity;
 
 import com.example.maintenanceapp.Entity.Enum.Role;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
@@ -16,7 +16,7 @@ import java.util.List;
 @NoArgsConstructor
 @Builder
 @ToString
-@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
+
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class Utilisateur {
     @Id
@@ -37,9 +37,11 @@ public class Utilisateur {
 
 
     @OneToMany(cascade = CascadeType.ALL, mappedBy="technicien")
+    @JsonIgnore
     private List<Intervention> interventions;
 
     @OneToMany(cascade = CascadeType.ALL,mappedBy = "utilisateur")
+    @JsonIgnore
     private List<Notification> notifications;
 
 

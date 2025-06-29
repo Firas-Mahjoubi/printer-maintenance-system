@@ -1,0 +1,73 @@
+.printer-card {
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: 2px solid transparent;
+}
+
+.printer-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(0, 123, 255, 0.2);
+  border-color: #007bff;
+}
+
+.printer-icon {
+  width: 60px;
+  height: 60px;
+  background: linear-gradient(45deg, #007bff, #0056b3);
+  border-radius: 50%;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.printer-icon i {
+  font-size: 24px;
+  color: white;
+}
+
+.card-title {
+  font-weight: 600;
+  color: #495057;
+  margin-bottom: 0.5rem;
+}
+
+.interventions-badge {
+  margin-bottom: 1rem;
+}
+
+.card {
+  border: none;
+  border-radius: 10px;
+}
+
+.card-header {
+  background-color: #f8f9fa;
+  border-bottom: 1px solid #e9ecef;
+  border-radius: 10px 10px 0 0 !important;
+}
+
+.input-group-text {
+  background-color: #f8f9fa;
+  border-color: #e9ecef;
+}
+
+.form-control {
+  border-color: #e9ecef;
+}
+
+.form-control:focus {
+  border-color: #007bff;
+  box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+
+.btn-outline-primary {
+  border-color: #007bff;
+  color: #007bff;
+}
+
+.btn-outline-primary:hover {
+  background-color: #007bff;
+  border-color: #007bff;
+  color: white;
+}

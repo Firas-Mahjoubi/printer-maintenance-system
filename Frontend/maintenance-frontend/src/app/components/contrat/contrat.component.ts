@@ -48,6 +48,25 @@ export class ContratComponent implements OnInit {
     alert("Voir les détails du contrat: " + contrat.numeroContrat);
   }
 
+  exportToPdf(contrat: Contrat) {
+    if (!contrat.id) return;
+    
+    this.contratService.exportContratToPdf(contrat.id).subscribe({
+      next: (blob) => {
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `contrat-${contrat.numeroContrat || contrat.id}.pdf`;
+        link.click();
+        window.URL.revokeObjectURL(url);
+      },
+      error: (error) => {
+        console.error('Erreur lors de l\'export PDF:', error);
+        alert('Erreur lors de l\'export PDF. Veuillez réessayer.');
+      }
+    });
+  }
+
   duplicateContrat(contrat: Contrat) {
     // Implement duplicate functionality
     alert("Dupliquer le contrat: " + contrat.numeroContrat);

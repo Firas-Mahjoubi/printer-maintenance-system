@@ -1,0 +1,224 @@
+<!-- Notifications Component -->
+<div class="container-fluid py-4">
+  <!-- Header -->
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="card border-0 shadow-sm">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-center">
+            <div>
+              <h2 class="h4 mb-1 fw-bold text-primary">
+                <i class="bi bi-bell me-2"></i>
+                Notifications
+              </h2>
+              <p class="text-muted mb-0">Centre de gestion des alertes et notifications</p>
+            </div>
+            <div class="d-flex gap-2">
+              <button 
+                class="btn btn-outline-primary btn-sm" 
+                (click)="toggleView()"
+                [class.active]="showUnreadOnly">
+                <i class="bi bi-filter me-2"></i>
+                {{ showUnreadOnly ? 'Toutes' : 'Non lues' }}
+                <span class="badge bg-primary ms-2" *ngIf="!showUnreadOnly && unreadCount > 0">
+                  {{ unreadCount }}
+                </span>
+              </button>
+              <button 
+                class="btn btn-outline-success btn-sm" 
+                (click)="markAllAsRead()"
+                [disabled]="unreadCount === 0">
+                <i class="bi bi-check-all me-2"></i>
+                Tout marquer comme lu
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  <div class="row mb-4" *ngIf="loading">
+    <div class="col-12">
+      <div class="card border-0 shadow-sm">
+        <div class="card-body text-center py-5">
+          <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Chargement...</span>
+          </div>
+          <p class="mt-3 text-muted">Chargement des notifications...</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Error State -->
+  <div class="row mb-4" *ngIf="error && !loading">
+    <div class="col-12">
+      <div class="card border-0 shadow-sm border-danger">
+        <div class="card-body text-center py-5">
+          <i class="bi bi-exclamation-triangle text-danger" style="font-size: 3rem;"></i>
+          <h4 class="mt-3 text-danger">Erreur</h4>
+          <p class="text-muted">{{ error }}</p>
+          <button class="btn btn-primary" (click)="loadNotifications()">
+            <i class="bi bi-arrow-clockwise me-2"></i>Réessayer
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Empty State -->
+  <div class="row mb-4" *ngIf="!loading && !error && getDisplayedNotifications().length === 0">
+    <div class="col-12">
+      <div class="card border-0 shadow-sm">
+        <div class="card-body text-center py-5">
+          <i class="bi bi-bell-slash text-muted" style="font-size: 4rem;"></i>
+          <h4 class="mt-3 text-muted">Aucune notification</h4>
+          <p class="text-muted">
+            {{ showUnreadOnly ? 'Aucune notification non lue' : 'Aucune notification disponible' }}
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Notifications List -->
+  <div class="row" *ngIf="!loading && !error && getDisplayedNotifications().length > 0">
+    <div class="col-12">
+      <div class="card border-0 shadow-sm">
+        <div class="card-body p-0">
+          <div class="list-group list-group-flush">
+            <div 
+              *ngFor="let notification of getDisplayedNotifications(); trackBy: trackByNotificationId"
+              class="list-group-item list-group-item-action notification-item"
+              [class.unread]="notification.statut === 'NON_LUE'"
+              (click)="markAsRead(notification)">
+              
+              <div class="d-flex w-100 justify-content-between align-items-start">
+                <div class="d-flex align-items-start flex-grow-1">
+                  <!-- Icon -->
+                  <div class="notification-icon me-3">
+                    <i [class]="'bi ' + getNotificationIcon(notification) + ' text-' + getNotificationClass(notification)"></i>
+                  </div>
+                  
+                  <!-- Content -->
+                  <div class="flex-grow-1">
+                    <div class="d-flex justify-content-between align-items-start mb-1">
+                      <h6 class="mb-1 fw-bold notification-title">
+                        {{ notification.titre }}
+                        <span 
+                          class="badge ms-2"
+                          [class]="'bg-' + getNotificationClass(notification)">
+                          {{ notification.type.replace('_', ' ') }}
+                        </span>
+                      </h6>
+                      <small class="text-muted">{{ getRelativeTime(notification.dateCreation) }}</small>
+                    </div>
+                    
+                    <p class="mb-2 notification-message">{{ notification.message }}</p>
+                    
+                    <!-- Contract Info -->
+                    <div class="notification-meta d-flex flex-wrap gap-3 mb-2" *ngIf="notification.contrat">
+                      <small class="text-muted">
+                        <i class="bi bi-file-earmark-text me-1"></i>
+                        Contrat: {{ notification.contrat.numeroContrat }}
+                      </small>
+                      <small class="text-warning" *ngIf="notification.joursRestants !== undefined">
+                        <i class="bi bi-clock me-1"></i>
+                        {{ notification.joursRestants }} jours restants
+                      </small>
+                    </div>
+                    
+                    <!-- Action Required -->
+                    <div class="notification-action" *ngIf="notification.actionRequise">
+                      <small class="text-primary fw-semibold">
+                        <i class="bi bi-arrow-right-circle me-1"></i>
+                        {{ notification.actionRequise }}
+                      </small>
+                    </div>
+                  </div>
+                </div>
+                
+                <!-- Actions -->
+                <div class="notification-actions ms-3">
+                  <div class="dropdown">
+                    <button 
+                      class="btn btn-sm btn-outline-secondary dropdown-toggle" 
+                      data-bs-toggle="dropdown" 
+                      aria-expanded="false">
+                      <i class="bi bi-three-dots"></i>
+                    </button>
+                    <ul class="dropdown-menu">
+                      <li *ngIf="notification.contrat">
+                        <a class="dropdown-item" (click)="navigateToContract(notification)">
+                          <i class="bi bi-eye me-2"></i>Voir le contrat
+                        </a>
+                      </li>
+                      <li *ngIf="notification.statut === 'NON_LUE'">
+                        <a class="dropdown-item" (click)="markAsRead(notification)">
+                          <i class="bi bi-check me-2"></i>Marquer comme lu
+                        </a>
+                      </li>
+                      <li><hr class="dropdown-divider"></li>
+                      <li>
+                        <a class="dropdown-item text-danger" (click)="deleteNotification(notification)">
+                          <i class="bi bi-trash me-2"></i>Supprimer
+                        </a>
+                      </li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+              
+              <!-- Unread Indicator -->
+              <div class="unread-indicator" *ngIf="notification.statut === 'NON_LUE'"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Stats Card -->
+  <div class="row mt-4" *ngIf="!loading && !error">
+    <div class="col-12">
+      <div class="card border-0 shadow-sm">
+        <div class="card-body">
+          <h6 class="card-title mb-3">
+            <i class="bi bi-graph-up me-2"></i>
+            Statistiques
+          </h6>
+          <div class="row text-center">
+            <div class="col-md-3">
+              <div class="stat-item">
+                <h3 class="text-primary mb-1">{{ notifications.length }}</h3>
+                <p class="text-muted mb-0 small">Total</p>
+              </div>
+            </div>
+            <div class="col-md-3">
+              <div class="stat-item">
+                <h3 class="text-warning mb-1">{{ unreadCount }}</h3>
+                <p class="text-muted mb-0 small">Non lues</p>
+              </div>
+            </div>
+            <div class="col-md-3">
+              <div class="stat-item">
+                <h3 class="text-success mb-1">{{ notifications.length - unreadCount }}</h3>
+                <p class="text-muted mb-0 small">Lues</p>
+              </div>
+            </div>
+            <div class="col-md-3">
+              <div class="stat-item">
+                <h3 class="text-danger mb-1">
+                  {{ getUrgentNotificationsCount() }}
+                </h3>
+                <p class="text-muted mb-0 small">Urgentes</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

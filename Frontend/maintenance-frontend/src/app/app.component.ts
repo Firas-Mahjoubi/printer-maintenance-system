@@ -13,8 +13,9 @@ export class AppComponent {
   constructor(private router: Router) {
     this.router.events.subscribe(event => {
       if (event instanceof NavigationEnd) {
-        // Hide layout on login and register pages
-        this.showLayout = !(event.urlAfterRedirects.includes('/login'));
+        // Hide layout on login, client landing pages, and client dashboard
+        const url = event.urlAfterRedirects;
+        this.showLayout = !(url.includes('/login') || url === '/' || url === '/home' || url.includes('/client-dashboard'));
       }
     });
   }

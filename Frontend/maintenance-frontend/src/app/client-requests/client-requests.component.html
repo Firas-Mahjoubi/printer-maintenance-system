@@ -1,0 +1,123 @@
+<div class="client-requests">
+  <!-- Header -->
+  <header class="page-header">
+    <div class="header-content">
+      <div class="header-left">
+        <button class="back-btn" (click)="goBack()">
+          <i class="fas fa-arrow-left"></i>
+        </button>
+        <div class="header-text">
+          <h1>Mes Demandes</h1>
+          <p>Suivez l'état de toutes vos demandes de maintenance</p>
+        </div>
+      </div>
+      <div class="header-right">
+        <button class="new-request-btn" (click)="createNewRequest()">
+          <i class="fas fa-plus"></i>
+          Nouvelle demande
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Filters -->
+  <section class="filters-section">
+    <div class="filters-container">
+      <div class="filter-group">
+        <label>Statut</label>
+        <select [(ngModel)]="selectedStatus" (change)="filterRequests()">
+          <option value="">Tous les statuts</option>
+          <option value="pending">En attente</option>
+          <option value="in-progress">En cours</option>
+          <option value="completed">Terminé</option>
+          <option value="cancelled">Annulé</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <label>Priorité</label>
+        <select [(ngModel)]="selectedPriority" (change)="filterRequests()">
+          <option value="">Toutes les priorités</option>
+          <option value="low">Faible</option>
+          <option value="medium">Moyenne</option>
+          <option value="high">Élevée</option>
+          <option value="urgent">Urgente</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <label>Période</label>
+        <select [(ngModel)]="selectedPeriod" (change)="filterRequests()">
+          <option value="">Toute période</option>
+          <option value="week">Cette semaine</option>
+          <option value="month">Ce mois</option>
+          <option value="quarter">Ce trimestre</option>
+        </select>
+      </div>
+    </div>
+  </section>
+
+  <!-- Requests List -->
+  <section class="requests-section">
+    <div class="requests-container">
+      <div class="request-card" *ngFor="let request of filteredRequests">
+        <div class="request-header">
+          <div class="request-id">#{{ request.id }}</div>
+          <div class="request-status" [class]="request.status">
+            <i class="fas" [class]="getStatusIcon(request.status)"></i>
+            {{ request.statusLabel }}
+          </div>
+          <div class="request-priority" [class]="request.priority">
+            {{ request.priorityLabel }}
+          </div>
+        </div>
+        
+        <div class="request-content">
+          <h3>{{ request.title }}</h3>
+          <p>{{ request.description }}</p>
+          
+          <div class="request-details">
+            <div class="detail-item">
+              <i class="fas fa-print"></i>
+              <span>{{ request.equipment }}</span>
+            </div>
+            <div class="detail-item">
+              <i class="fas fa-calendar"></i>
+              <span>{{ request.createdDate | date:'dd/MM/yyyy HH:mm' }}</span>
+            </div>
+            <div class="detail-item" *ngIf="request.assignedTechnician">
+              <i class="fas fa-user-cog"></i>
+              <span>{{ request.assignedTechnician }}</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="request-actions">
+          <button class="btn-view" (click)="viewDetails(request.id)">
+            <i class="fas fa-eye"></i>
+            Détails
+          </button>
+          <button class="btn-chat" (click)="openChat(request.id)" *ngIf="request.status !== 'completed'">
+            <i class="fas fa-comments"></i>
+            Chat
+          </button>
+          <button class="btn-cancel" (click)="cancelRequest(request.id)" *ngIf="request.status === 'pending'">
+            <i class="fas fa-times"></i>
+            Annuler
+          </button>
+        </div>
+      </div>
+
+      <!-- Empty State -->
+      <div class="empty-state" *ngIf="filteredRequests.length === 0">
+        <div class="empty-icon">
+          <i class="fas fa-inbox"></i>
+        </div>
+        <h3>Aucune demande trouvée</h3>
+        <p>Vous n'avez pas encore de demandes de maintenance ou aucune ne correspond aux filtres sélectionnés.</p>
+        <button class="create-request-btn" (click)="createNewRequest()">
+          <i class="fas fa-plus"></i>
+          Créer une demande
+        </button>
+      </div>
+    </div>
+  </section>
+</div>

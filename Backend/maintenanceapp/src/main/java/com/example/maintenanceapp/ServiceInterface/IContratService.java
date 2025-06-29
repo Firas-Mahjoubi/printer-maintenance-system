@@ -2,8 +2,8 @@ package com.example.maintenanceapp.ServiceInterface;
 
 import com.example.maintenanceapp.Entity.Contrat;
 
+import java.io.IOException;
 import java.util.List;
-import java.util.Optional;
 
 public interface IContratService {
     List<Contrat> findAll();
@@ -15,4 +15,5 @@ public interface IContratService {
     void verifierContratsProchesExpiration() ;
     Contrat renouvelerContrat(Long oldContratId, Contrat newContratData) ;
     List<Contrat> getContratsHistorie();
+    byte[] exportContratToPdf(Long contratId) throws IOException;
     }

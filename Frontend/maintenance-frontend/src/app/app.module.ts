@@ -18,6 +18,19 @@ import { AngularEditorModule } from '@kolkov/angular-editor';
 import { ContratDetailsComponent } from './components/contrat-details/contrat-details.component';
 import { ClientsComponent } from './clients/clients/clients.component';
 import { AddClientComponent } from './clients/add-client/add-client.component';
+import { NotificationsComponent } from './components/notifications/notifications.component';
+import { TicketCreationComponent } from './components/ticket-creation/ticket-creation.component';
+import { TicketListComponent } from './components/ticket-list/ticket-list.component';
+import { TicketDetailsComponent } from './components/ticket-details/ticket-details.component';
+import { PrinterHistoryComponent } from './components/printer-history/printer-history.component';
+import { PrinterListComponent } from './components/printer-list/printer-list.component';
+import { PrinterHistorySelectorComponent } from './components/printer-history-selector/printer-history-selector.component';
+import { ClientLandingComponent } from './components/client-landing/client-landing.component';
+import { ClientDashboardComponent } from './client-dashboard/client-dashboard.component';
+import { ClientRequestsComponent } from './client-requests/client-requests.component';
+import { ClientNewRequestComponent } from './client-new-request/client-new-request.component';
+import { ClientEquipmentComponent } from './client-equipment/client-equipment.component';
+import { ClientHistoryComponent } from './client-history/client-history.component';
 
 
 @NgModule({
@@ -33,6 +46,19 @@ import { AddClientComponent } from './clients/add-client/add-client.component';
     ContratDetailsComponent,
     ClientsComponent,
     AddClientComponent,
+    NotificationsComponent,
+    TicketCreationComponent,
+    TicketListComponent,
+    TicketDetailsComponent,
+    PrinterHistoryComponent,
+    PrinterListComponent,
+    PrinterHistorySelectorComponent,
+    ClientLandingComponent,
+    ClientDashboardComponent,
+    ClientRequestsComponent,
+    ClientNewRequestComponent,
+    ClientEquipmentComponent,
+    ClientHistoryComponent,
   ],
   imports: [
     HttpClientModule,

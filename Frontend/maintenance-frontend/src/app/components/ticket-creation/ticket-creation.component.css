@@ -1,0 +1,197 @@
+.card {
+  border: none;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.form-label {
+  font-weight: 600;
+  color: #344767;
+  margin-bottom: 0.5rem;
+}
+
+.form-control, .form-select {
+  border: 1px solid #d2d6da;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  transition: all 0.3s ease;
+}
+
+.form-control:focus, .form-select:focus {
+  border-color: #5e72e4;
+  box-shadow: 0 0 0 0.2rem rgba(94, 114, 228, 0.25);
+}
+
+.is-invalid {
+  border-color: #f5365c !important;
+}
+
+.invalid-feedback {
+  display: block;
+  color: #f5365c;
+  font-size: 0.8rem;
+  margin-top: 0.25rem;
+}
+
+.btn {
+  border-radius: 0.5rem;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.btn-primary {
+  background: linear-gradient(45deg, #5e72e4, #825ee4);
+  border: none;
+}
+
+.btn-primary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(94, 114, 228, 0.3);
+}
+
+.btn-outline-secondary {
+  border-color: #8392ab;
+  color: #8392ab;
+}
+
+.btn-outline-secondary:hover {
+  background-color: #8392ab;
+  border-color: #8392ab;
+}
+
+.text-uppercase {
+  letter-spacing: 0.5px;
+}
+
+.spinner-border-sm {
+  width: 1rem;
+  height: 1rem;
+}
+
+.bg-light {
+  background-color: #f8f9fa !important;
+  border: 1px solid #e9ecef;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .col-md-6 {
+    margin-bottom: 2rem;
+  }
+  
+  .d-flex.justify-content-end {
+    flex-direction: column;
+  }
+  
+  .d-flex.justify-content-end .btn {
+    margin-bottom: 0.5rem;
+    width: 100%;
+  }
+}
+
+/* Priorité badges dans le select */
+select option {
+  padding: 0.5rem;
+}
+
+/* Style pour les champs requis */
+.form-label .text-danger {
+  font-size: 0.9rem;
+}
+
+/* Animation pour les erreurs */
+.invalid-feedback {
+  animation: shake 0.5s ease-in-out;
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-5px); }
+  75% { transform: translateX(5px); }
+}
+
+/* Style pour les champs désactivés */
+.form-control:disabled, .form-select:disabled {
+  background-color: #f8f9fa;
+  opacity: 0.6;
+}
+
+/* Style pour les sections */
+h6.text-uppercase {
+  border-bottom: 2px solid #e9ecef;
+  padding-bottom: 0.5rem;
+  margin-bottom: 1.5rem;
+}
+
+/* Amélioration de l'apparence du textarea */
+textarea.form-control {
+  resize: vertical;
+  min-height: 100px;
+}
+
+/* Style pour les info-bulles */
+.form-text {
+  font-size: 0.8rem;
+  color: #6c757d;
+  margin-top: 0.25rem;
+}
+
+/* Styles pour le tableau de sélection des contrats */
+.table-responsive {
+  border-radius: 0.5rem;
+}
+
+.table-hover tbody tr:hover {
+  background-color: rgba(94, 114, 228, 0.1);
+  cursor: pointer;
+}
+
+.contrat-row:hover {
+  background-color: rgba(94, 114, 228, 0.05) !important;
+  transition: background-color 0.2s ease;
+}
+
+.btn-xs {
+  padding: 0.25rem 0.5rem;
+  font-size: 0.75rem;
+  border-radius: 0.25rem;
+}
+
+.sticky-top {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+/* Styles pour les cartes de sélection */
+.border {
+  border: 1px solid #dee2e6 !important;
+}
+
+.bg-primary.bg-opacity-10 {
+  background-color: rgba(94, 114, 228, 0.1) !important;
+}
+
+/* Animation pour l'affichage du tableau */
+.table-responsive {
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Style pour les badges de statut */
+.text-success {
+  color: #28a745 !important;
+}
+
+.text-warning {
+  color: #ffc107 !important;
+}

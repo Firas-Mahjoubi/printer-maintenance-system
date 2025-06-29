@@ -1,0 +1,218 @@
+<div class="client-history">
+  <!-- Header -->
+  <header class="page-header">
+    <div class="header-content">
+      <div class="header-left">
+        <button class="back-btn" (click)="goBack()">
+          <i class="fas fa-arrow-left"></i>
+        </button>
+        <div class="header-text">
+          <h1>Historique</h1>
+          <p>Consultez l'historique complet de vos interventions</p>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Filters -->
+  <section class="filters-section">
+    <div class="filters-container">
+      <div class="filter-group">
+        <label>Période</label>
+        <select [(ngModel)]="selectedPeriod" (change)="filterHistory()">
+          <option value="">Toute période</option>
+          <option value="week">Cette semaine</option>
+          <option value="month">Ce mois</option>
+          <option value="quarter">Ce trimestre</option>
+          <option value="year">Cette année</option>
+        </select>
+      </div>
+      
+      <div class="filter-group">
+        <label>Type d'intervention</label>
+        <select [(ngModel)]="selectedType" (change)="filterHistory()">
+          <option value="">Tous les types</option>
+          <option value="maintenance">Maintenance préventive</option>
+          <option value="repair">Réparation</option>
+          <option value="installation">Installation</option>
+          <option value="replacement">Remplacement</option>
+        </select>
+      </div>
+      
+      <div class="filter-group">
+        <label>Équipement</label>
+        <select [(ngModel)]="selectedEquipment" (change)="filterHistory()">
+          <option value="">Tous les équipements</option>
+          <option *ngFor="let equipment of equipmentList" [value]="equipment.id">
+            {{ equipment.name }} - {{ equipment.location }}
+          </option>
+        </select>
+      </div>
+      
+      <div class="filter-group">
+        <label>Statut</label>
+        <select [(ngModel)]="selectedStatus" (change)="filterHistory()">
+          <option value="">Tous les statuts</option>
+          <option value="completed">Terminé</option>
+          <option value="in-progress">En cours</option>
+          <option value="cancelled">Annulé</option>
+        </select>
+      </div>
+    </div>
+  </section>
+
+  <!-- History Timeline -->
+  <section class="history-section">
+    <div class="history-container">
+      
+      <!-- Summary Stats -->
+      <div class="summary-stats">
+        <div class="stat-item">
+          <div class="stat-icon">
+            <i class="fas fa-wrench"></i>
+          </div>
+          <div class="stat-content">
+            <span class="stat-number">{{ totalInterventions }}</span>
+            <span class="stat-label">Interventions totales</span>
+          </div>
+        </div>
+        
+        <div class="stat-item">
+          <div class="stat-icon">
+            <i class="fas fa-calendar-check"></i>
+          </div>
+          <div class="stat-content">
+            <span class="stat-number">{{ completedInterventions }}</span>
+            <span class="stat-label">Terminées</span>
+          </div>
+        </div>
+        
+        <div class="stat-item">
+          <div class="stat-icon">
+            <i class="fas fa-clock"></i>
+          </div>
+          <div class="stat-content">
+            <span class="stat-number">{{ averageResponseTime }}h</span>
+            <span class="stat-label">Temps de réponse moyen</span>
+          </div>
+        </div>
+        
+        <div class="stat-item">
+          <div class="stat-icon">
+            <i class="fas fa-percentage"></i>
+          </div>
+          <div class="stat-content">
+            <span class="stat-number">{{ satisfactionRate }}%</span>
+            <span class="stat-label">Taux de satisfaction</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Timeline -->
+      <div class="timeline">
+        <div class="timeline-item" *ngFor="let item of filteredHistory; let i = index">
+          <div class="timeline-marker" [class]="item.type">
+            <i class="fas" [class]="getTypeIcon(item.type)"></i>
+          </div>
+          
+          <div class="timeline-content">
+            <div class="intervention-card">
+              <div class="intervention-header">
+                <div class="intervention-info">
+                  <h3>{{ item.title }}</h3>
+                  <div class="intervention-meta">
+                    <span class="intervention-id">#{{ item.id }}</span>
+                    <span class="intervention-date">{{ item.date | date:'dd/MM/yyyy HH:mm' }}</span>
+                    <span class="intervention-equipment">{{ item.equipment }}</span>
+                  </div>
+                </div>
+                
+                <div class="intervention-status" [class]="item.status">
+                  <i class="fas" [class]="getStatusIcon(item.status)"></i>
+                  <span>{{ item.statusLabel }}</span>
+                </div>
+              </div>
+              
+              <div class="intervention-body">
+                <p>{{ item.description }}</p>
+                
+                <div class="intervention-details" *ngIf="item.details">
+                  <div class="detail-section" *ngIf="item.details.technician">
+                    <strong>Technicien:</strong> {{ item.details.technician }}
+                  </div>
+                  
+                  <div class="detail-section" *ngIf="item.details.duration">
+                    <strong>Durée:</strong> {{ item.details.duration }}
+                  </div>
+                  
+                  <div class="detail-section" *ngIf="item.details.parts && item.details.parts.length > 0">
+                    <strong>Pièces remplacées:</strong>
+                    <ul class="parts-list">
+                      <li *ngFor="let part of item.details.parts">{{ part }}</li>
+                    </ul>
+                  </div>
+                  
+                  <div class="detail-section" *ngIf="item.details.actions && item.details.actions.length > 0">
+                    <strong>Actions réalisées:</strong>
+                    <ul class="actions-list">
+                      <li *ngFor="let action of item.details.actions">{{ action }}</li>
+                    </ul>
+                  </div>
+                </div>
+                
+                <!-- Cost Information -->
+                <div class="cost-info" *ngIf="item.cost">
+                  <div class="cost-item">
+                    <span>Coût total:</span>
+                    <span class="cost-value">{{ item.cost.total | currency:'EUR':'symbol':'1.2-2' }}</span>
+                  </div>
+                  <div class="cost-breakdown" *ngIf="item.cost.breakdown">
+                    <small>Main d'œuvre: {{ item.cost.breakdown.labor | currency:'EUR':'symbol':'1.2-2' }}</small>
+                    <small>Pièces: {{ item.cost.breakdown.parts | currency:'EUR':'symbol':'1.2-2' }}</small>
+                  </div>
+                </div>
+                
+                <!-- Rating -->
+                <div class="intervention-rating" *ngIf="item.rating">
+                  <span>Votre évaluation:</span>
+                  <div class="stars">
+                    <i class="fas fa-star" *ngFor="let star of [1,2,3,4,5]" 
+                       [class.filled]="star <= item.rating"></i>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="intervention-actions" *ngIf="item.status === 'completed'">
+                <button class="btn-details" (click)="viewDetails(item.id)">
+                  <i class="fas fa-eye"></i>
+                  Détails complets
+                </button>
+                <button class="btn-download" (click)="downloadReport(item.id)">
+                  <i class="fas fa-download"></i>
+                  Rapport PDF
+                </button>
+                <button class="btn-rate" (click)="rateIntervention(item.id)" *ngIf="!item.rating">
+                  <i class="fas fa-star"></i>
+                  Évaluer
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Empty State -->
+      <div class="empty-state" *ngIf="filteredHistory.length === 0">
+        <div class="empty-icon">
+          <i class="fas fa-history"></i>
+        </div>
+        <h3>Aucun historique trouvé</h3>
+        <p>Aucune intervention ne correspond aux filtres sélectionnés ou vous n'avez pas encore d'historique.</p>
+        <button class="reset-filters-btn" (click)="resetFilters()">
+          <i class="fas fa-times"></i>
+          Réinitialiser les filtres
+        </button>
+      </div>
+    </div>
+  </section>
+</div>

@@ -1,0 +1,180 @@
+<div class="client-new-request">
+  <!-- Header -->
+  <header class="page-header">
+    <div class="header-content">
+      <div class="header-left">
+        <button class="back-btn" (click)="goBack()">
+          <i class="fas fa-arrow-left"></i>
+        </button>
+        <div class="header-text">
+          <h1>Nouvelle Demande</h1>
+          <p>Créer une demande de maintenance pour vos équipements</p>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Form Section -->
+  <section class="form-section">
+    <div class="form-container">
+      <form class="request-form" (ngSubmit)="submitRequest()" #requestForm="ngForm">
+        
+        <!-- Equipment Selection -->
+        <div class="form-group">
+          <label for="equipment">Équipement concerné *</label>
+          <select id="equipment" [(ngModel)]="requestData.equipmentId" name="equipment" required>
+            <option value="">Sélectionnez un équipement</option>
+            <option *ngFor="let equipment of equipmentList" [value]="equipment.id">
+              {{ equipment.name }} - {{ equipment.location }}
+            </option>
+          </select>
+        </div>
+
+        <!-- Issue Type -->
+        <div class="form-group">
+          <label for="issueType">Type de problème *</label>
+          <select id="issueType" [(ngModel)]="requestData.issueType" name="issueType" required>
+            <option value="">Sélectionnez le type de problème</option>
+            <option value="jam">Bourrage papier</option>
+            <option value="quality">Problème de qualité d'impression</option>
+            <option value="connectivity">Problème de connexion</option>
+            <option value="cartridge">Problème de cartouche/toner</option>
+            <option value="mechanical">Problème mécanique</option>
+            <option value="software">Problème logiciel</option>
+            <option value="maintenance">Maintenance préventive</option>
+            <option value="other">Autre</option>
+          </select>
+        </div>
+
+        <!-- Priority -->
+        <div class="form-group">
+          <label for="priority">Priorité *</label>
+          <div class="priority-options">
+            <label class="priority-option" [class.selected]="requestData.priority === 'low'">
+              <input type="radio" [(ngModel)]="requestData.priority" name="priority" value="low" required>
+              <div class="priority-indicator low"></div>
+              <div class="priority-content">
+                <span class="priority-label">Faible</span>
+                <span class="priority-desc">Peut attendre quelques jours</span>
+              </div>
+            </label>
+            
+            <label class="priority-option" [class.selected]="requestData.priority === 'medium'">
+              <input type="radio" [(ngModel)]="requestData.priority" name="priority" value="medium" required>
+              <div class="priority-indicator medium"></div>
+              <div class="priority-content">
+                <span class="priority-label">Moyenne</span>
+                <span class="priority-desc">Résolution sous 48h</span>
+              </div>
+            </label>
+            
+            <label class="priority-option" [class.selected]="requestData.priority === 'high'">
+              <input type="radio" [(ngModel)]="requestData.priority" name="priority" value="high" required>
+              <div class="priority-indicator high"></div>
+              <div class="priority-content">
+                <span class="priority-label">Élevée</span>
+                <span class="priority-desc">Résolution sous 24h</span>
+              </div>
+            </label>
+            
+            <label class="priority-option" [class.selected]="requestData.priority === 'urgent'">
+              <input type="radio" [(ngModel)]="requestData.priority" name="priority" value="urgent" required>
+              <div class="priority-indicator urgent"></div>
+              <div class="priority-content">
+                <span class="priority-label">Urgente</span>
+                <span class="priority-desc">Intervention immédiate</span>
+              </div>
+            </label>
+          </div>
+        </div>
+
+        <!-- Title -->
+        <div class="form-group">
+          <label for="title">Titre de la demande *</label>
+          <input 
+            type="text" 
+            id="title" 
+            [(ngModel)]="requestData.title" 
+            name="title" 
+            placeholder="Ex: Problème d'impression couleur"
+            required
+            maxlength="100">
+          <small>{{ requestData.title?.length || 0 }}/100 caractères</small>
+        </div>
+
+        <!-- Description -->
+        <div class="form-group">
+          <label for="description">Description détaillée *</label>
+          <textarea 
+            id="description" 
+            [(ngModel)]="requestData.description" 
+            name="description" 
+            placeholder="Décrivez le problème en détail : quand est-ce arrivé, que s'est-il passé, avez-vous essayé quelque chose..."
+            required
+            rows="6"
+            maxlength="500"></textarea>
+          <small>{{ requestData.description?.length || 0 }}/500 caractères</small>
+        </div>
+
+        <!-- Preferred Date -->
+        <div class="form-group">
+          <label for="preferredDate">Date souhaitée pour l'intervention</label>
+          <input 
+            type="date" 
+            id="preferredDate" 
+            [(ngModel)]="requestData.preferredDate" 
+            name="preferredDate"
+            [min]="minDate">
+          <small>Si vous avez une préférence pour la date d'intervention (optionnel)</small>
+        </div>
+
+        <!-- Contact Info -->
+        <div class="form-group">
+          <label for="contactPhone">Téléphone de contact</label>
+          <input 
+            type="tel" 
+            id="contactPhone" 
+            [(ngModel)]="requestData.contactPhone" 
+            name="contactPhone" 
+            placeholder="Ex: 01 23 45 67 89">
+          <small>Pour que le technicien puisse vous contacter directement</small>
+        </div>
+
+        <!-- Attachments -->
+        <div class="form-group">
+          <label>Pièces jointes</label>
+          <div class="file-upload" (click)="fileInput.click()">
+            <input #fileInput type="file" multiple accept="image/*,.pdf" (change)="onFileSelected($event)" style="display: none;">
+            <div class="upload-content">
+              <i class="fas fa-cloud-upload-alt"></i>
+              <span>Cliquez pour ajouter des photos ou documents</span>
+              <small>Images (JPG, PNG) ou PDF - Max 5MB par fichier</small>
+            </div>
+          </div>
+          
+          <div class="attached-files" *ngIf="attachedFiles.length > 0">
+            <div class="file-item" *ngFor="let file of attachedFiles; let i = index">
+              <i class="fas" [class]="getFileIcon(file.type)"></i>
+              <span>{{ file.name }}</span>
+              <button type="button" class="remove-file" (click)="removeFile(i)">
+                <i class="fas fa-times"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Form Actions -->
+        <div class="form-actions">
+          <button type="button" class="btn-cancel" (click)="goBack()">
+            <i class="fas fa-times"></i>
+            Annuler
+          </button>
+          <button type="submit" class="btn-submit" [disabled]="!requestForm.form.valid || isSubmitting">
+            <i class="fas" [class]="isSubmitting ? 'fa-spinner fa-spin' : 'fa-paper-plane'"></i>
+            {{ isSubmitting ? 'Envoi en cours...' : 'Envoyer la demande' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </section>
+</div>

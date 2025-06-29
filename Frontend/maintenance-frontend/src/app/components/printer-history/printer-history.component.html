@@ -1,0 +1,255 @@
+<div class="container-fluid py-4">
+  <div class="row">
+    <div class="col-12">
+      
+      <!-- En-tête -->
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+          <h2 class="fw-bold text-dark mb-2">
+            <i class="fas fa-printer me-3 text-primary"></i>
+            Historique des Interventions
+          </h2>
+          <p class="text-muted mb-0">Imprimante #{{ imprimanteId }}</p>
+        </div>
+        <div class="d-flex gap-2">
+          <button type="button" class="btn btn-outline-success" (click)="exportToCSV()" *ngIf="filteredInterventions.length > 0">
+            <i class="fas fa-file-excel me-2"></i>Exporter CSV
+          </button>
+          <button type="button" class="btn btn-primary" routerLink="/printers">
+            <i class="fas fa-arrow-left me-2"></i>Retour aux imprimantes
+          </button>
+        </div>
+      </div>
+
+      <!-- Loading State -->
+      <div *ngIf="loading" class="d-flex justify-content-center align-items-center" style="height: 400px;">
+        <div class="text-center">
+          <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;">
+            <span class="visually-hidden">Chargement...</span>
+          </div>
+          <p class="mt-3 text-muted">Chargement de l'historique...</p>
+        </div>
+      </div>
+
+      <!-- Error State -->
+      <div *ngIf="error && !loading" class="alert alert-danger rounded-3 shadow-sm" role="alert">
+        <div class="d-flex align-items-center">
+          <i class="fas fa-exclamation-triangle me-3 fs-4"></i>
+          <div class="flex-grow-1">
+            <h6 class="mb-1">Erreur de chargement</h6>
+            <p class="mb-0">{{ error }}</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Contenu principal -->
+      <div *ngIf="!loading && !error">
+        
+        <!-- Statistiques -->
+        <div class="row mb-4" *ngIf="statistiques.totalInterventions">
+          <div class="col-md-3 col-sm-6 mb-3">
+            <div class="card border-0 shadow-sm h-100">
+              <div class="card-body text-center">
+                <div class="display-6 fw-bold text-primary mb-2">{{ statistiques.totalInterventions }}</div>
+                <p class="text-muted mb-0">Interventions totales</p>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-3 col-sm-6 mb-3">
+            <div class="card border-0 shadow-sm h-100">
+              <div class="card-body text-center">
+                <div class="display-6 fw-bold text-success mb-2">{{ formatCurrency(statistiques.coutTotal) }}</div>
+                <p class="text-muted mb-0">Coût total</p>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-3 col-sm-6 mb-3">
+            <div class="card border-0 shadow-sm h-100">
+              <div class="card-body text-center">
+                <div class="display-6 fw-bold text-info mb-2">{{ formatCurrency(statistiques.coutMoyen) }}</div>
+                <p class="text-muted mb-0">Coût moyen</p>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-3 col-sm-6 mb-3">
+            <div class="card border-0 shadow-sm h-100">
+              <div class="card-body text-center">
+                <div class="display-6 fw-bold text-warning mb-2">{{ statistiques.tempsResolutionMoyen || 0 | number:'1.1-1' }}h</div>
+                <p class="text-muted mb-0">Temps moyen</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Filtres -->
+        <div class="card border-0 shadow-sm mb-4">
+          <div class="card-header bg-transparent border-0">
+            <h5 class="card-title mb-0">
+              <i class="fas fa-filter me-2 text-primary"></i>Filtres
+            </h5>
+          </div>
+          <div class="card-body">
+            <div class="row g-3">
+              <div class="col-md-4">
+                <label class="form-label">Statut</label>
+                <select class="form-select" [(ngModel)]="selectedStatut" (change)="applyFilters()">
+                  <option [ngValue]="null">Tous les statuts</option>
+                  <option [ngValue]="StatutIntervention.EN_ATTENTE">En attente</option>
+                  <option [ngValue]="StatutIntervention.PLANIFIEE">Planifiée</option>
+                  <option [ngValue]="StatutIntervention.EN_COURS">En cours</option>
+                  <option [ngValue]="StatutIntervention.EN_PAUSE">En pause</option>
+                  <option [ngValue]="StatutIntervention.TERMINEE">Terminée</option>
+                  <option [ngValue]="StatutIntervention.ANNULEE">Annulée</option>
+                </select>
+              </div>
+              <div class="col-md-4">
+                <label class="form-label">Type</label>
+                <select class="form-select" [(ngModel)]="selectedType" (change)="applyFilters()">
+                  <option [ngValue]="null">Tous les types</option>
+                  <option [ngValue]="TypeIntervention.PREVENTIVE">Préventive</option>
+                  <option [ngValue]="TypeIntervention.CORRECTIVE">Corrective</option>
+                  <option [ngValue]="TypeIntervention.URGENTE">Urgente</option>
+                  <option [ngValue]="TypeIntervention.MAINTENANCE">Maintenance</option>
+                  <option [ngValue]="TypeIntervention.INSTALLATION">Installation</option>
+                  <option [ngValue]="TypeIntervention.FORMATION">Formation</option>
+                </select>
+              </div>
+              <div class="col-md-4 d-flex align-items-end">
+                <button type="button" class="btn btn-outline-secondary w-100" (click)="clearFilters()">
+                  <i class="fas fa-times me-2"></i>Effacer filtres
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Liste des interventions -->
+        <div class="card border-0 shadow-sm">
+          <div class="card-header bg-transparent border-0">
+            <h5 class="card-title mb-0">
+              <i class="fas fa-history me-2 text-primary"></i>
+              Historique des Interventions ({{ filteredInterventions.length }})
+            </h5>
+          </div>
+          <div class="card-body p-0" *ngIf="filteredInterventions.length > 0">
+            <div class="table-responsive">
+              <table class="table table-hover mb-0">
+                <thead class="table-light">
+                  <tr>
+                    <th>Ticket</th>
+                    <th>Type</th>
+                    <th>Problème</th>
+                    <th>Statut</th>
+                    <th>Priorité</th>
+                    <th>Technicien</th>
+                    <th>Date création</th>
+                    <th>Date fin</th>
+                    <th>Coût</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let intervention of filteredInterventions; trackBy: trackByInterventionId">
+                    <td>
+                      <div class="d-flex flex-column">
+                        <span class="fw-bold text-primary">#{{ intervention.numero || intervention.id }}</span>
+                        <small class="text-muted">{{ intervention.titre }}</small>
+                      </div>
+                    </td>
+                    <td>
+                      <div class="d-flex align-items-center">
+                        <i [class]="getTypeIcon(intervention.type)" class="me-2 text-muted"></i>
+                        <span>{{ intervention.type }}</span>
+                      </div>
+                    </td>
+                    <td>
+                      <div class="text-truncate" style="max-width: 200px;" [title]="intervention.description">
+                        {{ intervention.description }}
+                      </div>
+                    </td>
+                    <td>
+                      <span class="badge bg-{{ getStatutClass(intervention.statut!) }}">
+                        {{ intervention.statut }}
+                      </span>
+                    </td>
+                    <td>
+                      <span class="badge bg-{{ getPrioriteClass(intervention.priorite) }}">
+                        {{ intervention.priorite }}
+                      </span>
+                    </td>
+                    <td>
+                      <div class="d-flex align-items-center" *ngIf="intervention.technicienNom">
+                        <i class="fas fa-user-cog me-2 text-muted"></i>
+                        <span>{{ intervention.technicienNom }}</span>
+                      </div>
+                      <span class="text-muted" *ngIf="!intervention.technicienNom">Non assigné</span>
+                    </td>
+                    <td>
+                      <small>{{ formatDate(intervention.dateCreation) }}</small>
+                    </td>
+                    <td>
+                      <small *ngIf="intervention.dateFin">{{ formatDate(intervention.dateFin) }}</small>
+                      <span class="text-muted" *ngIf="!intervention.dateFin">En cours</span>
+                    </td>
+                    <td>
+                      <span class="fw-bold text-success" *ngIf="intervention.solution">
+                        {{ formatCurrency(0) }}
+                      </span>
+                      <span class="text-muted" *ngIf="!intervention.solution">-</span>
+                    </td>
+                    <td>
+                      <div class="d-flex gap-1">
+                        <button 
+                          type="button" 
+                          class="btn btn-sm btn-outline-primary" 
+                          [routerLink]="['/tickets', intervention.id]"
+                          title="Voir détails">
+                          <i class="fas fa-eye"></i>
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <div class="card-body text-center text-muted py-5" *ngIf="filteredInterventions.length === 0">
+            <i class="fas fa-inbox fa-3x mb-3 text-muted"></i>
+            <h5>Aucune intervention trouvée</h5>
+            <p>Aucune intervention ne correspond aux critères sélectionnés.</p>
+          </div>
+        </div>
+
+        <!-- Résumé de la solution (pour les interventions terminées) -->
+        <div class="row mt-4" *ngIf="filteredInterventions.length > 0">
+          <div class="col-12">
+            <div class="card border-0 shadow-sm">
+              <div class="card-header bg-transparent border-0">
+                <h5 class="card-title mb-0">
+                  <i class="fas fa-lightbulb me-2 text-primary"></i>
+                  Résumé des Solutions Appliquées
+                </h5>
+              </div>
+              <div class="card-body">
+                <div class="row">
+                  <div class="col-md-6" *ngFor="let intervention of filteredInterventions.slice(0, 6)">
+                    <div class="mb-3" *ngIf="intervention.solution">
+                      <div class="d-flex justify-content-between align-items-start">
+                        <div class="flex-grow-1">
+                          <h6 class="fw-bold text-dark mb-1">#{{ intervention.numero || intervention.id }} - {{ intervention.type }}</h6>
+                          <p class="text-muted mb-1">{{ intervention.solution }}</p>
+                          <small class="text-muted">{{ formatDate(intervention.dateFin) }}</small>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>

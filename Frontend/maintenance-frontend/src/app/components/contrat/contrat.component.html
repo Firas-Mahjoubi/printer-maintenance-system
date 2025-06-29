@@ -201,7 +201,7 @@
                   </button>
                   <ul class="dropdown-menu">
                     <li><a class="dropdown-item" href="#"><i class="bi bi-files me-2"></i>Dupliquer</a></li>
-                    <li><a class="dropdown-item" href="#"><i class="bi bi-download me-2"></i>Exporter PDF</a></li>
+                    <li><a class="dropdown-item" (click)="exportToPdf(contrat)"><i class="bi bi-download me-2"></i>Exporter PDF</a></li>
                     <li><a class="dropdown-item" href="#"><i class="bi bi-archive me-2"></i>Archiver</a></li>
                     <li><hr class="dropdown-divider"></li>
                     <li><a class="dropdown-item text-danger" (click)="deleteContrat(contrat.id)">

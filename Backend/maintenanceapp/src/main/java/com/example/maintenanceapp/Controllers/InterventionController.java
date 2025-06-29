@@ -1,0 +1,385 @@
+package com.example.maintenanceapp.Controllers;
+
+import com.example.maintenanceapp.Dto.InterventionCreateDTO;
+import com.example.maintenanceapp.Dto.InterventionDTO;
+import com.example.maintenanceapp.Dto.InterventionUpdateDTO;
+import com.example.maintenanceapp.Dto.InterventionHistoriqueDTO;
+import com.example.maintenanceapp.Entity.Intervention;
+import com.example.maintenanceapp.Entity.Enum.PrioriteIntervention;
+import com.example.maintenanceapp.Entity.Enum.StatutIntervention;
+import com.example.maintenanceapp.Entity.Enum.TypeIntervention;
+import com.example.maintenanceapp.Mapper.InterventionMapper;
+import com.example.maintenanceapp.ServiceInterface.IInterventionService;
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.experimental.FieldDefaults;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Map;
+
+@RestController
+@AllArgsConstructor
+@Slf4j
+@FieldDefaults(level = AccessLevel.PRIVATE)
+@RequestMapping("/api/interventions")
+public class InterventionController {
+
+
+     IInterventionService interventionService;
+
+     InterventionMapper interventionMapper;
+
+    // ====================== GESTION DES TICKETS ======================
+
+    /**
+     * Créer un nouveau ticket de maintenance
+     */
+    @PostMapping
+    public ResponseEntity<InterventionDTO> creerTicket(@RequestBody InterventionCreateDTO createDTO) {
+        try {
+            InterventionDTO intervention = interventionService.creerIntervention(createDTO);
+            return ResponseEntity.status(HttpStatus.CREATED).body(intervention);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        }
+    }
+
+    /**
+     * Obtenir tous les tickets avec pagination et filtres
+     */
+    @GetMapping
+    public ResponseEntity<Page<InterventionDTO>> obtenirTickets(
+            @RequestParam(required = false) StatutIntervention statut,
+            @RequestParam(required = false) TypeIntervention type,
+            @RequestParam(required = false) PrioriteIntervention priorite,
+            @RequestParam(required = false) Long technicienId,
+            @RequestParam(required = false) Long demandeurId,
+            @RequestParam(required = false) Long contratId,
+            @RequestParam(required = false) String dateDebut,
+            @RequestParam(required = false) String dateFin,
+            Pageable pageable) {
+
+        LocalDate debut = dateDebut != null ? LocalDate.parse(dateDebut) : null;
+        LocalDate fin = dateFin != null ? LocalDate.parse(dateFin) : null;
+
+        Page<InterventionDTO> interventions = interventionService.obtenirInterventionsFiltrees(
+                statut, type, priorite, technicienId, demandeurId, contratId, debut, fin, pageable);
+
+        return ResponseEntity.ok(interventions);
+    }
+
+    /**
+     * Obtenir un ticket par son ID
+     */
+    @GetMapping("/{id}")
+    public ResponseEntity<InterventionDTO> obtenirTicketParId(@PathVariable Long id) {
+        try {
+            InterventionDTO intervention = interventionService.obtenirInterventionParId(id);
+            return ResponseEntity.ok(intervention);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
+    }
+
+    /**
+     * Obtenir un ticket par son numéro
+     */
+    @GetMapping("/numero/{numero}")
+    public ResponseEntity<InterventionDTO> obtenirTicketParNumero(@PathVariable String numero) {
+        try {
+            InterventionDTO intervention = interventionService.obtenirInterventionParNumero(numero);
+            return ResponseEntity.ok(intervention);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
+    }
+
+    /**
+     * Obtenir l'historique des actions d'un ticket
+     */
+    @GetMapping("/{id}/historique")
+    public ResponseEntity<List<InterventionHistoriqueDTO>> obtenirHistoriqueTicket(@PathVariable Long id) {
+        try {
+            List<InterventionHistoriqueDTO> historique = interventionService.obtenirHistoriqueIntervention(id);
+            return ResponseEntity.ok(historique);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
+    }
+
+    /**
+     * Mettre à jour un ticket
+     */
+    @PutMapping("/{id}")
+    public ResponseEntity<InterventionDTO> mettreAJourTicket(
+            @PathVariable Long id,
+            @RequestBody InterventionUpdateDTO updateDTO) {
+        try {
+            InterventionDTO intervention = interventionService.mettreAJourIntervention(id, updateDTO);
+            return ResponseEntity.ok(intervention);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        }
+    }
+
+    /**
+     * Supprimer un ticket
+     */
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> supprimerTicket(@PathVariable Long id) {
+        try {
+            interventionService.supprimerIntervention(id);
+            return ResponseEntity.noContent().build();
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
+    }
+
+    // ====================== GESTION DU CYCLE DE VIE ======================
+
+    /**
+     * Assigner un technicien à un ticket
+     */
+    @PutMapping("/{id}/assigner")
+    public ResponseEntity<InterventionDTO> assignerTechnicien(
+            @PathVariable Long id,
+            @RequestParam Long technicienId,
+            @RequestParam Long assignateurId) {
+        try {
+            InterventionDTO intervention = interventionService.assignerTechnicien(id, technicienId, assignateurId);
+            return ResponseEntity.ok(intervention);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        }
+    }
+
+    /**
+     * Planifier un ticket
+     */
+    @PutMapping("/{id}/planifier")
+    public ResponseEntity<InterventionDTO> planifierTicket(
+            @PathVariable Long id,
+            @RequestParam String datePlanifiee,
+            @RequestParam Long planificateurId) {
+        try {
+            LocalDateTime dateTime = LocalDateTime.parse(datePlanifiee);
+            Intervention intervention = interventionService.planifierIntervention(id, dateTime, planificateurId);
+            InterventionDTO interventionDTO = interventionMapper.toDTO(intervention);
+            return ResponseEntity.ok(interventionDTO);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        }
+    }
+
+    /**
+     * Démarrer un ticket
+     */
+    @PutMapping("/{id}/demarrer")
+    public ResponseEntity<InterventionDTO> demarrerTicket(
+            @PathVariable Long id,
+            @RequestParam Long technicienId) {
+        try {
+            InterventionDTO intervention = interventionService.demarrerIntervention(id, technicienId);
+            return ResponseEntity.ok(intervention);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        }
+    }
+
+    /**
+     * Mettre en pause un ticket
+     */
+    @PutMapping("/{id}/pause")
+    public ResponseEntity<InterventionDTO> mettreEnPauseTicket(
+            @PathVariable Long id,
+            @RequestParam Long technicienId,
+            @RequestParam String raisonPause) {
+        try {
+            InterventionDTO intervention = interventionService.mettreEnPause(id, technicienId, raisonPause);
+            return ResponseEntity.ok(intervention);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        }
+    }
+
+    /**
+     * Reprendre un ticket en pause
+     */
+    @PutMapping("/{id}/reprendre")
+    public ResponseEntity<InterventionDTO> reprendreTicket(
+            @PathVariable Long id,
+            @RequestParam Long technicienId) {
+        try {
+            InterventionDTO intervention = interventionService.reprendreIntervention(id, technicienId);
+            return ResponseEntity.ok(intervention);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        }
+    }
+
+    /**
+     * Clôturer un ticket
+     */
+    @PutMapping("/{id}/cloturer")
+    public ResponseEntity<InterventionDTO> cloturerTicket(
+            @PathVariable Long id,
+            @RequestParam Long technicienId,
+            @RequestParam String solution,
+            @RequestParam(required = false) String commentaireInterne) {
+        try {
+            InterventionDTO intervention = interventionService.cloturerIntervention(id, technicienId, solution, commentaireInterne);
+            return ResponseEntity.ok(intervention);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        }
+    }
+
+    /**
+     * Rouvrir un ticket clôturé
+     */
+    @PutMapping("/{id}/rouvrir")
+    public ResponseEntity<InterventionDTO> rouvrirTicket(
+            @PathVariable Long id,
+            @RequestParam Long utilisateurId,
+            @RequestParam String raison) {
+        try {
+            InterventionDTO intervention = interventionService.rouvrirIntervention(id, utilisateurId, raison);
+            return ResponseEntity.ok(intervention);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        }
+    }
+
+    /**
+     * Annuler un ticket
+     */
+    @PutMapping("/{id}/annuler")
+    public ResponseEntity<InterventionDTO> annulerTicket(
+            @PathVariable Long id,
+            @RequestParam Long utilisateurId,
+            @RequestParam String raisonAnnulation) {
+        try {
+            InterventionDTO intervention = interventionService.annulerIntervention(id, utilisateurId, raisonAnnulation);
+            return ResponseEntity.ok(intervention);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        }
+    }
+
+    // ====================== STATISTIQUES ET RAPPORTS ======================
+
+    /**
+     * Obtenir les statistiques des tickets
+     */
+    @GetMapping("/statistiques")
+    public ResponseEntity<Map<String, Object>> obtenirStatistiques(
+            @RequestParam(required = false) String dateDebut,
+            @RequestParam(required = false) String dateFin) {
+
+        LocalDate debut = dateDebut != null ? LocalDate.parse(dateDebut) : null;
+        LocalDate fin = dateFin != null ? LocalDate.parse(dateFin) : null;
+
+        Map<String, Object> statistiques = interventionService.obtenirStatistiques(debut, fin);
+        return ResponseEntity.ok(statistiques);
+    }
+
+    /**
+     * Obtenir les tickets par technicien
+     */
+    @GetMapping("/technicien/{technicienId}")
+    public ResponseEntity<List<InterventionDTO>> obtenirTicketsParTechnicien(
+            @PathVariable Long technicienId,
+            @RequestParam(required = false) StatutIntervention statut) {
+
+        List<InterventionDTO> interventions = interventionService.obtenirInterventionsParTechnicien(technicienId, statut);
+        return ResponseEntity.ok(interventions);
+    }
+
+    /**
+     * Obtenir les tickets urgents
+     */
+    @GetMapping("/urgents")
+    public ResponseEntity<List<InterventionDTO>> obtenirTicketsUrgents() {
+        List<InterventionDTO> interventions = interventionService.obtenirInterventionsUrgentes();
+        return ResponseEntity.ok(interventions);
+    }
+
+    /**
+     * Obtenir les tickets en retard
+     */
+    @GetMapping("/retard")
+    public ResponseEntity<List<InterventionDTO>> obtenirTicketsEnRetard() {
+        List<InterventionDTO> interventions = interventionService.obtenirInterventionsEnRetard();
+        return ResponseEntity.ok(interventions);
+    }
+
+    // ====================== SATISFACTION CLIENT ======================
+
+    /**
+     * Enregistrer la satisfaction client
+     */
+    @PutMapping("/{id}/satisfaction")
+    public ResponseEntity<InterventionDTO> enregistrerSatisfaction(
+            @PathVariable Long id,
+            @RequestParam Integer noteSatisfaction,
+            @RequestParam(required = false) String commentaireSatisfaction) {
+        try {
+            InterventionDTO intervention = interventionService.enregistrerSatisfactionClient(id, noteSatisfaction, commentaireSatisfaction);
+            return ResponseEntity.ok(intervention);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        }
+    }
+
+    // ====================== HISTORIQUE DES IMPRIMANTES ======================
+
+    /**
+     * Obtenir l'historique complet des interventions pour une imprimante
+     */
+    @GetMapping("/imprimante/{imprimanteId}/historique")
+    public ResponseEntity<List<InterventionDTO>> obtenirHistoriqueImprimante(@PathVariable Long imprimanteId) {
+        try {
+            List<InterventionDTO> historique = interventionService.obtenirHistoriqueInterventionsImprimante(imprimanteId);
+            return ResponseEntity.ok(historique);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
+    }
+
+    /**
+     * Obtenir les statistiques pour une imprimante
+     */
+    @GetMapping("/imprimante/{imprimanteId}/statistiques")
+    public ResponseEntity<Map<String, Object>> obtenirStatistiquesImprimante(@PathVariable Long imprimanteId) {
+        try {
+            Map<String, Object> statistiques = interventionService.obtenirStatistiquesImprimante(imprimanteId);
+            return ResponseEntity.ok(statistiques);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
+    }
+
+    // ====================== TEST DE CONNECTIVITÉ ======================
+
+    /**
+     * Endpoint simple pour tester la connectivité
+     */
+    @GetMapping("/test")
+    public ResponseEntity<String> test() {
+        return ResponseEntity.ok("API Interventions fonctionne !");
+    }
+
+    /**
+     * Endpoint simple pour lister toutes les interventions
+     */
+
+}

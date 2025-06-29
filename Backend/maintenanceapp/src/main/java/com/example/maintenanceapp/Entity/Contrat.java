@@ -29,7 +29,7 @@ public class Contrat {
     StatutContrat statutContrat;
     String conditions_contrat;
     @ManyToOne
-     Utilisateur client;
+    Utilisateur client;
 
     @OneToMany(cascade = CascadeType.ALL,mappedBy = "contrat")
     @JsonIgnore

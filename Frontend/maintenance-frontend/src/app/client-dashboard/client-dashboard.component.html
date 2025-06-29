@@ -1,0 +1,179 @@
+<div class="client-dashboard">
+  <!-- Header -->
+  <header class="dashboard-header">
+    <div class="header-content">
+      <div class="header-left">
+        <img src="assets/img/logo.png" alt="Logo" class="logo">
+        <div class="header-text">
+          <h1>Espace Client</h1>
+          <p>Maintenance Pro - Gestion de vos équipements</p>
+        </div>
+      </div>
+      <div class="header-right">
+        <div class="user-info">
+          <div class="user-avatar">
+            <i class="fas fa-user"></i>
+          </div>
+          <div class="user-details">
+            <span class="user-name">{{ currentUser?.email || 'Client' }}</span>
+            <span class="user-role">Client</span>
+          </div>
+        </div>
+        <button class="logout-btn" (click)="logout()">
+          <i class="fas fa-sign-out-alt"></i>
+          Déconnexion
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="dashboard-main">
+    <div class="dashboard-container">
+      
+      <!-- Welcome Section -->
+      <section class="welcome-section">
+        <div class="welcome-card">
+          <div class="welcome-content">
+            <h2>Bienvenue dans votre espace client</h2>
+            <p>Suivez l'état de vos équipements et gérez vos demandes de maintenance en temps réel.</p>
+          </div>
+          <div class="welcome-stats">
+            <div class="stat-item">
+              <div class="stat-number">{{ equipmentCount }}</div>
+              <div class="stat-label">Équipements</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-number">{{ activeTickets }}</div>
+              <div class="stat-label">Tickets actifs</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-number">{{ lastMaintenance }}</div>
+              <div class="stat-label">Jours depuis maintenance</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Quick Actions -->
+      <section class="quick-actions">
+        <h3>Actions rapides</h3>
+        <div class="actions-grid">
+          <div class="action-card" (click)="createTicket()">
+            <div class="action-icon">
+              <i class="fas fa-plus-circle"></i>
+            </div>
+            <h4>Nouvelle demande</h4>
+            <p>Créer une demande de maintenance</p>
+          </div>
+          
+          <div class="action-card" (click)="viewTickets()">
+            <div class="action-icon">
+              <i class="fas fa-list-alt"></i>
+            </div>
+            <h4>Mes demandes</h4>
+            <p>Voir toutes vos demandes</p>
+          </div>
+          
+          <div class="action-card" (click)="viewEquipment()">
+            <div class="action-icon">
+              <i class="fas fa-print"></i>
+            </div>
+            <h4>Mes équipements</h4>
+            <p>Gérer vos imprimantes</p>
+          </div>
+          
+          <div class="action-card" (click)="viewHistory()">
+            <div class="action-icon">
+              <i class="fas fa-history"></i>
+            </div>
+            <h4>Historique</h4>
+            <p>Consulter l'historique</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Recent Tickets -->
+      <section class="recent-tickets">
+        <div class="section-header">
+          <h3>Demandes récentes</h3>
+          <button class="view-all-btn" (click)="viewTickets()">Voir tout</button>
+        </div>
+        <div class="tickets-list">
+          <div class="ticket-card" *ngFor="let ticket of recentTickets">
+            <div class="ticket-status" [class]="ticket.status.toLowerCase()">
+              {{ ticket.statusLabel }}
+            </div>
+            <div class="ticket-content">
+              <h4>{{ ticket.title }}</h4>
+              <p>{{ ticket.description }}</p>
+              <div class="ticket-meta">
+                <span class="ticket-date">{{ ticket.date | date:'dd/MM/yyyy' }}</span>
+                <span class="ticket-priority" [class]="ticket.priority.toLowerCase()">
+                  {{ ticket.priorityLabel }}
+                </span>
+              </div>
+            </div>
+            <div class="ticket-actions">
+              <button class="btn-details" (click)="viewTicketDetails(ticket.id)">
+                <i class="fas fa-eye"></i>
+              </button>
+            </div>
+          </div>
+          
+          <div class="no-tickets" *ngIf="recentTickets.length === 0">
+            <i class="fas fa-inbox"></i>
+            <p>Aucune demande récente</p>
+            <button class="create-ticket-btn" (click)="createTicket()">
+              Créer une demande
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- Equipment Status -->
+      <section class="equipment-status">
+        <div class="section-header">
+          <h3>État des équipements</h3>
+          <button class="view-all-btn" (click)="viewEquipment()">Voir tout</button>
+        </div>
+        <div class="equipment-grid">
+          <div class="equipment-card" *ngFor="let equipment of equipmentList">
+            <div class="equipment-header">
+              <div class="equipment-icon">
+                <i class="fas fa-print"></i>
+              </div>
+              <div class="equipment-status-badge" [class]="equipment.status.toLowerCase()">
+                {{ equipment.statusLabel }}
+              </div>
+            </div>
+            <div class="equipment-info">
+              <h4>{{ equipment.name }}</h4>
+              <p>{{ equipment.model }}</p>
+              <div class="equipment-details">
+                <span>Série: {{ equipment.serialNumber }}</span>
+                <span>Localisation: {{ equipment.location }}</span>
+              </div>
+            </div>
+            <div class="equipment-metrics">
+              <div class="metric">
+                <span class="metric-label">Pages imprimées</span>
+                <span class="metric-value">{{ equipment.pageCount | number }}</span>
+              </div>
+              <div class="metric">
+                <span class="metric-label">Dernière maintenance</span>
+                <span class="metric-value">{{ equipment.lastMaintenance | date:'dd/MM/yyyy' }}</span>
+              </div>
+            </div>
+          </div>
+          
+          <div class="no-equipment" *ngIf="equipmentList.length === 0">
+            <i class="fas fa-print"></i>
+            <p>Aucun équipement enregistré</p>
+          </div>
+        </div>
+      </section>
+
+    </div>
+  </main>
+</div>

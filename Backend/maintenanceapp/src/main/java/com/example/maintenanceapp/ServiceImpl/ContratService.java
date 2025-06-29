@@ -1,6 +1,5 @@
 package com.example.maintenanceapp.ServiceImpl;
 
-import ch.qos.logback.core.net.server.Client;
 import com.example.maintenanceapp.Entity.Contrat;
 import com.example.maintenanceapp.Entity.Enum.StatutContrat;
 import com.example.maintenanceapp.Entity.Imprimante;
@@ -14,9 +13,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
+import java.io.IOException;
 import java.time.LocalDate;
 import java.util.List;
-import java.util.Optional;
 
 @Service
 @AllArgsConstructor
@@ -25,9 +24,11 @@ public class ContratService implements IContratService {
     ContratRepositorie contratRepositorie;
     ImprimanteRepositorie imprimanteRepositorie;
     UtilisateurRepositorie utilisateurRepositorie;
+    PdfGenerationService pdfGenerationService;
+    NotificationService notificationService;
     @Override
     public List<Contrat> findAll() {
-        return contratRepositorie.findByStatutContrat(StatutContrat.ACTIF);
+        return contratRepositorie.findAll();
     }
 
     @Override
@@ -70,23 +71,54 @@ public class ContratService implements IContratService {
                 today, dateSeuil, StatutContrat.EXPIRE);
     }
 
-    @Scheduled(cron = "0 0 9 * * *") // Every day at 09:00
+    @Scheduled(cron = "0 57 13 * * *") // Every day at 09:00
     public void verifierContratsProchesExpiration() {
-        List<Contrat> contrats = getContratsProchesDeLEcheance(30); // 30 days before expiration
-        for (Contrat contrat : contrats) {
-            System.out.println("🔔 Contrat à renouveler bientôt : " + contrat.getNumeroContrat()
-                    + " (Expire le : " + contrat.getDateFin() + ")");
-            // add email notification here
+        log.info("🔍 Début de la vérification des contrats proches de l'expiration...");
+        
+        // Vérifier les contrats à 30, 15, 7 et 3 jours de l'échéance
+        int[] seuilsAlerte = {30, 15, 7, 3, 1};
+        
+        for (int seuil : seuilsAlerte) {
+            List<Contrat> contrats = getContratsProchesDeLEcheance(seuil);
+            
+            for (Contrat contrat : contrats) {
+                // Calculer les jours restants précisément
+                long joursRestants = java.time.temporal.ChronoUnit.DAYS.between(
+                    LocalDate.now(), contrat.getDateFin());
+                
+                if (joursRestants == seuil) {
+                    log.warn("⚠️ Contrat à renouveler dans {} jours : {} (Expire le : {})", 
+                        joursRestants, contrat.getNumeroContrat(), contrat.getDateFin());
+                    
+                    // Créer une notification
+                    notificationService.creerNotificationEcheanceContrat(contrat, (int)joursRestants);
+                }
+            }
         }
+        
+        log.info("✅ Vérification terminée");
     }
     @Scheduled(cron = "0 0 9 * * *") // Runs every day at 09:00 AM
     public void mettreAJourContratsExpires() {
+        log.info("🔍 Début de la mise à jour des contrats expirés...");
+        
         LocalDate aujourdHui = LocalDate.now();
         List<Contrat> contratsAExpirer = contratRepositorie.findByDateFinBeforeAndStatutContratNot(aujourdHui, StatutContrat.EXPIRE);
+        
         for (Contrat contrat : contratsAExpirer) {
             contrat.setStatutContrat(StatutContrat.EXPIRE);
             contratRepositorie.save(contrat);
-            System.out.println("Contrat expiré mis à jour : " + contrat.getNumeroContrat());
+            
+            log.warn("🚨 Contrat expiré mis à jour : {}", contrat.getNumeroContrat());
+            
+            // Créer une notification de contrat expiré
+            notificationService.creerNotificationContratExpire(contrat);
+        }
+        
+        if (contratsAExpirer.size() > 0) {
+            log.info("✅ {} contrats mis à jour comme expirés", contratsAExpirer.size());
+        } else {
+            log.info("✅ Aucun contrat expiré trouvé");
         }
     }
 
@@ -119,5 +151,11 @@ public class ContratService implements IContratService {
         return contratRepositorie.findByStatutContratNot(StatutContrat.ACTIF);
     }
 
-
+    @Override
+    public byte[] exportContratToPdf(Long contratId) throws IOException {
+        Contrat contrat = contratRepositorie.findById(contratId)
+                .orElseThrow(() -> new RuntimeException("Contrat non trouvé avec l'ID: " + contratId));
+        
+        return pdfGenerationService.generateContractPdf(contrat);
+    }
 }

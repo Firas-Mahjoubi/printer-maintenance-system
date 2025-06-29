@@ -5,7 +5,10 @@ import { Observable } from 'rxjs';
 export interface Utilisateur {
   id: number;
   nom: string;
-  // Add other fields if needed
+  prenom: string;
+  email: string;
+  telephone: string;
+  imageUrl?: string;
 }
 
 export interface Contrat {
@@ -60,5 +63,12 @@ export class ContratService {
   // Get contract history
   getHistory(): Observable<Contrat[]> {
     return this.http.get<Contrat[]>(`${this.baseUrl}/getContratsHistorie`);
+  }
+
+  // Export contract to PDF
+  exportContratToPdf(id: number): Observable<Blob> {
+    return this.http.get(`${this.baseUrl}/export/pdf/${id}`, {
+      responseType: 'blob'
+    });
   }
 }

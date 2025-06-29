@@ -46,7 +46,7 @@
               </div>
             </div>
             <div class="d-flex gap-2">
-              <button class="btn btn-outline-primary btn-sm">
+              <button class="btn btn-outline-primary btn-sm" (click)="exportToPdf()">
                 <i class="bi bi-printer"></i> Imprimer
               </button>
               <button class="btn btn-outline-warning btn-sm" (click)="editContrat()">
@@ -58,7 +58,7 @@
                 </button>
                 <ul class="dropdown-menu">
                   <li><a class="dropdown-item" href="#"><i class="bi bi-files"></i> Dupliquer</a></li>
-                  <li><a class="dropdown-item" href="#"><i class="bi bi-download"></i> Exporter PDF</a></li>
+                  <li><a class="dropdown-item" (click)="exportToPdf()"><i class="bi bi-download"></i> Exporter PDF</a></li>
                   <li><a class="dropdown-item" (click)="renewContrat()"><i class="bi bi-arrow-clockwise"></i> Renouveler</a></li>
                   <li><hr class="dropdown-divider"></li>
                   <li><a class="dropdown-item text-danger" (click)="deleteContrat()"><i class="bi bi-trash"></i> Supprimer</a></li>
@@ -150,11 +150,11 @@
           <div class="row align-items-center mb-3">
             <div class="col-auto">
               <div class="avatar-lg bg-info text-white rounded-circle d-flex align-items-center justify-content-center">
-                {{ contrat.client?.nom?.charAt(0)?.toUpperCase() || 'C' }}
+                {{ getClientInitials() }}
               </div>
             </div>
             <div class="col">
-              <h4 class="mb-1 fw-bold">{{ contrat.client?.nom || 'Client Non Défini' }}</h4>
+              <h4 class="mb-1 fw-bold">{{ getClientFullName() }}</h4>
               <p class="text-muted mb-0">Client ID: {{ contrat.client?.id || contrat.clientId || 'N/A' }}</p>
             </div>
             <div class="col-auto">
@@ -166,12 +166,26 @@
             <div class="col-md-6">
               <div class="d-flex align-items-center mb-2">
                 <i class="bi bi-person-circle me-2 text-muted"></i>
-                <strong>Contact Principal:</strong>
+                <strong>Nom Complet:</strong>
               </div>
               <div class="ps-4">
-                <div>{{ contrat.client?.nom || 'Nom non défini' }}</div>
-                <small class="text-muted">Contact</small>
+                <div>{{ getClientFullName() }}</div>
+                <small class="text-muted">Nom du client</small>
               </div>
+            </div>
+            <div class="col-md-6">
+              <div class="d-flex align-items-center mb-2">
+                <i class="bi bi-envelope me-2 text-muted"></i>
+                <strong>Email:</strong>
+              </div>
+              <div class="ps-4">{{ contrat.client?.email || 'Non défini' }}</div>
+            </div>
+            <div class="col-md-6">
+              <div class="d-flex align-items-center mb-2">
+                <i class="bi bi-telephone me-2 text-muted"></i>
+                <strong>Téléphone:</strong>
+              </div>
+              <div class="ps-4">{{ contrat.client?.telephone || 'Non défini' }}</div>
             </div>
             <div class="col-md-6">
               <div class="d-flex align-items-center mb-2">
@@ -194,6 +208,314 @@
         </div>
         <div class="card-body">
           <div class="contract-content" [innerHTML]="contrat.conditions_contrat">
+          </div>
+        </div>
+      </div>
+
+      <!-- Printers Table -->
+      <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-secondary text-white border-0">
+          <div class="d-flex justify-content-between align-items-center">
+            <h5 class="mb-0 fw-semibold">
+              <i class="bi bi-printer me-2"></i>
+              Imprimantes Assignées
+              <span class="badge bg-light text-dark ms-2">{{ imprimantes.length }}</span>
+            </h5>
+            <button class="btn btn-light btn-sm" (click)="refreshImprimantes()" [disabled]="loadingImprimantes">
+              <i class="bi bi-arrow-clockwise me-1"></i>
+              Actualiser
+            </button>
+          </div>
+        </div>
+        <div class="card-body">
+          <!-- Loading State -->
+          <div class="text-center py-4" *ngIf="loadingImprimantes">
+            <div class="spinner-border text-primary spinner-border-sm" role="status">
+              <span class="visually-hidden">Chargement...</span>
+            </div>
+            <p class="mt-2 text-muted mb-0">Chargement des imprimantes...</p>
+          </div>
+
+          <!-- Error State -->
+          <div class="alert alert-warning" *ngIf="errorImprimantes && !loadingImprimantes">
+            <i class="bi bi-exclamation-triangle me-2"></i>
+            {{ errorImprimantes }}
+            <button class="btn btn-sm btn-outline-warning ms-2" (click)="refreshImprimantes()">
+              Réessayer
+            </button>
+          </div>
+
+          <!-- Empty State -->
+          <div class="text-center py-4" *ngIf="!loadingImprimantes && !errorImprimantes && imprimantes.length === 0">
+            <i class="bi bi-printer text-muted" style="font-size: 3rem;"></i>
+            <h6 class="mt-3 text-muted">Aucune imprimante assignée</h6>
+            <p class="text-muted">Ce contrat n'a aucune imprimante assignée pour le moment.</p>
+            <div class="d-flex gap-2 justify-content-center">
+              <button class="btn btn-outline-primary btn-sm" (click)="toggleAddPrinterForm()">
+                <i class="bi bi-plus-circle me-2"></i>
+                Ajouter une imprimante
+              </button>
+              <button class="btn btn-outline-success btn-sm" (click)="toggleExcelImport()">
+                <i class="bi bi-file-earmark-excel me-2"></i>
+                Importer Excel
+              </button>
+            </div>
+          </div>
+
+          <!-- Printers Table -->
+          <div class="table-responsive" *ngIf="!loadingImprimantes && !errorImprimantes && imprimantes.length > 0">
+            <table class="table table-hover align-middle">
+              <thead class="table-light">
+                <tr>
+                  <th scope="col">
+                    <i class="bi bi-printer me-1"></i>
+                    Marque & Modèle
+                  </th>
+                  <th scope="col">
+                    <i class="bi bi-geo-alt me-1"></i>
+                    Emplacement
+                  </th>
+                  <th scope="col">
+                    <i class="bi bi-tag me-1"></i>
+                    N° Série
+                  </th>
+                  <th scope="col">
+                    <i class="bi bi-tools me-1"></i>
+                    Actions
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let imprimante of imprimantes; trackBy: trackByImprimanteId">
+                  <td>
+                    <div class="d-flex align-items-center">
+                      <div class="bg-light rounded p-2 me-3">
+                        <i class="bi bi-printer text-secondary"></i>
+                      </div>
+                      <div>
+                        <div class="fw-semibold">{{ imprimante.marque }}</div>
+                        <small class="text-muted">{{ imprimante.modele }}</small>
+                      </div>
+                    </div>
+                  </td>
+                  <td>
+                    <span class="text-muted">
+                      <i class="bi bi-geo-alt-fill me-1"></i>
+                      {{ imprimante.emplacement || 'Non défini' }}
+                    </span>
+                  </td>
+                  <td>
+                    <code class="bg-light px-2 py-1 rounded">{{ imprimante.numeroSerie }}</code>
+                  </td>
+                  <td>
+                    <div class="dropdown">
+                      <button class="btn btn-outline-secondary btn-sm dropdown-toggle" 
+                              data-bs-toggle="dropdown" 
+                              aria-expanded="false">
+                        <i class="bi bi-gear"></i>
+                      </button>
+                      <ul class="dropdown-menu">
+                        <li>
+                          <a class="dropdown-item" href="#">
+                            <i class="bi bi-eye me-2"></i>Voir détails
+                          </a>
+                        </li>
+                        <li>
+                          <a class="dropdown-item" href="#">
+                            <i class="bi bi-pencil me-2"></i>Modifier
+                          </a>
+                        </li>
+                        <li>
+                          <a class="dropdown-item" href="#">
+                            <i class="bi bi-calendar-plus me-2"></i>Planifier maintenance
+                          </a>
+                        </li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li>
+                          <a class="dropdown-item text-danger" (click)="removePrinter(imprimante)">
+                            <i class="bi bi-trash me-2"></i>Retirer du contrat
+                          </a>
+                        </li>
+                      </ul>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Add Printer Buttons -->
+          <div class="text-end mt-3" *ngIf="!loadingImprimantes && !errorImprimantes && imprimantes.length > 0">
+            <div class="d-flex gap-2 justify-content-end">
+              <button class="btn btn-outline-primary btn-sm" (click)="toggleAddPrinterForm()">
+                <i class="bi bi-plus-circle me-2"></i>
+                Ajouter une imprimante
+              </button>
+              <button class="btn btn-outline-success btn-sm" (click)="toggleExcelImport()">
+                <i class="bi bi-file-earmark-excel me-2"></i>
+                Importer Excel
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Add Printer Form -->
+      <div class="card border-0 shadow-sm mb-4" *ngIf="showAddPrinterForm">
+        <div class="card-header bg-primary text-white border-0">
+          <div class="d-flex justify-content-between align-items-center">
+            <h5 class="mb-0 fw-semibold">
+              <i class="bi bi-plus-circle me-2"></i>
+              Ajouter une Imprimante
+            </h5>
+            <button class="btn btn-light btn-sm" (click)="cancelAddPrinter()">
+              <i class="bi bi-x"></i>
+            </button>
+          </div>
+        </div>
+        <div class="card-body">
+          <form (ngSubmit)="addPrinter()">
+            <div class="row g-3">
+              <div class="col-md-6">
+                <label for="marque" class="form-label">Marque <span class="text-danger">*</span></label>
+                <input type="text" 
+                       class="form-control" 
+                       id="marque" 
+                       [(ngModel)]="newPrinter.marque" 
+                       name="marque"
+                       placeholder="Ex: HP, Canon, Epson..." 
+                       required>
+              </div>
+              <div class="col-md-6">
+                <label for="modele" class="form-label">Modèle <span class="text-danger">*</span></label>
+                <input type="text" 
+                       class="form-control" 
+                       id="modele" 
+                       [(ngModel)]="newPrinter.modele" 
+                       name="modele"
+                       placeholder="Ex: LaserJet Pro, PIXMA..." 
+                       required>
+              </div>
+              <div class="col-md-6">
+                <label for="numeroSerie" class="form-label">Numéro de Série <span class="text-danger">*</span></label>
+                <input type="text" 
+                       class="form-control" 
+                       id="numeroSerie" 
+                       [(ngModel)]="newPrinter.numeroSerie" 
+                       name="numeroSerie"
+                       placeholder="Ex: ABC123456789" 
+                       required>
+              </div>
+              <div class="col-md-6">
+                <label for="emplacement" class="form-label">Emplacement</label>
+                <input type="text" 
+                       class="form-control" 
+                       id="emplacement" 
+                       [(ngModel)]="newPrinter.emplacement" 
+                       name="emplacement"
+                       placeholder="Ex: Bureau 101, Étage 2...">
+              </div>
+            </div>
+            <div class="d-flex justify-content-end gap-2 mt-4">
+              <button type="button" class="btn btn-outline-secondary" (click)="cancelAddPrinter()">
+                <i class="bi bi-x-circle me-2"></i>
+                Annuler
+              </button>
+              <button type="submit" class="btn btn-primary">
+                <i class="bi bi-plus-circle me-2"></i>
+                Ajouter l'imprimante
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- Excel Import Form -->
+      <div class="card border-0 shadow-sm mb-4" *ngIf="showExcelImport">
+        <div class="card-header bg-success text-white border-0">
+          <div class="d-flex justify-content-between align-items-center">
+            <h5 class="mb-0 fw-semibold">
+              <i class="bi bi-file-earmark-excel me-2"></i>
+              Importer depuis Excel
+            </h5>
+            <button class="btn btn-light btn-sm" (click)="cancelExcelImport()">
+              <i class="bi bi-x"></i>
+            </button>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="row">
+            <div class="col-md-8">
+              <div class="mb-3">
+                <label for="excelFile" class="form-label">Fichier Excel (.xlsx, .xls)</label>
+                <input type="file" 
+                       class="form-control" 
+                       id="excelFile" 
+                       accept=".xlsx,.xls"
+                       (change)="onFileSelected($event)"
+                       [disabled]="importing">
+                <div class="form-text">
+                  <i class="bi bi-info-circle me-1"></i>
+                  Le fichier doit contenir les colonnes : Marque, Modèle, NuméroSérie, Emplacement
+                </div>
+              </div>
+              
+              <!-- Selected file info -->
+              <div class="alert alert-info" *ngIf="selectedFile">
+                <div class="d-flex align-items-center">
+                  <i class="bi bi-file-earmark-excel me-2"></i>
+                  <div>
+                    <strong>{{ selectedFile.name }}</strong>
+                    <small class="d-block text-muted">{{ (selectedFile.size / 1024 / 1024).toFixed(2) }} MB</small>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Import progress -->
+              <div class="mb-3" *ngIf="importing">
+                <div class="d-flex justify-content-between mb-1">
+                  <small class="text-muted">Importation en cours...</small>
+                  <small class="text-muted">{{ uploadProgress }}%</small>
+                </div>
+                <div class="progress">
+                  <div class="progress-bar progress-bar-striped progress-bar-animated" 
+                       role="progressbar" 
+                       [style.width.%]="uploadProgress">
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-4">
+              <div class="card bg-light">
+                <div class="card-body text-center">
+                  <i class="bi bi-download text-primary" style="font-size: 2rem;"></i>
+                  <h6 class="mt-2">Modèle Excel</h6>
+                  <p class="small text-muted">Téléchargez le modèle pour formater vos données</p>
+                  <button class="btn btn-outline-primary btn-sm" (click)="downloadExcelTemplate()">
+                    <i class="bi bi-download me-1"></i>
+                    Télécharger
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <div class="d-flex justify-content-end gap-2 mt-4">
+            <button type="button" 
+                    class="btn btn-outline-secondary" 
+                    (click)="cancelExcelImport()"
+                    [disabled]="importing">
+              <i class="bi bi-x-circle me-2"></i>
+              Annuler
+            </button>
+            <button type="button" 
+                    class="btn btn-success" 
+                    (click)="importFromExcel()"
+                    [disabled]="!selectedFile || importing">
+              <span *ngIf="importing" class="spinner-border spinner-border-sm me-2" role="status"></span>
+              <i *ngIf="!importing" class="bi bi-cloud-upload me-2"></i>
+              {{ importing ? 'Importation...' : 'Importer les imprimantes' }}
+            </button>
           </div>
         </div>
       </div>

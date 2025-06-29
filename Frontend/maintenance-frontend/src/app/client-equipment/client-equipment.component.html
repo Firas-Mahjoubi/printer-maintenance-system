@@ -1,0 +1,220 @@
+<div class="client-equipment">
+  <!-- Header -->
+  <header class="page-header">
+    <div class="header-content">
+      <div class="header-left">
+        <button class="back-btn" (click)="goBack()">
+          <i class="fas fa-arrow-left"></i>
+        </button>
+        <div class="header-text">
+          <h1>Mes Équipements</h1>
+          <p>Gérez et suivez l'état de vos imprimantes</p>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Stats Overview -->
+  <section class="stats-section">
+    <div class="stats-container">
+      <div class="stat-card">
+        <div class="stat-icon operational">
+          <i class="fas fa-check-circle"></i>
+        </div>
+        <div class="stat-content">
+          <div class="stat-number">{{ operationalCount }}</div>
+          <div class="stat-label">Opérationnels</div>
+        </div>
+      </div>
+      
+      <div class="stat-card">
+        <div class="stat-icon warning">
+          <i class="fas fa-exclamation-triangle"></i>
+        </div>
+        <div class="stat-content">
+          <div class="stat-number">{{ warningCount }}</div>
+          <div class="stat-label">Attention requise</div>
+        </div>
+      </div>
+      
+      <div class="stat-card">
+        <div class="stat-icon maintenance">
+          <i class="fas fa-tools"></i>
+        </div>
+        <div class="stat-content">
+          <div class="stat-number">{{ maintenanceCount }}</div>
+          <div class="stat-label">En maintenance</div>
+        </div>
+      </div>
+      
+      <div class="stat-card">
+        <div class="stat-icon error">
+          <i class="fas fa-times-circle"></i>
+        </div>
+        <div class="stat-content">
+          <div class="stat-number">{{ errorCount }}</div>
+          <div class="stat-label">Hors service</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Equipment List -->
+  <section class="equipment-section">
+    <div class="equipment-container">
+      
+      <!-- Filters -->
+      <div class="filters-bar">
+        <div class="filter-group">
+          <label>Filtrer par statut:</label>
+          <select [(ngModel)]="selectedStatus" (change)="filterEquipment()">
+            <option value="">Tous les statuts</option>
+            <option value="operational">Opérationnel</option>
+            <option value="warning">Attention requise</option>
+            <option value="maintenance">En maintenance</option>
+            <option value="error">Hors service</option>
+          </select>
+        </div>
+        
+        <div class="filter-group">
+          <label>Filtrer par localisation:</label>
+          <select [(ngModel)]="selectedLocation" (change)="filterEquipment()">
+            <option value="">Toutes les localisations</option>
+            <option *ngFor="let location of uniqueLocations" [value]="location">{{ location }}</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Equipment Cards -->
+      <div class="equipment-grid">
+        <div class="equipment-card" *ngFor="let equipment of filteredEquipment">
+          <div class="equipment-header">
+            <div class="equipment-info">
+              <div class="equipment-icon">
+                <i class="fas fa-print"></i>
+              </div>
+              <div class="equipment-details">
+                <h3>{{ equipment.name }}</h3>
+                <p>{{ equipment.model }}</p>
+              </div>
+            </div>
+            <div class="equipment-status" [class]="equipment.status">
+              <i class="fas" [class]="getStatusIcon(equipment.status)"></i>
+              <span>{{ equipment.statusLabel }}</span>
+            </div>
+          </div>
+
+          <div class="equipment-body">
+            <div class="equipment-meta">
+              <div class="meta-item">
+                <i class="fas fa-map-marker-alt"></i>
+                <span>{{ equipment.location }}</span>
+              </div>
+              <div class="meta-item">
+                <i class="fas fa-barcode"></i>
+                <span>{{ equipment.serialNumber }}</span>
+              </div>
+              <div class="meta-item">
+                <i class="fas fa-calendar-alt"></i>
+                <span>Installé le {{ equipment.installDate | date:'dd/MM/yyyy' }}</span>
+              </div>
+            </div>
+
+            <div class="equipment-metrics">
+              <div class="metric-row">
+                <div class="metric">
+                  <span class="metric-label">Pages imprimées</span>
+                  <span class="metric-value">{{ equipment.pageCount | number }}</span>
+                </div>
+                <div class="metric">
+                  <span class="metric-label">Pages ce mois</span>
+                  <span class="metric-value">{{ equipment.monthlyPages | number }}</span>
+                </div>
+              </div>
+              
+              <div class="metric-row">
+                <div class="metric">
+                  <span class="metric-label">Dernière maintenance</span>
+                  <span class="metric-value">{{ equipment.lastMaintenance | date:'dd/MM/yyyy' }}</span>
+                </div>
+                <div class="metric">
+                  <span class="metric-label">Prochaine maintenance</span>
+                  <span class="metric-value" [class]="getMaintenanceStatus(equipment.nextMaintenance)">
+                    {{ equipment.nextMaintenance | date:'dd/MM/yyyy' }}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Supply Levels -->
+            <div class="supply-levels" *ngIf="equipment.supplies">
+              <h4>Niveaux de consommables</h4>
+              <div class="supply-item" *ngFor="let supply of equipment.supplies">
+                <div class="supply-info">
+                  <span class="supply-name">{{ supply.name }}</span>
+                  <span class="supply-percentage">{{ supply.level }}%</span>
+                </div>
+                <div class="supply-bar">
+                  <div class="supply-fill" 
+                       [style.width.%]="supply.level" 
+                       [class]="getSupplyStatus(supply.level)"></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Recent Issues -->
+            <div class="recent-issues" *ngIf="equipment.recentIssues && equipment.recentIssues.length > 0">
+              <h4>Problèmes récents</h4>
+              <div class="issue-item" *ngFor="let issue of equipment.recentIssues">
+                <div class="issue-date">{{ issue.date | date:'dd/MM' }}</div>
+                <div class="issue-description">{{ issue.description }}</div>
+                <div class="issue-status" [class]="issue.status">{{ issue.statusLabel }}</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="equipment-actions">
+            <button class="btn-details" (click)="viewDetails(equipment.id)">
+              <i class="fas fa-eye"></i>
+              Détails
+            </button>
+            <button class="btn-request" (click)="createRequest(equipment.id)">
+              <i class="fas fa-plus"></i>
+              Demande
+            </button>
+            <button class="btn-history" (click)="viewHistory(equipment.id)">
+              <i class="fas fa-history"></i>
+              Historique
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Empty State -->
+      <div class="empty-state" *ngIf="filteredEquipment.length === 0 && equipmentList.length === 0">
+        <div class="empty-icon">
+          <i class="fas fa-print"></i>
+        </div>
+        <h3>Aucun équipement enregistré</h3>
+        <p>Vous n'avez pas encore d'équipements enregistrés dans le système.</p>
+        <button class="contact-btn">
+          <i class="fas fa-phone"></i>
+          Contacter le support
+        </button>
+      </div>
+
+      <!-- No Results -->
+      <div class="empty-state" *ngIf="filteredEquipment.length === 0 && equipmentList.length > 0">
+        <div class="empty-icon">
+          <i class="fas fa-search"></i>
+        </div>
+        <h3>Aucun résultat</h3>
+        <p>Aucun équipement ne correspond aux filtres sélectionnés.</p>
+        <button class="reset-filters-btn" (click)="resetFilters()">
+          <i class="fas fa-times"></i>
+          Réinitialiser les filtres
+        </button>
+      </div>
+    </div>
+  </section>
+</div>
