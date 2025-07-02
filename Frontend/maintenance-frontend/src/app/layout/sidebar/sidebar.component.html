@@ -1,4 +1,12 @@
 <aside id="sidebar" [ngClass]="{ 'd-none': !isVisible }" class="sidebar">
+  
+  <!-- Sidebar Header -->
+  <div class="sidebar-header">
+    <img src="assets/img/logo.png" alt="Logo" class="sidebar-logo">
+    <h3 class="sidebar-title">Maintenance Pro</h3>
+    <p class="sidebar-subtitle">Administration</p>
+  </div>
+
   <ul class="sidebar-nav" id="sidebar-nav">
 
     <!-- Dashboard -->
@@ -12,53 +20,61 @@
       </a>
     </li>
 
+    <div class="nav-divider"></div>
+
     <!-- Contrats Section -->
     <li class="nav-item">
       <a class="nav-link collapsed"
          data-bs-target="#components-nav"
          data-bs-toggle="collapse"
-         href="#">
-        <i class="bi bi-menu-button-wide"></i><span>Contrats</span><i class="bi bi-chevron-down ms-auto"></i>
+         href="#"
+         [attr.aria-expanded]="false">
+        <i class="bi bi-file-earmark-text"></i><span>Contrats</span><i class="bi bi-chevron-down"></i>
       </a>
-      <ul id="components-nav" class="nav-content collapse show" data-bs-parent="#sidebar-nav">
+      <ul id="components-nav" class="nav-content collapse" data-bs-parent="#sidebar-nav">
         <li>
-          <a routerLink="/contrats"
+          <a class="nav-link"
+             routerLink="/contrats"
              routerLinkActive="active"
              [routerLinkActiveOptions]="{ exact: true }">
-            <i class="bi bi-circle"></i><span>Liste des Contrats</span>
+            <span>Liste des Contrats</span>
           </a>
         </li>
         <li>
-          <a routerLink="/contrats/add"
+          <a class="nav-link"
+             routerLink="/contrats/add"
              routerLinkActive="active"
              [routerLinkActiveOptions]="{ exact: true }">
-            <i class="bi bi-circle"></i><span>Ajouter un Contrat</span>
+            <span>Ajouter un Contrat</span>
           </a>
         </li>
       </ul>
     </li>
 
-    <!-- ✅ Clients Section -->
+    <!-- Clients Section -->
     <li class="nav-item">
       <a class="nav-link collapsed"
          data-bs-target="#clients-nav"
          data-bs-toggle="collapse"
-         href="#">
-        <i class="bi bi-person"></i><span>Clients</span><i class="bi bi-chevron-down ms-auto"></i>
+         href="#"
+         [attr.aria-expanded]="false">
+        <i class="bi bi-people"></i><span>Clients</span><i class="bi bi-chevron-down"></i>
       </a>
       <ul id="clients-nav" class="nav-content collapse" data-bs-parent="#sidebar-nav">
         <li>
-          <a routerLink="/clients"
+          <a class="nav-link"
+             routerLink="/clients"
              routerLinkActive="active"
              [routerLinkActiveOptions]="{ exact: true }">
-            <i class="bi bi-circle"></i><span>Liste des Clients</span>
+            <span>Liste des Clients</span>
           </a>
         </li>
         <li>
-          <a routerLink="/clients/add"
+          <a class="nav-link"
+             routerLink="/clients/add"
              routerLinkActive="active"
              [routerLinkActiveOptions]="{ exact: true }">
-            <i class="bi bi-circle"></i><span>Ajouter un Client</span>
+            <span>Ajouter un Client</span>
           </a>
         </li>
       </ul>
@@ -69,22 +85,25 @@
       <a class="nav-link collapsed"
          data-bs-target="#tickets-nav"
          data-bs-toggle="collapse"
-         href="#">
-        <i class="bi bi-tools"></i><span>Tickets de Maintenance</span><i class="bi bi-chevron-down ms-auto"></i>
+         href="#"
+         [attr.aria-expanded]="false">
+        <i class="bi bi-wrench"></i><span>Tickets de Maintenance</span><i class="bi bi-chevron-down"></i>
       </a>
       <ul id="tickets-nav" class="nav-content collapse" data-bs-parent="#sidebar-nav">
         <li>
-          <a routerLink="/tickets"
+          <a class="nav-link"
+             routerLink="/tickets"
              routerLinkActive="active"
              [routerLinkActiveOptions]="{ exact: true }">
-            <i class="bi bi-circle"></i><span>Liste des Tickets</span>
+            <span>Liste des Tickets</span>
           </a>
         </li>
         <li>
-          <a routerLink="/tickets/create"
+          <a class="nav-link"
+             routerLink="/tickets/create"
              routerLinkActive="active"
              [routerLinkActiveOptions]="{ exact: true }">
-            <i class="bi bi-circle"></i><span>Créer un Ticket</span>
+            <span>Créer un Ticket</span>
           </a>
         </li>
       </ul>
@@ -95,28 +114,33 @@
       <a class="nav-link collapsed"
          data-bs-target="#printers-nav"
          data-bs-toggle="collapse"
-         href="#">
-        <i class="bi bi-printer"></i><span>Imprimantes</span><i class="bi bi-chevron-down ms-auto"></i>
+         href="#"
+         [attr.aria-expanded]="false">
+        <i class="bi bi-printer"></i><span>Imprimantes</span><i class="bi bi-chevron-down"></i>
       </a>
       <ul id="printers-nav" class="nav-content collapse" data-bs-parent="#sidebar-nav">
         <li>
-          <a routerLink="/printers"
+          <a class="nav-link"
+             routerLink="/printers"
              routerLinkActive="active"
              [routerLinkActiveOptions]="{ exact: true }">
-            <i class="bi bi-circle"></i><span>Liste des Imprimantes</span>
+            <span>Liste des Imprimantes</span>
           </a>
         </li>
         <li>
-          <a routerLink="/printers/history"
+          <a class="nav-link"
+             routerLink="/printers/history"
              routerLinkActive="active"
              [routerLinkActiveOptions]="{ exact: true }">
-            <i class="bi bi-circle"></i><span>Historique par Imprimante</span>
+            <span>Historique par Imprimante</span>
           </a>
         </li>
       </ul>
     </li>
 
-    <!-- 🔔 Notifications Section -->
+    <div class="nav-divider"></div>
+
+    <!-- Notifications Section -->
     <li class="nav-item">
       <a class="nav-link"
          routerLink="/notifications"
@@ -124,7 +148,7 @@
          [routerLinkActiveOptions]="{ exact: true }">
         <i class="bi bi-bell"></i>
         <span>Notifications</span>
-        <span class="badge bg-danger ms-auto" *ngIf="unreadCount > 0">{{ unreadCount }}</span>
+        <span class="badge bg-danger" *ngIf="unreadCount > 0">{{ unreadCount }}</span>
       </a>
     </li>
 

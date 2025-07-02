@@ -18,6 +18,9 @@ import java.util.List;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @RequestMapping("api/Imprimante")
 public class ImprimanteController {
+    
+    IImprimanteService imprimanteService;
+    
     @PostMapping("/import-excel")
     public ResponseEntity<String> importImprimantesFromExcel(@RequestParam MultipartFile file,
                                                              @RequestParam Long contratId) {
@@ -53,6 +56,4 @@ public class ImprimanteController {
     public List<Imprimante> assignImprimantesToContrat(@RequestParam List<Long> imprimanteIds,@RequestParam Long contratId) {
         return imprimanteService.assignImprimantesToContrat(imprimanteIds, contratId);
     }
-
-    IImprimanteService imprimanteService;
 }

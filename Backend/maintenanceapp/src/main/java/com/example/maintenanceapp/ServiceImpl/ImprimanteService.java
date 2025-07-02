@@ -8,6 +8,7 @@ import com.example.maintenanceapp.ServiceInterface.IImprimanteService;
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
@@ -41,10 +42,21 @@ public class ImprimanteService implements IImprimanteService {
                 if (row.getRowNum() == 0) continue; // Skip header
 
                 Imprimante imp = new Imprimante();
-                imp.setEmplacement(row.getCell(0).getStringCellValue());
-                imp.setMarque(row.getCell(1).getStringCellValue());
-                imp.setModele(row.getCell(2).getStringCellValue());
-                imp.setNumeroSerie(row.getCell(3).getStringCellValue());
+                
+                // Read columns in order: Marque, Modèle, Numéro de série, Emplacement
+                if (row.getCell(0) != null) {
+                    imp.setMarque(getCellStringValue(row.getCell(0)));
+                }
+                if (row.getCell(1) != null) {
+                    imp.setModele(getCellStringValue(row.getCell(1)));
+                }
+                if (row.getCell(2) != null) {
+                    imp.setNumeroSerie(getCellStringValue(row.getCell(2)));
+                }
+                if (row.getCell(3) != null) {
+                    imp.setEmplacement(getCellStringValue(row.getCell(3)));
+                }
+                
                 imp.setContrat(contrat);
 
                 imprimanteRepositorie.save(imp);
@@ -98,5 +110,24 @@ public class ImprimanteService implements IImprimanteService {
         }
 
         return updated;
+    }
+    
+    private String getCellStringValue(Cell cell) {
+        if (cell == null) {
+            return "";
+        }
+        
+        switch (cell.getCellType()) {
+            case STRING:
+                return cell.getStringCellValue().trim();
+            case NUMERIC:
+                return String.valueOf((long) cell.getNumericCellValue());
+            case BOOLEAN:
+                return String.valueOf(cell.getBooleanCellValue());
+            case FORMULA:
+                return cell.getCellFormula();
+            default:
+                return "";
+        }
     }
 }

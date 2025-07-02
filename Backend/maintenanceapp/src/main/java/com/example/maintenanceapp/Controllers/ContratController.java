@@ -1,5 +1,6 @@
 package com.example.maintenanceapp.Controllers;
 
+import com.example.maintenanceapp.Dto.ContratDTO;
 import com.example.maintenanceapp.Entity.Contrat;
 import com.example.maintenanceapp.ServiceInterface.IContratService;
 import lombok.AccessLevel;
@@ -23,8 +24,33 @@ import java.util.List;
 public class ContratController {
 
     @PostMapping("/save/{clientId}")
-    public Contrat save(@RequestBody Contrat contrat,@PathVariable long clientId) {
-        return contratService.save(contrat,clientId);
+    public ResponseEntity<ContratDTO> save(@RequestBody Contrat contrat,@PathVariable long clientId) {
+        try {
+            Contrat savedContrat = contratService.save(contrat,clientId);
+            
+            // Convert to DTO to avoid serialization issues
+            ContratDTO contratDTO = ContratDTO.builder()
+                .id(savedContrat.getId())
+                .numeroContrat(savedContrat.getNumeroContrat())
+                .dateDebut(savedContrat.getDateDebut())
+                .dateFin(savedContrat.getDateFin())
+                .statutContrat(savedContrat.getStatutContrat())
+                .conditions_contrat(savedContrat.getConditions_contrat())
+                .client(savedContrat.getClient() != null ? 
+                    ContratDTO.ClientDTO.builder()
+                        .id(savedContrat.getClient().getId())
+                        .nom(savedContrat.getClient().getNom())
+                        .prenom(savedContrat.getClient().getPrenom())
+                        .email(savedContrat.getClient().getEmail())
+                        .telephone(savedContrat.getClient().getTelephone())
+                        .build() : null)
+                .build();
+                
+            return ResponseEntity.ok(contratDTO);
+        } catch (Exception e) {
+            log.error("Erreur lors de la création du contrat: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
     }
 @GetMapping("/findAll")
     public List<Contrat> findAll() {

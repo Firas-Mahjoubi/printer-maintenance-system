@@ -2,34 +2,101 @@
 <div class="card border-0 shadow">
   <div class="card-header bg-primary text-white border-0 d-flex justify-content-between align-items-center py-3">
     <div class="d-flex align-items-center">
-      <h5 class="mb-0 fw-bold">Gestion des Contrats</h5>
+      <h5 class="mb-0 fw-bold">
+        <i class="bi bi-file-earmark-text me-2"></i>
+        {{ showHistory ? 'Historique des Contrats' : 'Gestion des Contrats' }}
+      </h5>
+      <span class="badge bg-light text-primary ms-2" *ngIf="!loading">
+        {{ showHistory ? contratsHistory.length : totalItems }} contrat(s)
+      </span>
     </div>
-    
+    <div class="d-flex gap-2">
+      <button class="btn btn-outline-light btn-sm" (click)="toggleHistoryView()">
+        <i class="bi" [ngClass]="showHistory ? 'bi-arrow-left' : 'bi-clock-history'"></i>
+        {{ showHistory ? 'Retour aux contrats' : 'Voir l\'historique' }}
+      </button>
+      <button class="btn btn-light text-primary btn-sm" (click)="newContrat()" *ngIf="!showHistory">
+        <i class="bi bi-plus-circle me-1"></i>Nouveau Contrat
+      </button>
+    </div>
   </div>
   
-  <div class="card-body p-0">
+  <!-- Loading State -->
+  <div class="text-center py-5" *ngIf="loading">
+    <div class="spinner-border text-primary" role="status">
+      <span class="visually-hidden">Chargement...</span>
+    </div>
+    <p class="mt-2 text-muted">Chargement des contrats...</p>
+  </div>
+
+  <!-- Error State -->
+  <div class="alert alert-danger mx-4 mt-3" *ngIf="error && !loading">
+    <i class="bi bi-exclamation-circle me-2"></i>{{ error }}
+    <button class="btn btn-sm btn-outline-danger ms-2" (click)="loadContrats()">
+      <i class="bi bi-arrow-clockwise me-1"></i>Réessayer
+    </button>
+  </div>
+  
+  <div class="card-body p-0" *ngIf="!loading">
+    <!-- Statistics Cards -->
+    <div class="row g-0 border-bottom" *ngIf="!showHistory">
+      <div class="col-md-3 col-6 border-end">
+        <div class="p-3 text-center statistics-card">
+          <div class="h4 mb-1 text-primary fw-bold">{{ getContractsByStatus('actif').length }}</div>
+          <small class="text-muted"><i class="bi bi-check-circle me-1"></i>Actifs</small>
+        </div>
+      </div>
+      <div class="col-md-3 col-6 border-end">
+        <div class="p-3 text-center statistics-card">
+          <div class="h4 mb-1 text-warning fw-bold">{{ getContractsByStatus('expire').length }}</div>
+          <small class="text-muted"><i class="bi bi-exclamation-triangle me-1"></i>Expirés</small>
+        </div>
+      </div>
+      <div class="col-md-3 col-6 border-end">
+        <div class="p-3 text-center statistics-card">
+          <div class="h4 mb-1 text-info fw-bold">{{ getContractsByStatus('renouvele').length }}</div>
+          <small class="text-muted"><i class="bi bi-arrow-repeat me-1"></i>Renouvelés</small>
+        </div>
+      </div>
+      <div class="col-md-3 col-6">
+        <div class="p-3 text-center statistics-card">
+          <div class="h4 mb-1 text-success fw-bold">{{ allContrats.length }}</div>
+          <small class="text-muted"><i class="bi bi-files me-1"></i>Total</small>
+        </div>
+      </div>
+    </div>
+
     <!-- Search and Filter Bar -->
-    <div class="px-4 py-3 bg-light border-bottom">
+    <div class="px-4 py-3 bg-light border-bottom" *ngIf="!showHistory">
       <div class="row g-3">
         <div class="col-md-6">
           <div class="input-group">
             <span class="input-group-text bg-white border-end-0">
-              🔍
+              <i class="bi bi-search text-muted"></i>
             </span>
-            <input type="text" class="form-control border-start-0" placeholder="Rechercher un contrat...">
+            <input type="text" class="form-control border-start-0 search-input" 
+                   placeholder="Rechercher un contrat..." 
+                   [(ngModel)]="searchTerm"
+                   (input)="onSearchChange()">
           </div>
         </div>
         <div class="col-md-3">
-          <select class="form-select">
+          <select class="form-select filter-select" [(ngModel)]="selectedStatus" (change)="onStatusChange()">
             <option value="">Tous les statuts</option>
-            <option value="actif">Actif</option>
-            <option value="expire">Expiré</option>
-            <option value="suspendu">Suspendu</option>
+            <option value="actif">Contrats Actifs</option>
+            <option value="expire">Contrats Expirés</option>
+            <option value="renouvele">Contrats Renouvelés</option>
+            <option value="attente">En Attente</option>
+            <option value="suspendu">Suspendus</option>
+            <option value="brouillon">Brouillons</option>
           </select>
         </div>
         <div class="col-md-3">
-          <select class="form-select">
+          <select class="form-select filter-select" [(ngModel)]="selectedClient" (change)="onClientChange()">
             <option value="">Tous les clients</option>
+            <option *ngFor="let client of getUniqueClients()" [value]="client.id">
+              {{ client.name }}
+            </option>
           </select>
         </div>
       </div>
@@ -46,7 +113,7 @@
                 <span class="ms-2 text-light small cursor-pointer" title="Trier">⬍</span>
               </div>
             </th>
-            <th scope="col" class="border-0 py-3">
+            <th scope="col" class="border-0 py-3 d-none d-md-table-cell">
               <div class="d-flex align-items-center">
                 <span class="fw-semibold">📅 Date de Début</span>
                 <span class="ms-2 text-light small cursor-pointer" title="Trier">⬍</span>
@@ -59,11 +126,11 @@
               </div>
             </th>
             <th scope="col" class="border-0 py-3 text-center">
-              <span class="fw-semibold">🔄 Statut du Contrat</span>
+              <span class="fw-semibold">🔄 Statut</span>
             </th>
-            <th scope="col" class="border-0 py-3">
+            <th scope="col" class="border-0 py-3 d-none d-lg-table-cell">
               <div class="d-flex align-items-center">
-                <span class="fw-semibold">👤 Informations Client</span>
+                <span class="fw-semibold">👤 Client</span>
                 <span class="ms-2 text-light small cursor-pointer" title="Trier">⬍</span>
               </div>
             </th>
@@ -73,24 +140,34 @@
           </tr>
         </thead>
         <tbody>
-          <tr *ngFor="let contrat of contrats; let i = index" 
+          <!-- Current contracts or history based on showHistory flag -->
+          <tr *ngFor="let contrat of showHistory ? contratsHistory : contrats; let i = index" 
               class="border-bottom border-light">
             <td class="py-3 px-4">
               <div class="d-flex align-items-center">
                 <div class="bg-gradient-primary text-white rounded-circle d-flex align-items-center justify-content-center me-3 shadow-sm"
                      style="width: 40px; height: 40px; font-size: 13px; font-weight: 700; background: linear-gradient(135deg, #007bff, #0056b3);">
-                  C{{ i + 1 }}
+                  {{ showHistory ? 'H' : 'C' }}{{ i + 1 }}
                 </div>
                 <div>
-                  <span class="fw-bold text-primary fs-6">{{ contrat.numeroContrat }}</span>
+                  <span class="fw-bold text-primary fs-6 contract-number">{{ contrat.numeroContrat }}</span>
                   <small class="d-block text-muted">Réf: #{{ contrat.id }}</small>
-                  <small class="d-block text-success">
+                  <small class="d-block text-success" *ngIf="!showHistory">
                     <i class="bi bi-shield-check me-1"></i>Contrat Vérifié
                   </small>
+                  <small class="d-block text-info" *ngIf="showHistory">
+                    <i class="bi bi-clock-history me-1"></i>Archivé
+                  </small>
+                  <!-- Mobile client info -->
+                  <div class="d-lg-none mt-2">
+                    <small class="text-muted d-block">
+                      <i class="bi bi-person me-1"></i>{{ contrat.client?.nom || 'Client Non Défini' }}
+                    </small>
+                  </div>
                 </div>
               </div>
             </td>
-            <td class="py-3">
+            <td class="py-3 d-none d-md-table-cell">
               <div class="d-flex flex-column">
                 <span class="fw-semibold text-dark">{{ contrat.dateDebut | date:'dd MMM yyyy' }}</span>
                 <small class="text-muted">
@@ -105,19 +182,28 @@
                 <small class="text-muted">
                   <i class="bi bi-calendar-x me-1"></i>{{ contrat.dateFin | date:'EEEE' }}
                 </small>
-                <small class="badge bg-warning text-dark mt-1 align-self-start">Expire bientôt</small>
+                <small class="badge mt-1 align-self-start" 
+                       [ngClass]="{
+                         'bg-danger text-white': isStatusMatch(contrat.statutContrat, 'expire'),
+                         'bg-warning text-dark': isContractExpiringSoon(contrat) && !isStatusMatch(contrat.statutContrat, 'expire'),
+                         'bg-success text-white': !isContractExpiringSoon(contrat) && !isStatusMatch(contrat.statutContrat, 'expire')
+                       }">
+                  {{ isStatusMatch(contrat.statutContrat, 'expire') ? 'Expiré' : 
+                     (isContractExpiringSoon(contrat) ? 'Expire bientôt' : 'Valide') }}
+                </small>
               </div>
             </td>
             <td class="py-3 text-center">
               <div class="status-container">
-                <span class="badge px-3 py-2 rounded-pill fw-bold d-flex align-items-center justify-content-center mx-auto"
+                <span class="badge px-3 py-2 rounded-pill fw-bold d-flex align-items-center justify-content-center mx-auto status-badge"
                       [ngClass]="{
                         'bg-success text-white': isStatusMatch(contrat.statutContrat, 'actif'),
                         'bg-warning text-dark': isStatusMatch(contrat.statutContrat, 'attente'),
                         'bg-danger text-white': isStatusMatch(contrat.statutContrat, 'expire'),
                         'bg-secondary text-white': isStatusMatch(contrat.statutContrat, 'suspendu'),
                         'bg-info text-white': isStatusMatch(contrat.statutContrat, 'brouillon'),
-                        'bg-primary text-white': !contrat.statutContrat || contrat.statutContrat === ''
+                        'bg-primary text-white': isStatusMatch(contrat.statutContrat, 'renouvele'),
+                        'bg-dark text-white': !contrat.statutContrat || contrat.statutContrat === ''
                       }"
                       style="font-size: 11px; min-width: 120px; box-shadow: 0 2px 6px rgba(0,0,0,0.2);">
                   <i class="bi me-1" 
@@ -127,6 +213,7 @@
                        'bi-x-circle-fill': isStatusMatch(contrat.statutContrat, 'expire'),
                        'bi-pause-circle-fill': isStatusMatch(contrat.statutContrat, 'suspendu'),
                        'bi-pencil-fill': isStatusMatch(contrat.statutContrat, 'brouillon'),
+                       'bi-arrow-repeat': isStatusMatch(contrat.statutContrat, 'renouvele'),
                        'bi-question-circle-fill': !contrat.statutContrat || contrat.statutContrat === ''
                      }"></i>
                   <span>
@@ -138,15 +225,9 @@
                     {{ getStatusDescription(contrat.statutContrat) }}
                   </small>
                 </div>
-                <!-- Debug info - remove after fixing -->
-                <div class="mt-1" *ngIf="contrat.statutContrat">
-                  <small class="text-warning" style="font-size: 9px;">
-                    Debug: "{{ contrat.statutContrat }}"
-                  </small>
-                </div>
               </div>
             </td>
-            <td class="py-3">
+            <td class="py-3 d-none d-lg-table-cell">
               <div class="d-flex align-items-center">
                 <div class="position-relative me-3">
                   <!-- Client Avatar with Gradient Background -->
@@ -173,54 +254,87 @@
                     <i class="bi bi-hash me-1"></i>ID Client: #{{ contrat.client?.id || 'N/A' }}
                   </small>
                   <small class="text-success d-block">
-                    <i class="bi bi-telephone me-1"></i>+33 1 XX XX XX XX
+                    <i class="bi bi-telephone me-1"></i>{{ contrat.client?.telephone || '+33 1 XX XX XX XX' }}
                   </small>
                   <small class="text-info d-block">
-                    <i class="bi bi-envelope me-1"></i>contact&#64;client.fr
+                    <i class="bi bi-envelope me-1"></i>{{ contrat.client?.email || 'contact@client.fr' }}
                   </small>
                 </div>
               </div>
             </td>
             <td class="py-3 text-center">
-              <div class="btn-group btn-group-sm" role="group">
+              <div class="btn-group btn-group-sm" role="group" *ngIf="!showHistory">
                 <button class="btn btn-outline-info btn-sm shadow-sm" 
                         [routerLink]="['/contrats/details', contrat.id]"
                         title="Voir les détails complets du contrat">
-                  <i class="bi bi-eye me-1"></i>Détails
+                  <i class="bi bi-eye me-1"></i><span class="d-none d-lg-inline">Détails</span>
                 </button>
                 <button class="btn btn-outline-warning btn-sm shadow-sm" 
                         (click)="editContrat(contrat)"
                         title="Modifier les informations du contrat">
-                  <i class="bi bi-pencil-square me-1"></i>Modifier
+                  <i class="bi bi-pencil-square me-1"></i><span class="d-none d-lg-inline">Modifier</span>
                 </button>
                 <div class="btn-group btn-group-sm" role="group">
                   <button class="btn btn-outline-secondary btn-sm dropdown-toggle shadow-sm" 
                           data-bs-toggle="dropdown" 
+                          (show.bs.dropdown)="onDropdownShow($event)"
+                          (hide.bs.dropdown)="onDropdownHide($event)"
                           title="Plus d'actions">
                     <i class="bi bi-three-dots"></i>
                   </button>
                   <ul class="dropdown-menu">
-                    <li><a class="dropdown-item" href="#"><i class="bi bi-files me-2"></i>Dupliquer</a></li>
-                    <li><a class="dropdown-item" (click)="exportToPdf(contrat)"><i class="bi bi-download me-2"></i>Exporter PDF</a></li>
-                    <li><a class="dropdown-item" href="#"><i class="bi bi-archive me-2"></i>Archiver</a></li>
+                    <li><a class="dropdown-item" (click)="duplicateContrat(contrat)">
+                      <i class="bi bi-files me-2"></i>Dupliquer</a></li>
+                    <li><a class="dropdown-item" (click)="exportToPdf(contrat)">
+                      <i class="bi bi-download me-2"></i>Exporter PDF</a></li>
+                    <li><a class="dropdown-item" (click)="archiveContrat(contrat)" 
+                           *ngIf="isStatusMatch(contrat.statutContrat, 'actif')">
+                      <i class="bi bi-archive me-2"></i>Archiver</a></li>
+                    <li><a class="dropdown-item" (click)="renewContrat(contrat)" 
+                           *ngIf="isStatusMatch(contrat.statutContrat, 'expire')">
+                      <i class="bi bi-arrow-repeat me-2"></i>Renouveler</a></li>
                     <li><hr class="dropdown-divider"></li>
                     <li><a class="dropdown-item text-danger" (click)="deleteContrat(contrat.id)">
                       <i class="bi bi-trash me-2"></i>Supprimer</a></li>
                   </ul>
                 </div>
               </div>
+              <!-- History view actions -->
+              <div class="btn-group btn-group-sm" role="group" *ngIf="showHistory">
+                <button class="btn btn-outline-info btn-sm shadow-sm" 
+                        [routerLink]="['/contrats/details', contrat.id]"
+                        title="Voir les détails du contrat archivé">
+                  <i class="bi bi-eye me-1"></i><span class="d-none d-lg-inline">Voir</span>
+                </button>
+                <button class="btn btn-outline-primary btn-sm shadow-sm" 
+                        (click)="renewContrat(contrat)"
+                        title="Renouveler ce contrat">
+                  <i class="bi bi-arrow-repeat me-1"></i><span class="d-none d-lg-inline">Renouveler</span>
+                </button>
+                <button class="btn btn-outline-secondary btn-sm shadow-sm" 
+                        (click)="exportToPdf(contrat)"
+                        title="Exporter en PDF">
+                  <i class="bi bi-download"></i>
+                </button>
+              </div>
             </td>
           </tr>
           
           <!-- Empty State -->
-          <tr *ngIf="contrats.length === 0">
+          <tr *ngIf="(showHistory ? contratsHistory.length : contrats.length) === 0 && !loading">
             <td colspan="6" class="text-center py-5">
               <div class="empty-state">
-                <div class="display-1 text-muted mb-3">📄</div>
-                <h5 class="text-muted mb-2">Aucun contrat trouvé</h5>
-                <p class="text-muted mb-4">Commencez par créer votre premier contrat</p>
-                <button class="btn btn-primary" (click)="newContrat()">
-                  + Créer un contrat
+                <div class="display-1 text-muted mb-3">
+                  {{ showHistory ? '�' : '�📄' }}
+                </div>
+                <h5 class="text-muted mb-2">
+                  {{ showHistory ? 'Aucun historique de contrat' : 'Aucun contrat trouvé' }}
+                </h5>
+                <p class="text-muted mb-4">
+                  {{ showHistory ? 'L\'historique des contrats apparaîtra ici' : 'Commencez par créer votre premier contrat' }}
+                </p>
+                <button class="btn btn-primary" (click)="newContrat()" *ngIf="!showHistory">
+                  <i class="bi bi-plus-circle me-2"></i>Créer un contrat
                 </button>
               </div>
             </td>
@@ -232,27 +346,69 @@
   
   <!-- Advanced Footer with Pagination -->
   <div class="card-footer bg-white border-top d-flex justify-content-between align-items-center py-3" 
-       *ngIf="contrats.length > 0">
+       *ngIf="!showHistory && contrats.length > 0 && totalPages > 1">
     <div class="d-flex align-items-center text-muted small">
-      ℹ️ Affichage de <strong>{{ contrats.length }}</strong> contrat(s) au total
+      <i class="bi bi-info-circle me-2"></i>
+      Affichage de <strong>{{ getDisplayStartIndex() }}</strong> à 
+      <strong>{{ getDisplayEndIndex() }}</strong> 
+      sur <strong>{{ totalItems }}</strong> contrat(s)
     </div>
     <nav>
       <ul class="pagination pagination-sm mb-0">
-        <li class="page-item disabled">
-          <a class="page-link border-0" href="#" tabindex="-1">
-            ←
-          </a>
+        <li class="page-item" [class.disabled]="currentPage === 1">
+          <button class="page-link border-0" (click)="previousPage()" [disabled]="currentPage === 1">
+            <i class="bi bi-chevron-left"></i>
+          </button>
         </li>
-        <li class="page-item active">
-          <a class="page-link border-0 bg-primary" href="#">1</a>
+        
+        <!-- Show first page if not in visible range -->
+        <li class="page-item" *ngIf="getPageNumbers()[0] > 1">
+          <button class="page-link border-0" (click)="goToPage(1)">1</button>
         </li>
-        <li class="page-item">
-          <a class="page-link border-0" href="#">
-            →
-          </a>
+        <li class="page-item disabled" *ngIf="getPageNumbers()[0] > 2">
+          <span class="page-link border-0">...</span>
+        </li>
+        
+        <!-- Page numbers -->
+        <li class="page-item" 
+            *ngFor="let page of getPageNumbers()" 
+            [class.active]="page === currentPage">
+          <button class="page-link border-0" 
+                  [class.bg-primary]="page === currentPage"
+                  [class.text-white]="page === currentPage"
+                  (click)="goToPage(page)">
+            {{ page }}
+          </button>
+        </li>
+        
+        <!-- Show last page if not in visible range -->
+        <li class="page-item disabled" *ngIf="getPageNumbers()[getPageNumbers().length - 1] < totalPages - 1">
+          <span class="page-link border-0">...</span>
+        </li>
+        <li class="page-item" *ngIf="getPageNumbers()[getPageNumbers().length - 1] < totalPages">
+          <button class="page-link border-0" (click)="goToPage(totalPages)">{{ totalPages }}</button>
+        </li>
+        
+        <li class="page-item" [class.disabled]="currentPage === totalPages">
+          <button class="page-link border-0" (click)="nextPage()" [disabled]="currentPage === totalPages">
+            <i class="bi bi-chevron-right"></i>
+          </button>
         </li>
       </ul>
     </nav>
+  </div>
+
+  <!-- History Footer -->
+  <div class="card-footer bg-white border-top d-flex justify-content-between align-items-center py-3" 
+       *ngIf="showHistory && contratsHistory.length > 0">
+    <div class="d-flex align-items-center text-muted small">
+      <i class="bi bi-clock-history me-2"></i>
+      <strong>{{ contratsHistory.length }}</strong> contrat(s) dans l'historique
+    </div>
+    <div class="text-muted small">
+      <i class="bi bi-info-circle me-1"></i>
+      Historique complet des contrats expirés et archivés
+    </div>
   </div>
 </div>
 

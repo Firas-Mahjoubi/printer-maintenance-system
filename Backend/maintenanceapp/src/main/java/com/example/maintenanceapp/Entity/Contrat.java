@@ -2,6 +2,7 @@ package com.example.maintenanceapp.Entity;
 
 import com.example.maintenanceapp.Entity.Enum.StatutContrat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
@@ -17,6 +18,7 @@ import java.util.List;
 @Builder
 @ToString
 @FieldDefaults(level = AccessLevel.PRIVATE)
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class Contrat {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

@@ -3,7 +3,7 @@
     <app-navbar></app-navbar>
     <app-sidebar></app-sidebar>
   </ng-container>
- <main id="main" class="main">
+  <main id="main" [ngClass]="{ 'main': showLayout }">
     <router-outlet></router-outlet>
   </main>
 </body>

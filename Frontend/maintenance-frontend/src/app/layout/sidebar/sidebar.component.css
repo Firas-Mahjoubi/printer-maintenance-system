@@ -1,32 +1,426 @@
+/* Sidebar Container */
 .sidebar {
-  padding: 20px;
-}
-
-.sidebar h3 {
-  margin-bottom: 30px;
-}
-
-.sidebar ul {
-  list-style: none;
+  width: 280px;
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 100vh;
+  background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+  backdrop-filter: blur(20px);
+  border-right: 1px solid rgba(59, 130, 246, 0.2);
+  box-shadow: 4px 0 20px rgba(0, 0, 0, 0.15);
+  z-index: 1000;
+  overflow-y: auto;
   padding: 0;
+  transition: all 0.3s ease;
 }
 
-.sidebar li {
-  margin-bottom: 10px;
+.sidebar::-webkit-scrollbar {
+  width: 6px;
 }
 
-.sidebar a {
+.sidebar::-webkit-scrollbar-track {
+  background: rgba(15, 23, 42, 0.5);
+}
+
+.sidebar::-webkit-scrollbar-thumb {
+  background: rgba(59, 130, 246, 0.3);
+  border-radius: 3px;
+}
+
+.sidebar::-webkit-scrollbar-thumb:hover {
+  background: rgba(59, 130, 246, 0.5);
+}
+
+/* Sidebar Header */
+.sidebar-header {
+  padding: 2rem 1.5rem;
+  border-bottom: 1px solid rgba(59, 130, 246, 0.2);
+  text-align: center;
+}
+
+.sidebar-logo {
+  max-width: 120px;
+  height: auto;
+  margin-bottom: 1rem;
+  filter: brightness(1.2);
+}
+
+.sidebar-title {
+  color: #f1f5f9;
+  font-size: 1.2rem;
+  font-weight: 600;
+  margin: 0;
+  letter-spacing: 0.5px;
+}
+
+.sidebar-subtitle {
+  color: #94a3b8;
+  font-size: 0.85rem;
+  margin: 0.25rem 0 0 0;
+}
+
+/* Navigation */
+.sidebar-nav {
+  padding: 1rem 0;
+  margin: 0;
+  list-style: none;
+}
+
+.nav-item {
+  margin: 0;
+}
+
+/* Main Navigation Links */
+.nav-link {
+  display: flex;
+  align-items: center;
+  padding: 0.875rem 1.5rem;
+  color: #e2e8f0 !important; /* Brighter default color for better visibility */
   text-decoration: none;
-  color: #333;
   font-weight: 500;
-}
-.sidebar .nav-content a.active {
-  background-color: #e0e7ff;
-  color: #4154f1;
-  font-weight: bold;
+  font-size: 0.9rem;
+  transition: all 0.3s ease;
+  border: none;
+  background: transparent;
+  position: relative;
+  width: 100%;
 }
 
-.sidebar .nav-content a.active i {
-  color: #4154f1;
+/* Ensure all text in nav-links is properly colored */
+.nav-link span {
+  color: inherit !important;
+}
+
+.nav-link i {
+  color: inherit !important;
+}
+
+.nav-link:hover {
+  background: rgba(59, 130, 246, 0.15);
+  color: #60a5fa !important; /* Brighter blue on hover */
+  transform: translateX(4px);
+}
+
+.nav-link.active {
+  background: linear-gradient(90deg, rgba(59, 130, 246, 0.25), rgba(59, 130, 246, 0.1));
+  color: #60a5fa !important;
+  border-right: 3px solid #3b82f6;
+}
+
+.nav-link.active::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  height: 100%;
+  width: 4px;
+  background: linear-gradient(to bottom, #3b82f6, #1d4ed8);
+  border-radius: 0 2px 2px 0;
+}
+
+/* Navigation Icons */
+.nav-link i {
+  font-size: 1.1rem;
+  margin-right: 0.875rem;
+  width: 20px;
+  text-align: center;
+  transition: all 0.3s ease;
+  color: inherit;
+}
+
+.nav-link:hover i {
+  transform: scale(1.1);
+  color: inherit;
+}
+
+.nav-link.active i {
+  color: #60a5fa;
+}
+
+/* Navigation spans for text */
+.nav-link span {
+  color: inherit;
+  font-weight: inherit;
+}
+
+/* Chevron Icon */
+.bi-chevron-down {
+  margin-left: auto !important;
+  margin-right: 0 !important;
+  font-size: 0.8rem;
+  transition: transform 0.3s ease;
+  color: inherit;
+}
+
+.nav-link[aria-expanded="true"] .bi-chevron-down {
+  transform: rotate(180deg);
+}
+
+/* Collapsible Content */
+.nav-content {
+  background: rgba(15, 23, 42, 0.5);
+  border-left: 2px solid rgba(59, 130, 246, 0.3);
+  margin-left: 1.5rem;
+  border-radius: 0 0 8px 8px;
+  overflow: hidden;
+}
+
+.nav-content .nav-link {
+  padding: 0.75rem 1rem 0.75rem 2rem !important;
+  font-size: 0.85rem !important;
+  font-weight: 400 !important;
+  color: #cbd5e1 !important; /* Brighter color for better visibility */
+  position: relative;
+}
+
+.nav-content .nav-link::before {
+  content: '';
+  position: absolute;
+  left: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 6px;
+  height: 6px;
+  background: #64748b; /* Slightly brighter dot */
+  border-radius: 50%;
+  transition: all 0.3s ease;
+}
+
+.nav-content .nav-link:hover {
+  background: rgba(59, 130, 246, 0.15) !important;
+  color: #e2e8f0 !important;
+  transform: translateX(2px);
+}
+
+.nav-content .nav-link:hover::before {
+  background: #3b82f6;
+  transform: translateY(-50%) scale(1.2);
+}
+
+.nav-content .nav-link.active {
+  background: rgba(59, 130, 246, 0.2) !important;
+  color: #60a5fa !important;
+  border-right: 2px solid #3b82f6;
+  font-weight: 500 !important;
+}
+
+.nav-content .nav-link.active::before {
+  background: #3b82f6;
+  transform: translateY(-50%) scale(1.3);
+}
+
+/* Ensure sub-navigation text is visible */
+.nav-content .nav-link span {
+  color: inherit !important;
+}
+
+/* Badge for notifications */
+.badge {
+  font-size: 0.7rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: 10px;
+  font-weight: 600;
+  margin-left: auto;
+}
+
+.badge.bg-danger {
+  background: linear-gradient(135deg, #ef4444, #dc2626) !important;
+  color: white;
+  box-shadow: 0 2px 8px rgba(239, 68, 68, 0.3);
+}
+
+/* Section Dividers */
+.nav-divider {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(59, 130, 246, 0.3), transparent);
+  margin: 1rem 1.5rem;
+}
+
+/* Section Headers */
+.nav-section-header {
+  padding: 1rem 1.5rem 0.5rem 1.5rem;
+  color: #64748b;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .sidebar {
+    width: 100%;
+    transform: translateX(-100%);
+  }
+  
+  .sidebar.show {
+    transform: translateX(0);
+  }
+}
+
+/* Hide sidebar utility */
+.sidebar.d-none {
+  display: none !important;
+}
+
+/* Smooth animations */
+* {
+  transition: all 0.3s ease;
+}
+
+/* Custom hover effects */
+.nav-item:hover {
+  transform: translateY(-1px);
+}
+
+/* Professional glassmorphism effect */
+.sidebar::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(30, 41, 59, 0.1);
+  backdrop-filter: blur(10px);
+  z-index: -1;
+}
+
+/* Bootstrap and external style overrides */
+a.nav-link, a.nav-link:visited, a.nav-link:focus {
+  color: #e2e8f0 !important;
+  text-decoration: none !important;
+}
+
+a.nav-link:hover {
+  color: #60a5fa !important;
+}
+
+a.nav-link.active {
+  color: #60a5fa !important;
+}
+
+/* Force visibility for all navigation text */
+.sidebar .nav-link span {
+  color: inherit !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
+/* Ensure collapsed navigation items are still visible */
+.nav-link.collapsed {
+  color: #cbd5e1 !important;
+  opacity: 1 !important;
+}
+
+.nav-link.collapsed span {
+  color: #cbd5e1 !important;
+  opacity: 1 !important;
+}
+
+/* Sub-navigation overrides */
+.nav-content a.nav-link {
+  color: #cbd5e1 !important;
+}
+
+.nav-content a.nav-link:hover {
+  color: #e2e8f0 !important;
+}
+
+.nav-content a.nav-link.active {
+  color: #60a5fa !important;
+}
+
+/* Icon color consistency */
+.nav-link i {
+  color: inherit !important;
+}
+
+/* Bootstrap overrides for better visibility */
+.sidebar .nav-link.collapsed {
+  color: #cbd5e1 !important;
+  opacity: 1 !important;
+}
+
+.sidebar .nav-link.collapsed span {
+  color: #cbd5e1 !important;
+  opacity: 1 !important;
+}
+
+.sidebar .nav-link.collapsed i {
+  color: #cbd5e1 !important;
+  opacity: 1 !important;
+}
+
+/* Force all sidebar text to be visible with high specificity */
+aside.sidebar * {
+  color: inherit;
+}
+
+aside.sidebar .nav-item > a {
+  color: #e2e8f0 !important;
+}
+
+aside.sidebar .nav-item > a span {
+  color: #e2e8f0 !important;
+}
+
+aside.sidebar .nav-item > a i {
+  color: #e2e8f0 !important;
+}
+
+/* Override any Bootstrap nav styling */
+aside.sidebar .navbar-nav .nav-link,
+aside.sidebar .nav .nav-link {
+  color: #e2e8f0 !important;
+}
+
+/* Specific fix for collapsed nav items */
+aside.sidebar .nav-link[data-bs-toggle="collapse"] {
+  color: #e2e8f0 !important;
+}
+
+aside.sidebar .nav-link[data-bs-toggle="collapse"] span {
+  color: #e2e8f0 !important;
+}
+
+aside.sidebar .nav-link[data-bs-toggle="collapse"] i {
+  color: #e2e8f0 !important;
+}
+
+/* Force collapsed items to have same visibility as regular nav items */
+.sidebar .nav-item .nav-link.collapsed,
+.sidebar .nav-item .nav-link.collapsed:link,
+.sidebar .nav-item .nav-link.collapsed:visited {
+  color: #cbd5e1 !important;
+  opacity: 1 !important;
+  font-weight: 500 !important;
+}
+
+.sidebar .nav-item .nav-link.collapsed:hover {
+  color: #3b82f6 !important;
+  background: rgba(59, 130, 246, 0.1) !important;
+  transform: translateX(4px) !important;
+}
+
+.sidebar .nav-item .nav-link.collapsed span,
+.sidebar .nav-item .nav-link.collapsed i {
+  color: inherit !important;
+  opacity: 1 !important;
+}
+
+/* Override any Bootstrap button styling on collapsed links */
+.sidebar .nav-link.collapsed[data-bs-toggle="collapse"] {
+  background: transparent !important;
+  border: none !important;
+  text-align: left !important;
+  width: 100% !important;
+}
+
+/* Ensure chevron icons are visible */
+.sidebar .nav-link.collapsed .bi-chevron-down {
+  color: #cbd5e1 !important;
+  opacity: 1 !important;
 }
 

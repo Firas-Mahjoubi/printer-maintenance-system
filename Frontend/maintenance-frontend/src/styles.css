@@ -27,3 +27,51 @@ app-sidebar {
   padding: 20px;
   overflow-y: auto;
 }
+
+/* Main content area adjustments for sidebar and navbar */
+main, .main-content, router-outlet {
+  margin-left: 280px;
+  margin-top: 70px;
+  padding: 2rem;
+  min-height: calc(100vh - 70px);
+  transition: all 0.3s ease;
+}
+
+/* When sidebar is collapsed */
+body.sidebar-collapsed main,
+body.sidebar-collapsed .main-content,
+body.sidebar-collapsed router-outlet {
+  margin-left: 0;
+}
+
+/* Dashboard and component containers */
+.page-container {
+  margin-left: 280px;
+  margin-top: 70px;
+  padding: 2rem;
+  min-height: calc(100vh - 70px);
+  transition: all 0.3s ease;
+}
+
+body.sidebar-collapsed .page-container {
+  margin-left: 0;
+}
+
+/* No layout pages (login, etc.) should use full viewport */
+body.no-layout main {
+  margin: 0 !important;
+  padding: 0 !important;
+  min-height: 100vh !important;
+}
+
+body.no-layout main router-outlet {
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+/* Ensure login and other no-layout pages take full space */
+body.no-layout {
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+}

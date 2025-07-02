@@ -13,9 +13,16 @@ export class AppComponent {
   constructor(private router: Router) {
     this.router.events.subscribe(event => {
       if (event instanceof NavigationEnd) {
-        // Hide layout on login, client landing pages, and client dashboard
+        // Hide layout on login, client landing pages, and all client routes
         const url = event.urlAfterRedirects;
-        this.showLayout = !(url.includes('/login') || url === '/' || url === '/home' || url.includes('/client-dashboard'));
+        this.showLayout = !(
+          url.includes('/login') || 
+          url === '/' || 
+          url === '/home' || 
+          url.includes('/client-dashboard') ||
+          url.includes('/client-') ||
+          url.includes('/client-landing')
+        );
       }
     });
   }

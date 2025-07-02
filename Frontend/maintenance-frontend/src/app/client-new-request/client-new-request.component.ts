@@ -1,5 +1,9 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
+import { AuthService } from '../service/auth.service';
+import { InterventionService, InterventionCreateDTO, TypeIntervention, PrioriteIntervention } from '../service/intervention.service';
+import { ContratService, Contrat } from '../service/contrat.service';
+import { ImprimanteService, Imprimante } from '../service/imprimante.service';
 
 @Component({
   selector: 'app-client-new-request',
@@ -17,46 +21,137 @@ export class ClientNewRequestComponent implements OnInit {
     contactPhone: ''
   };
 
-  equipmentList: any[] = [];
+  equipmentList: Imprimante[] = [];
   attachedFiles: File[] = [];
   isSubmitting: boolean = false;
   minDate: string = '';
+  loading: boolean = true;
+  error: string | null = null;
+  currentUser: any;
+  userContracts: Contrat[] = [];
+  equipmentContractMap: Map<number, number> = new Map(); // Maps equipment ID to contract ID
 
-  constructor(private router: Router) { }
+  constructor(
+    private router: Router,
+    private authService: AuthService,
+    private interventionService: InterventionService,
+    private contratService: ContratService,
+    private imprimanteService: ImprimanteService
+  ) { }
 
   ngOnInit(): void {
-    this.loadEquipment();
+    this.currentUser = this.authService.getCurrentUser();
+    
+    // Check if user is authenticated and is a client
+    if (!this.authService.isLoggedIn() || this.authService.getCurrentUserRole() !== 'CLIENT') {
+      this.router.navigate(['/login']);
+      return;
+    }
+
     this.setMinDate();
+    this.loadUserEquipment();
   }
 
-  loadEquipment(): void {
-    // Mock data - replace with actual service call
-    this.equipmentList = [
-      {
-        id: '1',
-        name: 'HP LaserJet Pro M404n',
-        location: 'Bureau 201',
-        model: 'M404n'
+  public loadUserEquipment(): void {
+    this.loading = true;
+    this.error = null;
+
+    const currentUserId = this.authService.getCurrentUserId();
+    if (!currentUserId) {
+      this.error = 'Impossible de récupérer les informations utilisateur';
+      this.loading = false;
+      return;
+    }
+
+    // Get all contracts and filter by current client ID
+    this.contratService.getAll().subscribe({
+      next: (allContracts) => {
+        // Filter contracts that belong to the current client
+        const clientContracts = allContracts.filter(contrat => 
+          contrat.clientId === currentUserId || 
+          contrat.client?.id === currentUserId
+        );
+        
+        this.userContracts = clientContracts;
+        
+        if (clientContracts.length === 0) {
+          this.loading = false;
+          this.error = 'Aucun contrat trouvé pour votre compte. Contactez votre administrateur.';
+          return;
+        }
+
+        // Load equipment from all client's contracts
+        this.loadEquipmentFromContracts(clientContracts);
       },
-      {
-        id: '2',
-        name: 'Canon Pixma TS3350',
-        location: 'Bureau 105',
-        model: 'TS3350'
-      },
-      {
-        id: '3',
-        name: 'Epson EcoTank L3150',
-        location: 'Salle de réunion',
-        model: 'L3150'
-      },
-      {
-        id: '4',
-        name: 'Brother DCP-L2530DW',
-        location: 'Comptabilité',
-        model: 'DCP-L2530DW'
+      error: (error) => {
+        console.error('Error loading contracts:', error);
+        this.loading = false;
+        this.error = 'Erreur lors du chargement des contrats';
       }
-    ];
+    });
+  }
+
+  private loadEquipmentFromContracts(contracts: Contrat[]): void {
+    // Reset equipment list and mapping
+    this.equipmentList = [];
+    this.equipmentContractMap.clear();
+    let completedRequests = 0;
+    let hasError = false;
+
+    if (contracts.length === 0) {
+      this.loading = false;
+      this.error = 'Aucun contrat disponible.';
+      return;
+    }
+
+    // Load equipment from each contract
+    contracts.forEach(contrat => {
+      if (!contrat.id) {
+        completedRequests++;
+        if (completedRequests === contracts.length) {
+          this.handleEquipmentLoadingComplete(hasError);
+        }
+        return;
+      }
+
+      this.imprimanteService.getAllByContrat(contrat.id).subscribe({
+        next: (printers) => {
+          // Add printers from this contract to the equipment list
+          printers.forEach(printer => {
+            this.equipmentList.push(printer);
+            // Map each equipment to its contract
+            this.equipmentContractMap.set(printer.id, contrat.id!);
+          });
+          
+          completedRequests++;
+          
+          if (completedRequests === contracts.length) {
+            this.handleEquipmentLoadingComplete(hasError);
+          }
+        },
+        error: (error) => {
+          console.error(`Error loading equipment for contract ${contrat.id}:`, error);
+          hasError = true;
+          completedRequests++;
+          
+          if (completedRequests === contracts.length) {
+            this.handleEquipmentLoadingComplete(hasError);
+          }
+        }
+      });
+    });
+  }
+
+  private handleEquipmentLoadingComplete(hasError: boolean): void {
+    this.loading = false;
+    
+    if (hasError) {
+      this.error = 'Erreur lors du chargement de certains équipements';
+    } else if (this.equipmentList.length === 0) {
+      this.error = 'Aucun équipement trouvé dans vos contrats.';
+    } else {
+      this.error = null;
+    }
   }
 
   setMinDate(): void {
@@ -105,33 +200,88 @@ export class ClientNewRequestComponent implements OnInit {
     if (this.isSubmitting) return;
     
     this.isSubmitting = true;
-    
-    // Create form data for submission
-    const formData = new FormData();
-    formData.append('equipmentId', this.requestData.equipmentId);
-    formData.append('issueType', this.requestData.issueType);
-    formData.append('priority', this.requestData.priority);
-    formData.append('title', this.requestData.title);
-    formData.append('description', this.requestData.description);
-    formData.append('preferredDate', this.requestData.preferredDate);
-    formData.append('contactPhone', this.requestData.contactPhone);
-    
-    // Add files
-    this.attachedFiles.forEach((file, index) => {
-      formData.append(`file_${index}`, file);
-    });
-    
-    // Simulate API call
-    setTimeout(() => {
-      console.log('Request submitted:', this.requestData);
-      console.log('Attached files:', this.attachedFiles);
+    this.error = null;
+
+    try {
+      // Find the contract that contains the selected equipment
+      const selectedEquipmentId = parseInt(this.requestData.equipmentId);
+      const contractId = this.findContractForEquipment(selectedEquipmentId);
       
+      if (!contractId) {
+        this.isSubmitting = false;
+        this.error = 'Impossible de déterminer le contrat pour cet équipement.';
+        return;
+      }
+
+      // Map form data to backend DTO
+      const interventionData: InterventionCreateDTO = {
+        titre: this.requestData.title,
+        description: this.requestData.description,
+        type: this.mapIssueTypeToInterventionType(this.requestData.issueType),
+        priorite: this.mapPriorityToPrioriteIntervention(this.requestData.priority),
+        datePlanifiee: this.requestData.preferredDate ? new Date(this.requestData.preferredDate) : undefined,
+        contratId: contractId,
+        imprimanteId: selectedEquipmentId,
+        demandeurId: this.authService.getCurrentUserId()!
+      };
+
+      // Submit the intervention request
+      this.interventionService.creerTicket(interventionData).subscribe({
+        next: (response) => {
+          console.log('Ticket created successfully:', response);
+          this.isSubmitting = false;
+          
+          // Show success message and redirect
+          alert(`Votre demande a été créée avec succès ! Numéro de ticket: ${response.numero || response.id}`);
+          this.router.navigate(['/client-requests']);
+        },
+        error: (error) => {
+          console.error('Error creating ticket:', error);
+          this.isSubmitting = false;
+          this.error = 'Erreur lors de la création de la demande. Veuillez réessayer.';
+          
+          // Show error alert
+          alert('Erreur lors de l\'envoi de la demande. Veuillez réessayer.');
+        }
+      });
+      
+    } catch (error) {
+      console.error('Error preparing request data:', error);
       this.isSubmitting = false;
-      
-      // Show success message and redirect
-      alert('Votre demande a été envoyée avec succès ! Vous recevrez une confirmation par email.');
-      this.router.navigate(['/client-requests']);
-    }, 2000);
+      this.error = 'Erreur lors de la préparation des données.';
+      alert('Erreur lors de la préparation de la demande.');
+    }
+  }
+
+  private findContractForEquipment(equipmentId: number): number | null {
+    // Use the equipment-contract mapping we built when loading equipment
+    return this.equipmentContractMap.get(equipmentId) || null;
+  }
+
+  private mapIssueTypeToInterventionType(issueType: string): TypeIntervention {
+    const typeMapping: { [key: string]: TypeIntervention } = {
+      'jam': TypeIntervention.CORRECTIVE,
+      'quality': TypeIntervention.CORRECTIVE,
+      'connectivity': TypeIntervention.CORRECTIVE,
+      'cartridge': TypeIntervention.MAINTENANCE,
+      'mechanical': TypeIntervention.CORRECTIVE,
+      'software': TypeIntervention.CORRECTIVE,
+      'maintenance': TypeIntervention.PREVENTIVE,
+      'other': TypeIntervention.CORRECTIVE
+    };
+    
+    return typeMapping[issueType] || TypeIntervention.CORRECTIVE;
+  }
+
+  private mapPriorityToPrioriteIntervention(priority: string): PrioriteIntervention {
+    const priorityMapping: { [key: string]: PrioriteIntervention } = {
+      'low': PrioriteIntervention.BASSE,
+      'medium': PrioriteIntervention.NORMALE,
+      'high': PrioriteIntervention.HAUTE,
+      'urgent': PrioriteIntervention.CRITIQUE
+    };
+    
+    return priorityMapping[priority] || PrioriteIntervention.NORMALE;
   }
 
   goBack(): void {

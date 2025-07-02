@@ -1,0 +1,652 @@
+<!-- Contract Printers Management Component -->
+<div class="container-fluid py-4">
+  <!-- Loading State -->
+  <div class="row mb-4" *ngIf="loading">
+    <div class="col-12">
+      <div class="card border-0 shadow-sm">
+        <div class="card-body text-center py-5">
+          <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Chargement...</span>
+          </div>
+          <p class="mt-3 text-muted">Chargement des données...</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Error State -->
+  <div class="row mb-4" *ngIf="error && !loading">
+    <div class="col-12">
+      <div class="card border-0 shadow-sm border-danger">
+        <div class="card-body text-center py-5">
+          <i class="bi bi-exclamation-triangle text-danger" style="font-size: 3rem;"></i>
+          <h4 class="mt-3 text-danger">Erreur</h4>
+          <p class="text-muted">{{ error }}</p>
+          <button class="btn btn-primary" (click)="loadContratDetails()">
+            <i class="bi bi-arrow-clockwise me-2"></i>Réessayer
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Header Section -->
+  <div class="row mb-4" *ngIf="contrat && !loading">
+    <div class="col-12">
+      <div class="card border-0 shadow-lg bg-gradient-primary">
+        <div class="card-body p-4 text-white">
+          <div class="d-flex justify-content-between align-items-start flex-wrap gap-3">
+            <div class="d-flex align-items-center flex-wrap gap-3">
+              <button class="btn btn-light rounded-pill shadow-sm" (click)="goBack()">
+                <i class="bi bi-arrow-left me-2"></i> Retour
+              </button>
+              <div>
+                <div class="d-flex align-items-center mb-2">
+                  <div class="me-3 p-3 rounded-circle bg-white bg-opacity-20 shadow">
+                    <i class="bi bi-printer-fill fs-2 text-white"></i>
+                  </div>
+                  <div>
+                    <h1 class="h2 mb-1 fw-bold text-white">Gestion des Imprimantes</h1>
+                    <p class="mb-0 opacity-75 text-white">Contrat #{{ contrat.numeroContrat || 'N/A' }}</p>
+                  </div>
+                </div>
+                <div class="d-flex align-items-center gap-3 flex-wrap">
+                  <span class="badge bg-white bg-opacity-20 text-white px-3 py-2 rounded-pill">
+                    <i class="bi bi-calendar me-1"></i>
+                    {{ contrat.dateDebut | date:'dd/MM/yyyy' }} - {{ contrat.dateFin | date:'dd/MM/yyyy' }}
+                  </span>
+                  <span class="badge bg-white bg-opacity-20 text-white px-3 py-2 rounded-pill">
+                    <i class="bi bi-printer me-1"></i>
+                    {{ stats.total || 0 }} équipement{{ (stats.total || 0) > 1 ? 's' : '' }}
+                  </span>
+                </div>
+              </div>
+            </div>
+            <div class="d-flex gap-2 align-items-center flex-wrap">
+              <button class="btn btn-light" (click)="goToContractDetails()">
+                <i class="bi bi-file-earmark-text me-2"></i>
+                Voir le contrat
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Statistics Cards -->
+  <div class="row mb-4" *ngIf="contrat && !loading">
+    <div class="col-lg-3 col-md-6 mb-3">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-body text-center p-4">
+          <div class="mb-3 p-3 rounded-circle bg-primary bg-opacity-10 d-inline-flex">
+            <i class="bi bi-printer text-primary fs-3"></i>
+          </div>
+          <h3 class="fw-bold text-primary">{{ stats.total || 0 }}</h3>
+          <p class="text-muted mb-0">Total Équipements</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-lg-3 col-md-6 mb-3">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-body text-center p-4">
+          <div class="mb-3 p-3 rounded-circle bg-success bg-opacity-10 d-inline-flex">
+            <i class="bi bi-check-circle text-success fs-3"></i>
+          </div>
+          <h3 class="fw-bold text-success">{{ stats.operational || 0 }}</h3>
+          <p class="text-muted mb-0">Opérationnels</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-lg-3 col-md-6 mb-3">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-body text-center p-4">
+          <div class="mb-3 p-3 rounded-circle bg-info bg-opacity-10 d-inline-flex">
+            <i class="bi bi-tags text-info fs-3"></i>
+          </div>
+          <h3 class="fw-bold text-info">{{ stats.brands.length || 0 }}</h3>
+          <p class="text-muted mb-0">Marques</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-lg-3 col-md-6 mb-3">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-body text-center p-4">
+          <div class="mb-3 p-3 rounded-circle bg-warning bg-opacity-10 d-inline-flex">
+            <i class="bi bi-geo-alt text-warning fs-3"></i>
+          </div>
+          <h3 class="fw-bold text-warning">{{ stats.locations.length || 0 }}</h3>
+          <p class="text-muted mb-0">Emplacements</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filters and Search -->
+  <div class="row mb-4" *ngIf="contrat && !loading">
+    <div class="col-12">
+      <div class="card border-0 shadow-sm">
+        <div class="card-body p-4">
+          <div class="row g-3 align-items-end">
+            <div class="col-lg-4 col-md-6">
+              <label class="form-label fw-semibold">
+                <i class="bi bi-search me-2"></i>Rechercher
+              </label>
+              <input type="text" 
+                     class="form-control form-control-lg" 
+                     placeholder="Rechercher par marque, modèle, série..."
+                     [(ngModel)]="searchTerm"
+                     (input)="onSearchChange()">
+            </div>
+            <div class="col-lg-2 col-md-3">
+              <label class="form-label fw-semibold">
+                <i class="bi bi-tags me-2"></i>Marque
+              </label>
+              <select class="form-select form-select-lg" 
+                      [(ngModel)]="selectedBrand"
+                      (change)="onFilterChange()">
+                <option value="">Toutes les marques</option>
+                <option *ngFor="let brand of (stats.brands || [])" [value]="brand">{{ brand }}</option>
+              </select>
+            </div>
+            <div class="col-lg-2 col-md-3">
+              <label class="form-label fw-semibold">
+                <i class="bi bi-geo-alt me-2"></i>Emplacement
+              </label>
+              <select class="form-select form-select-lg" 
+                      [(ngModel)]="selectedLocation"
+                      (change)="onFilterChange()">
+                <option value="">Tous les emplacements</option>
+                <option *ngFor="let location of (stats.locations || [])" [value]="location">{{ location }}</option>
+              </select>
+            </div>
+            <div class="col-lg-2 col-md-6">
+              <label class="form-label fw-semibold">
+                <i class="bi bi-sort-down me-2"></i>Trier par
+              </label>
+              <select class="form-select form-select-lg" 
+                      [(ngModel)]="sortBy"
+                      (change)="onFilterChange()">
+                <option value="marque">Marque</option>
+                <option value="modele">Modèle</option>
+                <option value="emplacement">Emplacement</option>
+                <option value="numeroSerie">Numéro de série</option>
+              </select>
+            </div>
+            <div class="col-lg-2 col-md-6">
+              <button class="btn btn-outline-secondary btn-lg w-100" 
+                      (click)="sortDirection = sortDirection === 'asc' ? 'desc' : 'asc'; onFilterChange()">
+                <i class="bi" [ngClass]="sortDirection === 'asc' ? 'bi-sort-alpha-down' : 'bi-sort-alpha-up'"></i>
+                {{ sortDirection === 'asc' ? 'A-Z' : 'Z-A' }}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Action Buttons -->
+  <div class="row mb-4" *ngIf="contrat && !loading">
+    <div class="col-12">
+      <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+        <div class="d-flex align-items-center gap-3 flex-wrap">
+          <h4 class="mb-0 fw-bold text-dark">
+            Liste des Équipements
+            <span class="badge bg-primary ms-2">{{ filteredImprimantes.length || 0 }}</span>
+          </h4>
+          <small class="text-muted">{{ filteredImprimantes.length || 0 }} sur {{ stats.total || 0 }} équipements</small>
+        </div>
+        <div class="d-flex gap-2 flex-wrap">
+          <button class="btn btn-primary" (click)="toggleAddPrinterForm()">
+            <i class="bi bi-plus-circle me-2"></i>Ajouter
+          </button>
+          <button class="btn btn-success" (click)="toggleExcelImport()">
+            <i class="bi bi-file-earmark-excel me-2"></i>Importer
+          </button>
+          <button class="btn btn-outline-info" (click)="exportEquipmentList()">
+            <i class="bi bi-download me-2"></i>Exporter
+          </button>
+          <button class="btn btn-outline-secondary" (click)="refreshImprimantes()" [disabled]="loadingImprimantes">
+            <i class="bi bi-arrow-clockwise" [ngClass]="{'spin': loadingImprimantes}"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Printers Table -->
+  <div class="row" *ngIf="contrat && !loading">
+    <div class="col-12">
+      <div class="card border-0 shadow-sm">
+        <div class="card-body p-0">
+          <!-- Loading State -->
+          <div class="text-center py-5" *ngIf="loadingImprimantes">
+            <div class="spinner-border text-primary" role="status">
+              <span class="visually-hidden">Chargement...</span>
+            </div>
+            <p class="mt-3 text-muted">Chargement des imprimantes...</p>
+          </div>
+
+          <!-- Error State -->
+          <div class="alert alert-danger border-0 m-4" *ngIf="errorImprimantes && !loadingImprimantes">
+            <div class="d-flex align-items-center">
+              <i class="bi bi-exclamation-triangle me-3 fs-4"></i>
+              <div class="flex-grow-1">
+                <strong>Erreur de chargement</strong>
+                <p class="mb-0">{{ errorImprimantes }}</p>
+              </div>
+              <button class="btn btn-outline-danger" (click)="refreshImprimantes()">
+                <i class="bi bi-arrow-clockwise me-1"></i>Réessayer
+              </button>
+            </div>
+          </div>
+
+          <!-- Empty State -->
+          <div class="text-center py-5" *ngIf="!loadingImprimantes && !errorImprimantes && filteredImprimantes.length === 0">
+            <div class="mb-4">
+              <i class="bi bi-printer text-muted" style="font-size: 5rem; opacity: 0.3;"></i>
+            </div>
+            <h5 class="text-muted mb-3">Aucune imprimante trouvée</h5>
+            <p class="text-muted mb-4">
+              <span *ngIf="searchTerm || selectedBrand || selectedLocation">Aucun équipement ne correspond aux critères de recherche.</span>
+              <span *ngIf="!searchTerm && !selectedBrand && !selectedLocation">Ce contrat n'a aucune imprimante assignée.</span>
+            </p>
+            <div class="d-flex gap-3 justify-content-center flex-wrap">
+              <button class="btn btn-primary" (click)="toggleAddPrinterForm()" *ngIf="!searchTerm && !selectedBrand && !selectedLocation">
+                <i class="bi bi-plus-circle me-2"></i>Ajouter une imprimante
+              </button>
+              <button class="btn btn-outline-secondary" (click)="searchTerm = ''; selectedBrand = ''; selectedLocation = ''; onFilterChange()" *ngIf="searchTerm || selectedBrand || selectedLocation">
+                <i class="bi bi-x-circle me-2"></i>Effacer les filtres
+              </button>
+            </div>
+          </div>
+
+          <!-- Printers Table -->
+          <div class="table-responsive table-container" style="overflow-x: auto; overflow-y: visible;" *ngIf="!loadingImprimantes && !errorImprimantes && filteredImprimantes.length > 0">
+            <table class="table table-hover align-middle mb-0">
+              <thead class="table-light">
+                <tr>
+                  <th scope="col" class="ps-4 fw-semibold">
+                    <button class="btn btn-link p-0 text-decoration-none fw-semibold" (click)="onSortChange('marque')">
+                      <i class="bi bi-printer me-2"></i>Équipement
+                      <i class="bi bi-chevron-down ms-1" *ngIf="sortBy === 'marque' && sortDirection === 'asc'"></i>
+                      <i class="bi bi-chevron-up ms-1" *ngIf="sortBy === 'marque' && sortDirection === 'desc'"></i>
+                    </button>
+                  </th>
+                  <th scope="col" class="fw-semibold">
+                    <button class="btn btn-link p-0 text-decoration-none fw-semibold" (click)="onSortChange('emplacement')">
+                      <i class="bi bi-geo-alt me-2"></i>Emplacement
+                      <i class="bi bi-chevron-down ms-1" *ngIf="sortBy === 'emplacement' && sortDirection === 'asc'"></i>
+                      <i class="bi bi-chevron-up ms-1" *ngIf="sortBy === 'emplacement' && sortDirection === 'desc'"></i>
+                    </button>
+                  </th>
+                  <th scope="col" class="fw-semibold">
+                    <button class="btn btn-link p-0 text-decoration-none fw-semibold" (click)="onSortChange('numeroSerie')">
+                      <i class="bi bi-tag me-2"></i>Numéro de série
+                      <i class="bi bi-chevron-down ms-1" *ngIf="sortBy === 'numeroSerie' && sortDirection === 'asc'"></i>
+                      <i class="bi bi-chevron-up ms-1" *ngIf="sortBy === 'numeroSerie' && sortDirection === 'desc'"></i>
+                    </button>
+                  </th>
+                  <th scope="col" class="fw-semibold">
+                    <i class="bi bi-activity me-2"></i>Statut
+                  </th>
+                  <th scope="col" class="text-center fw-semibold">
+                    <i class="bi bi-tools me-2"></i>Actions
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let imprimante of getPaginatedItems(); trackBy: trackByImprimanteId" class="printer-row">
+                  <td class="ps-4">
+                    <div class="d-flex align-items-center">
+                      <div class="me-3 p-3 rounded-circle bg-primary bg-opacity-10">
+                        <i class="bi bi-printer text-primary fs-5"></i>
+                      </div>
+                      <div>
+                        <div class="fw-bold text-dark mb-1">{{ imprimante.marque }}</div>
+                        <div class="text-muted">{{ imprimante.modele }}</div>
+                      </div>
+                    </div>
+                  </td>
+                  <td>
+                    <div class="d-flex align-items-center">
+                      <i class="bi bi-geo-alt-fill me-2 text-success"></i>
+                      <div>
+                        <div class="fw-semibold">{{ imprimante.emplacement || 'Non défini' }}</div>
+                        <small class="text-muted">Emplacement</small>
+                      </div>
+                    </div>
+                  </td>
+                  <td>
+                    <code class="bg-light px-3 py-2 rounded fw-semibold text-dark">{{ imprimante.numeroSerie }}</code>
+                  </td>
+                  <td>
+                    <span class="badge bg-success-subtle text-success px-3 py-2 rounded-pill">
+                      <i class="bi bi-check-circle me-1"></i>Opérationnel
+                    </span>
+                  </td>
+                  <td class="text-center position-relative">
+                    <div class="dropdown">
+                      <button class="btn btn-outline-secondary btn-sm dropdown-toggle" 
+                              type="button"
+                              data-bs-toggle="dropdown" 
+                              data-bs-auto-close="true"
+                              aria-expanded="false">
+                        <i class="bi bi-gear"></i>
+                      </button>
+                      <ul class="dropdown-menu dropdown-menu-end shadow border-0" style="z-index: 1060;">
+                        <li>
+                          <a class="dropdown-item" href="javascript:void(0)">
+                            <i class="bi bi-eye me-2 text-primary"></i>Voir détails
+                          </a>
+                        </li>
+                        <li>
+                          <a class="dropdown-item" href="javascript:void(0)">
+                            <i class="bi bi-pencil me-2 text-warning"></i>Modifier
+                          </a>
+                        </li>
+                        <li>
+                          <a class="dropdown-item" href="javascript:void(0)">
+                            <i class="bi bi-calendar-plus me-2 text-info"></i>Planifier maintenance
+                          </a>
+                        </li>
+                        <li>
+                          <a class="dropdown-item" href="javascript:void(0)">
+                            <i class="bi bi-graph-up me-2 text-success"></i>Voir historique
+                          </a>
+                        </li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li>
+                          <a class="dropdown-item text-danger" href="javascript:void(0)" (click)="removePrinter(imprimante)">
+                            <i class="bi bi-trash me-2"></i>Retirer du contrat
+                          </a>
+                        </li>
+                      </ul>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Pagination -->
+          <div class="d-flex justify-content-between align-items-center p-4 border-top" *ngIf="!loadingImprimantes && !errorImprimantes && filteredImprimantes.length > 0">
+            <div class="text-muted">
+              Affichage de {{ (currentPage - 1) * itemsPerPage + 1 }} à {{ Math.min(currentPage * itemsPerPage, filteredImprimantes.length) }} sur {{ filteredImprimantes.length }} résultats
+            </div>
+            <nav *ngIf="totalPages > 1">
+              <ul class="pagination mb-0">
+                <li class="page-item" [class.disabled]="currentPage === 1">
+                  <button class="page-link" (click)="goToPage(currentPage - 1)">
+                    <i class="bi bi-chevron-left"></i>
+                  </button>
+                </li>
+                <li class="page-item" 
+                    *ngFor="let page of [].constructor(totalPages); let i = index"
+                    [class.active]="i + 1 === currentPage">
+                  <button class="page-link" (click)="goToPage(i + 1)">{{ i + 1 }}</button>
+                </li>
+                <li class="page-item" [class.disabled]="currentPage === totalPages">
+                  <button class="page-link" (click)="goToPage(currentPage + 1)">
+                    <i class="bi bi-chevron-right"></i>
+                  </button>
+                </li>
+              </ul>
+            </nav>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add Printer Form -->
+  <div class="row mt-4" *ngIf="showAddPrinterForm">
+    <div class="col-12">
+      <div class="card border-0 shadow-lg">
+        <div class="card-header bg-primary text-white">
+          <div class="d-flex justify-content-between align-items-center">
+            <h5 class="mb-0 fw-semibold">
+              <i class="bi bi-plus-circle me-2"></i>Ajouter une Imprimante
+            </h5>
+            <button class="btn btn-light btn-sm" (click)="cancelAddPrinter()">
+              <i class="bi bi-x"></i>
+            </button>
+          </div>
+        </div>
+        <div class="card-body p-4">
+          <form (ngSubmit)="addPrinter()">
+            <div class="row g-4">
+              <div class="col-md-6">
+                <label for="marque" class="form-label fw-semibold">Marque <span class="text-danger">*</span></label>
+                <input type="text" 
+                       class="form-control form-control-lg" 
+                       id="marque" 
+                       [(ngModel)]="newPrinter.marque" 
+                       name="marque"
+                       placeholder="Ex: HP, Canon, Epson..." 
+                       required>
+              </div>
+              <div class="col-md-6">
+                <label for="modele" class="form-label fw-semibold">Modèle <span class="text-danger">*</span></label>
+                <input type="text" 
+                       class="form-control form-control-lg" 
+                       id="modele" 
+                       [(ngModel)]="newPrinter.modele" 
+                       name="modele"
+                       placeholder="Ex: LaserJet Pro, PIXMA..." 
+                       required>
+              </div>
+              <div class="col-md-6">
+                <label for="numeroSerie" class="form-label fw-semibold">Numéro de Série <span class="text-danger">*</span></label>
+                <input type="text" 
+                       class="form-control form-control-lg" 
+                       id="numeroSerie" 
+                       [(ngModel)]="newPrinter.numeroSerie" 
+                       name="numeroSerie"
+                       placeholder="Ex: ABC123456789" 
+                       required>
+              </div>
+              <div class="col-md-6">
+                <label for="emplacement" class="form-label fw-semibold">Emplacement</label>
+                <input type="text" 
+                       class="form-control form-control-lg" 
+                       id="emplacement" 
+                       [(ngModel)]="newPrinter.emplacement" 
+                       name="emplacement"
+                       placeholder="Ex: Bureau 101, Étage 2...">
+              </div>
+            </div>
+            <div class="d-flex justify-content-end gap-3 mt-4">
+              <button type="button" class="btn btn-outline-secondary btn-lg" (click)="cancelAddPrinter()">
+                <i class="bi bi-x-circle me-2"></i>Annuler
+              </button>
+              <button type="submit" class="btn btn-primary btn-lg">
+                <i class="bi bi-plus-circle me-2"></i>Ajouter l'imprimante
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Excel Import Form -->
+  <div class="row mt-4" *ngIf="showExcelImport">
+    <div class="col-12">
+      <div class="card border-0 shadow-lg">
+        <div class="card-header bg-success text-white">
+          <div class="d-flex justify-content-between align-items-center">
+            <h5 class="mb-0 fw-semibold">
+              <i class="bi bi-file-earmark-excel me-2"></i>Importer depuis Excel
+            </h5>
+            <button class="btn btn-light btn-sm" (click)="toggleExcelImport()">
+              <i class="bi bi-x"></i>
+            </button>
+          </div>
+        </div>
+        <div class="card-body p-4 excel-import-container">
+          <div class="row">
+            <div class="col-md-8">
+              <!-- Hidden file input -->
+              <input #fileInput 
+                     type="file" 
+                     class="d-none" 
+                     accept=".xlsx,.xls,.csv" 
+                     (change)="onFileSelected($event)">
+              
+              <!-- Drop zone -->
+              <div class="border-2 border-dashed border-success rounded-3 p-5 text-center bg-light bg-opacity-50" 
+                   (dragover)="onDragOver($event)" 
+                   (dragleave)="onDragLeave($event)" 
+                   (drop)="onFileDrop($event)">
+                
+                <div *ngIf="!selectedFile && !importing">
+                  <i class="bi bi-cloud-upload text-success fs-1 mb-3 d-block"></i>
+                  <h5 class="fw-semibold mb-2 text-dark">Glissez-déposez votre fichier Excel ici</h5>
+                  <p class="text-muted mb-4">Formats acceptés: Excel (.xlsx, .xls) et CSV (.csv)</p>
+                  <button class="btn btn-success btn-lg px-4" (click)="fileInput.click()">
+                    <i class="bi bi-folder2-open me-2"></i>Parcourir les fichiers
+                  </button>
+                </div>
+                
+                <!-- Selected file display -->
+                <div *ngIf="selectedFile && !importing" class="p-4 bg-white rounded-3 border border-success">
+                  <div class="d-flex align-items-center justify-content-between mb-3">
+                    <div class="d-flex align-items-center">
+                      <i class="bi bi-file-earmark-excel text-success me-3 fs-2"></i>
+                      <div class="text-start">
+                        <h6 class="fw-bold text-success mb-1">{{ selectedFile.name }}</h6>
+                        <small class="text-muted">{{ formatFileSize(selectedFile.size) }}</small>
+                      </div>
+                    </div>
+                    <button class="btn btn-outline-danger btn-sm" 
+                            (click)="removeSelectedFile()"
+                            title="Supprimer le fichier">
+                      <i class="bi bi-trash"></i>
+                    </button>
+                  </div>
+                  
+                  <div class="alert alert-success border-0 mb-0 py-2">
+                    <div class="d-flex align-items-center">
+                      <i class="bi bi-check-circle me-2"></i>
+                      <small class="fw-semibold">Fichier validé et prêt pour l'importation</small>
+                    </div>
+                  </div>
+                </div>
+                
+                <!-- Upload progress -->
+                <div *ngIf="importing">
+                  <i class="bi bi-cloud-upload text-success fs-1 mb-3 d-block"></i>
+                  <h5 class="fw-semibold mb-3 text-dark">Importation en cours...</h5>
+                  <div class="progress mx-auto mb-3" style="width: 300px; height: 8px;">
+                    <div class="progress-bar bg-success progress-bar-striped progress-bar-animated" 
+                         role="progressbar" 
+                         [style.width.%]="uploadProgress">
+                    </div>
+                  </div>
+                  <p class="text-muted small">{{ uploadProgress }}% terminé</p>
+                </div>
+              </div>
+              
+              <!-- Action buttons (OUTSIDE the drop zone) -->
+              <div class="mt-4" *ngIf="selectedFile && !importing">
+                <div class="d-grid gap-2">
+                  <button class="btn btn-success btn-lg fw-semibold shadow-sm" 
+                          (click)="importExcelFile()"
+                          type="button">
+                    <i class="bi bi-upload me-2"></i>
+                    Importer dans la base de données
+                  </button>
+                  <button class="btn btn-outline-secondary" 
+                          (click)="removeSelectedFile()"
+                          type="button">
+                    <i class="bi bi-x-circle me-2"></i>Annuler et choisir un autre fichier
+                  </button>
+                </div>
+              </div>
+              
+              <!-- Import progress buttons -->
+              <div class="mt-4" *ngIf="importing">
+                <div class="d-grid">
+                  <button class="btn btn-success btn-lg" disabled>
+                    <div class="spinner-border spinner-border-sm me-2" role="status">
+                      <span class="visually-hidden">Chargement...</span>
+                    </div>
+                    <span class="fw-semibold">Importation et sauvegarde en cours...</span>
+                  </button>
+                  <div class="alert alert-info border-0 mt-3 mb-0">
+                    <div class="d-flex align-items-center">
+                      <i class="bi bi-info-circle me-2"></i>
+                      <small>L'importation peut prendre quelques instants selon la taille du fichier.</small>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-4">
+              <div class="card border-0 h-100">
+                <div class="card-body">
+                  <h6 class="fw-bold text-primary mb-3">
+                    <i class="bi bi-info-circle me-2"></i>Format de fichier requis
+                  </h6>
+                  <p class="text-muted mb-3">Votre fichier Excel/CSV doit contenir les colonnes suivantes dans cet ordre :</p>
+                  
+                  <div class="list-group list-group-flush mb-4">
+                    <div class="list-group-item border-0 px-0">
+                      <div class="d-flex align-items-center">
+                        <span class="badge bg-danger rounded-pill me-2">1</span>
+                        <div>
+                          <strong>Marque</strong>
+                          <small class="text-danger d-block">Obligatoire</small>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="list-group-item border-0 px-0">
+                      <div class="d-flex align-items-center">
+                        <span class="badge bg-danger rounded-pill me-2">2</span>
+                        <div>
+                          <strong>Modèle</strong>
+                          <small class="text-danger d-block">Obligatoire</small>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="list-group-item border-0 px-0">
+                      <div class="d-flex align-items-center">
+                        <span class="badge bg-danger rounded-pill me-2">3</span>
+                        <div>
+                          <strong>Numéro de série</strong>
+                          <small class="text-danger d-block">Obligatoire</small>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="list-group-item border-0 px-0">
+                      <div class="d-flex align-items-center">
+                        <span class="badge bg-secondary rounded-pill me-2">4</span>
+                        <div>
+                          <strong>Emplacement</strong>
+                          <small class="text-muted d-block">Optionnel</small>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div class="d-grid">
+                    <button class="btn btn-outline-success" (click)="downloadTemplate()">
+                      <i class="bi bi-download me-2"></i>Télécharger un modèle
+                    </button>
+                  </div>
+                  
+                  <div class="alert alert-warning border-0 mt-4 small">
+                    <i class="bi bi-exclamation-triangle me-1"></i>
+                    <strong>Important :</strong> Assurez-vous que les colonnes sont dans le bon ordre et que les champs obligatoires sont remplis.
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

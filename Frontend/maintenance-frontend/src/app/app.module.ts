@@ -16,6 +16,7 @@ import { ContratComponent } from './components/contrat/contrat.component';
 import { ContratFormComponent } from './components/contrat-form/contrat-form.component';
 import { AngularEditorModule } from '@kolkov/angular-editor';
 import { ContratDetailsComponent } from './components/contrat-details/contrat-details.component';
+import { ContratPrintersComponent } from './components/contrat-printers/contrat-printers.component';
 import { ClientsComponent } from './clients/clients/clients.component';
 import { AddClientComponent } from './clients/add-client/add-client.component';
 import { NotificationsComponent } from './components/notifications/notifications.component';
@@ -44,6 +45,7 @@ import { ClientHistoryComponent } from './client-history/client-history.componen
     ContratComponent,
     ContratFormComponent,
     ContratDetailsComponent,
+    ContratPrintersComponent,
     ClientsComponent,
     AddClientComponent,
     NotificationsComponent,

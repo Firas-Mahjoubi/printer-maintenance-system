@@ -1,0 +1,634 @@
+/* Contract Form Component Enhanced Styles */
+
+/* Main Container */
+.container-fluid {
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  min-height: 100vh;
+}
+
+/* Enhanced Card Styling */
+.card {
+  border-radius: 20px;
+  overflow: hidden;
+  backdrop-filter: blur(10px);
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15) !important;
+}
+
+/* Header Enhancements */
+.card-header {
+  background: linear-gradient(135deg, #007bff 0%, #0056b3 100%) !important;
+  border: none;
+  position: relative;
+  overflow: hidden;
+}
+
+.card-header::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  animation: shimmer 3s infinite;
+}
+
+@keyframes shimmer {
+  0% { left: -100%; }
+  100% { left: 100%; }
+}
+
+/* Enhanced Progress Bar */
+.progress {
+  border-radius: 10px;
+  overflow: hidden;
+  height: 8px !important;
+  background: rgba(0, 0, 0, 0.1);
+}
+
+.progress-bar {
+  background: linear-gradient(90deg, #007bff, #28a745) !important;
+  transition: width 0.6s ease;
+  position: relative;
+}
+
+.progress-bar::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+  animation: progressShine 2s infinite;
+}
+
+@keyframes progressShine {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+/* Form Section Styling */
+.form-section {
+  position: relative;
+  padding: 2rem;
+  background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+  border-radius: 15px;
+  border: 1px solid rgba(0, 123, 255, 0.1);
+  transition: all 0.3s ease;
+  margin-bottom: 2rem;
+}
+
+.form-section:hover {
+  border-color: rgba(0, 123, 255, 0.3);
+  box-shadow: 0 8px 25px rgba(0, 123, 255, 0.1);
+  transform: translateY(-2px);
+}
+
+.form-section::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #007bff, #28a745, #17a2b8, #ffc107);
+  border-radius: 15px 15px 0 0;
+}
+
+/* Section Headers */
+.form-section h6 {
+  position: relative;
+  z-index: 2;
+  margin-bottom: 1.5rem !important;
+}
+
+.form-section h6 .rounded-circle {
+  box-shadow: 0 4px 15px rgba(0, 123, 255, 0.3);
+  transition: all 0.3s ease;
+}
+
+.form-section:hover h6 .rounded-circle {
+  transform: scale(1.1);
+  box-shadow: 0 6px 20px rgba(0, 123, 255, 0.4);
+}
+
+/* Enhanced Form Controls */
+.form-control, .form-select {
+  border: 2px solid #e9ecef;
+  border-radius: 12px;
+  padding: 0.75rem 1rem;
+  font-size: 1rem;
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+}
+
+.form-control:focus, .form-select:focus {
+  border-color: #007bff;
+  box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.15);
+  transform: translateY(-2px);
+  background: white;
+}
+
+.form-control:hover, .form-select:hover {
+  border-color: #007bff;
+  box-shadow: 0 4px 15px rgba(0, 123, 255, 0.1);
+}
+
+/* Selected Client Info Card */
+.card.border-success {
+  border-color: #28a745 !important;
+  animation: fadeInUp 0.5s ease;
+}
+
+.card.border-success .card-body {
+  background: linear-gradient(135deg, #f8fff9 0%, #e8f5e8 100%);
+}
+
+@keyframes fadeInUp {
+  from { 
+    opacity: 0; 
+    transform: translateY(20px); 
+  }
+  to { 
+    opacity: 1; 
+    transform: translateY(0); 
+  }
+}
+
+/* Loading States */
+.spinner-border-sm {
+  width: 1rem;
+  height: 1rem;
+}
+
+/* No Clients Message */
+.alert-warning {
+  background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
+  border: 1px solid #ffc107;
+  border-radius: 12px;
+}
+
+/* Input Group Enhancements */
+.input-group-text {
+  border: 2px solid #e9ecef;
+  border-radius: 12px 0 0 12px;
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  transition: all 0.3s ease;
+}
+
+.input-group:focus-within .input-group-text {
+  border-color: #007bff;
+  background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+  color: white;
+}
+
+.input-group .form-control {
+  border-left: none;
+  border-radius: 0 12px 12px 0;
+}
+
+/* Validation States */
+.form-control.is-valid, .form-select.is-valid {
+  border-color: #28a745;
+  background-image: none;
+}
+
+.form-control.is-invalid, .form-select.is-invalid {
+  border-color: #dc3545;
+  background-image: none;
+}
+
+.valid-feedback {
+  background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+  border: 1px solid #28a745;
+  border-radius: 8px;
+  padding: 0.5rem 1rem;
+  margin-top: 0.5rem;
+}
+
+.invalid-feedback {
+  background: linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%);
+  border: 1px solid #dc3545;
+  border-radius: 8px;
+  padding: 0.5rem 1rem;
+  margin-top: 0.5rem;
+}
+
+/* Enhanced Buttons */
+.btn {
+  border-radius: 12px;
+  padding: 0.75rem 1.5rem;
+  font-weight: 600;
+  font-size: 0.95rem;
+  letter-spacing: 0.5px;
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+  transition: left 0.5s ease;
+}
+
+.btn:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+.btn:hover::before {
+  left: 100%;
+}
+
+.btn:active {
+  transform: translateY(-1px);
+}
+
+.btn-success {
+  background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+  border: none;
+}
+
+.btn-outline-primary {
+  border: 2px solid #007bff;
+  background: transparent;
+}
+
+.btn-outline-primary:hover {
+  background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+  border-color: #007bff;
+}
+
+.btn-outline-secondary {
+  border: 2px solid #6c757d;
+  background: transparent;
+}
+
+.btn-outline-secondary:hover {
+  background: linear-gradient(135deg, #6c757d 0%, #5a6268 100%);
+  border-color: #6c757d;
+}
+
+/* Duration Alert */
+.alert-info {
+  background: linear-gradient(135deg, #cce7ff 0%, #b3d9ff 100%);
+  border: 1px solid #007bff;
+  border-radius: 10px;
+  animation: fadeIn 0.5s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Help Section */
+.bg-light {
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%) !important;
+  border: 1px solid rgba(0, 123, 255, 0.1);
+  border-radius: 15px;
+}
+
+/* Success/Error Messages */
+.alert-success {
+  background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+  border: 1px solid #28a745;
+  border-radius: 12px;
+  animation: slideInFromTop 0.5s ease;
+}
+
+.alert-danger {
+  background: linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%);
+  border: 1px solid #dc3545;
+  border-radius: 12px;
+  animation: slideInFromTop 0.5s ease;
+}
+
+@keyframes slideInFromTop {
+  from { opacity: 0; transform: translateY(-20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Loading States */
+.spinner-border {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* Form Labels */
+.form-label {
+  font-weight: 600;
+  color: #495057;
+  margin-bottom: 0.75rem;
+}
+
+/* Textarea Enhancements */
+textarea.form-control {
+  min-height: 120px;
+  resize: vertical;
+}
+
+/* Client Search Dropdown Styles */
+
+/* ========== SIMPLIFIED CLIENT DROPDOWN - REBUILT ========== */
+
+/* Container */
+.client-search-container {
+  position: relative;
+}
+
+/* Dropdown */
+.client-dropdown {
+  position: fixed;
+  background: white;
+  border: 1px solid #dee2e6;
+  border-radius: 8px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  z-index: 99999;
+  max-height: 350px;
+  overflow: hidden;
+  opacity: 0;
+  visibility: hidden;
+  transform: scale(0.95);
+  transition: all 0.15s ease;
+  min-width: 300px;
+}
+
+.client-dropdown.show {
+  opacity: 1;
+  visibility: visible;
+  transform: scale(1);
+}
+
+/* Dropdown Items */
+.dropdown-item {
+  padding: 12px 16px;
+  cursor: pointer;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+  transition: background-color 0.15s ease;
+}
+
+.dropdown-item:last-child {
+  border-bottom: none;
+}
+
+.dropdown-item:hover,
+.dropdown-item.highlighted {
+  background-color: #f8f9fa;
+}
+
+.dropdown-item.selected {
+  background-color: rgba(13, 110, 253, 0.1);
+  border-left: 3px solid #007bff;
+}
+
+/* Dropdown Header */
+.dropdown-header {
+  padding: 8px 16px;
+  background-color: #f8f9fa;
+  border-bottom: 1px solid #e9ecef;
+  font-size: 12px;
+}
+
+/* Client Items */
+.client-item {
+  padding: 10px 16px;
+}
+
+.client-avatar .rounded-circle {
+  transition: transform 0.2s ease;
+}
+
+.client-item:hover .client-avatar .rounded-circle {
+  transform: scale(1.05);
+}
+
+.client-actions {
+  opacity: 0.7;
+  transition: opacity 0.2s ease;
+}
+
+.client-item:hover .client-actions,
+.client-item.selected .client-actions {
+  opacity: 1;
+}
+
+/* Scrollbar */
+.client-dropdown {
+  overflow-y: auto;
+}
+
+.client-dropdown::-webkit-scrollbar {
+  width: 4px;
+}
+
+.client-dropdown::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+.client-dropdown::-webkit-scrollbar-thumb {
+  background: #007bff;
+  border-radius: 2px;
+}
+.client-actions {
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.client-dropdown-item:hover .client-actions,
+.client-dropdown-item.selected .client-actions {
+  opacity: 1;
+}
+
+/* Enhanced Input Focus */
+.client-search-container .form-control:focus {
+  border-color: #007bff;
+  box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+  transform: translateY(-2px);
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+  .client-dropdown {
+    max-height: 250px;
+    min-width: 250px;
+  }
+  
+  .dropdown-item {
+    padding: 8px 12px;
+  }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .form-section {
+    padding: 1.5rem;
+  }
+  
+  .card-body {
+    padding: 1.5rem !important;
+  }
+  
+  .btn {
+    padding: 0.5rem 1rem;
+    font-size: 0.9rem;
+  }
+  
+  .d-flex.gap-2 {
+    flex-direction: column;
+    gap: 0.5rem !important;
+  }
+  
+  .justify-content-between {
+    flex-direction: column;
+    align-items: stretch !important;
+    gap: 1rem;
+  }
+  
+  .justify-content-between .d-flex {
+    justify-content: stretch;
+  }
+  
+  .justify-content-between .btn {
+    flex: 1;
+    margin: 0 0.25rem;
+  }
+}
+
+@media (max-width: 576px) {
+  .container-fluid {
+    padding: 0.5rem;
+  }
+  
+  .form-section {
+    padding: 1rem;
+    margin-bottom: 1rem;
+  }
+}
+
+/* Print Styles */
+@media print {
+  .btn,
+  .progress,
+  .bg-light {
+    display: none !important;
+  }
+  
+  .card {
+    border: 1px solid #dee2e6 !important;
+    box-shadow: none !important;
+  }
+  
+  .form-section {
+    break-inside: avoid;
+    margin-bottom: 1rem;
+  }
+}
+
+/* High Contrast Mode */
+@media (prefers-contrast: high) {
+  .form-section {
+    border: 2px solid #000;
+  }
+  
+  .form-control, .form-select {
+    border: 2px solid #000;
+  }
+  
+  .btn {
+    border: 2px solid #000;
+  }
+}
+
+/* Reduced Motion */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  
+  .btn:hover {
+    transform: none;
+  }
+  
+  .form-section:hover {
+    transform: none;
+  }
+}
+
+/* Dark Mode Support */
+@media (prefers-color-scheme: dark) {
+  .form-section {
+    background: linear-gradient(135deg, #343a40 0%, #495057 100%);
+    color: white;
+  }
+  
+  .form-control, .form-select {
+    background: #495057;
+    border-color: #6c757d;
+    color: white;
+  }
+  
+  .form-control:focus, .form-select:focus {
+    background: #343a40;
+  }
+}
+
+/* Client Selection Container */
+.client-selection-container {
+  position: relative;
+  z-index: 1000 !important;
+  isolation: isolate;
+}
+
+.client-selection-container .form-control {
+  position: relative;
+  z-index: 1001 !important;
+}
+
+.client-selection-container .input-group {
+  position: relative;
+  z-index: 1001 !important;
+}
+
+/* Ensure form sections don't interfere */
+.card-body {
+  position: relative;
+  z-index: 1;
+}
+
+.form-section {
+  position: relative;
+  z-index: 1;
+}
+
+/* Specific fix for conditions section - force it to stay below */
+.conditions-section {
+  position: relative;
+  z-index: 1 !important;
+  isolation: isolate;
+}
+
+.conditions-section * {
+  z-index: 1 !important;
+}

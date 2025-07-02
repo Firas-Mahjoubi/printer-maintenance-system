@@ -1,0 +1,393 @@
+/* Contract Printers Component Styles */
+
+.bg-gradient-primary {
+  background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 50%, #ec4899 100%) !important;
+  position: relative;
+  color: white !important;
+}
+
+.bg-gradient-primary::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 50%, #ec4899 100%);
+  opacity: 0.9;
+  border-radius: inherit;
+  z-index: 0;
+}
+
+.bg-gradient-primary > * {
+  position: relative;
+  z-index: 1;
+  color: white !important;
+}
+
+/* Header icon styling */
+.bg-gradient-primary .bi {
+  color: white !important;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+}
+
+/* Header text styling */
+.bg-gradient-primary h1,
+.bg-gradient-primary h2,
+.bg-gradient-primary p {
+  color: white !important;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+/* Additional header text fixes */
+.bg-gradient-primary .card-body * {
+  color: white !important;
+}
+
+.bg-gradient-primary .text-white {
+  color: white !important;
+}
+
+.bg-gradient-primary .opacity-75 {
+  opacity: 0.75 !important;
+  color: white !important;
+}
+
+/* Badge styling on gradient background */
+.bg-gradient-primary .badge {
+  background-color: rgba(255, 255, 255, 0.25) !important;
+  color: white !important;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+/* Button styling on gradient background */
+.bg-gradient-primary .btn-light {
+  background-color: rgba(255, 255, 255, 0.9) !important;
+  color: #4f46e5 !important;
+  border: none;
+  backdrop-filter: blur(10px);
+}
+
+.bg-gradient-secondary {
+  background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
+}
+
+.printer-row {
+  transition: all 0.3s ease;
+}
+
+.printer-row:hover {
+  background-color: rgba(102, 126, 234, 0.05);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.card {
+  transition: all 0.3s ease;
+}
+
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15) !important;
+}
+
+.btn {
+  transition: all 0.3s ease;
+}
+
+.btn:hover {
+  transform: translateY(-1px);
+}
+
+.spin {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.table-hover tbody tr:hover {
+  background-color: rgba(102, 126, 234, 0.05);
+}
+
+.badge {
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.rounded-pill {
+  border-radius: 50rem !important;
+}
+
+.form-control:focus,
+.form-select:focus {
+  border-color: #667eea;
+  box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+}
+
+.dropdown-menu {
+  border: none;
+  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+}
+
+/* Fix dropdown z-index issue in table */
+.table-responsive {
+  overflow: visible !important;
+}
+
+.dropdown {
+  position: static;
+}
+
+.dropdown-menu {
+  z-index: 1050 !important;
+  position: absolute !important;
+}
+
+/* Ensure dropdown appears above table */
+.table .dropdown-menu {
+  z-index: 1055 !important;
+}
+
+/* Fix for Bootstrap table overflow */
+.card .table-responsive {
+  overflow-x: auto;
+  overflow-y: visible;
+}
+
+/* Ensure last column dropdown is fully visible */
+td:last-child .dropdown-menu {
+  right: 0;
+  left: auto;
+}
+
+.pagination .page-link {
+  color: #667eea;
+  border-color: #dee2e6;
+}
+
+.pagination .page-item.active .page-link {
+  background-color: #667eea;
+  border-color: #667eea;
+}
+
+.pagination .page-link:hover {
+  color: #5a6fd8;
+  background-color: #e9ecef;
+}
+
+/* Animation classes */
+.animate-slide-in-bottom {
+  animation: slideInBottom 0.6s ease-out;
+}
+
+@keyframes slideInBottom {
+  from {
+    transform: translateY(30px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* Custom scrollbar */
+.table-responsive::-webkit-scrollbar {
+  height: 8px;
+}
+
+.table-responsive::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 10px;
+}
+
+.table-responsive::-webkit-scrollbar-thumb {
+  background: #667eea;
+  border-radius: 10px;
+}
+
+.table-responsive::-webkit-scrollbar-thumb:hover {
+  background: #5a6fd8;
+}
+
+/* Search and filter section */
+.form-label {
+  color: #495057;
+  font-weight: 600;
+}
+
+/* Statistics cards hover effect */
+.card-body:hover .bg-opacity-10 {
+  transform: scale(1.1);
+  transition: transform 0.3s ease;
+}
+
+/* Empty state */
+.empty-state-icon {
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% { opacity: 1; }
+  50% { opacity: 0.5; }
+  100% { opacity: 1; }
+}
+
+/* File upload area */
+.border-dashed {
+  border-style: dashed !important;
+}
+
+/* Status badges */
+.bg-success-subtle {
+  background-color: rgba(25, 135, 84, 0.1) !important;
+}
+
+.bg-primary-subtle {
+  background-color: rgba(13, 110, 253, 0.1) !important;
+}
+
+.bg-info-subtle {
+  background-color: rgba(13, 202, 240, 0.1) !important;
+}
+
+.bg-warning-subtle {
+  background-color: rgba(255, 193, 7, 0.1) !important;
+}
+
+/* Excel Import UI Improvements */
+.excel-import-container .border-dashed {
+  transition: all 0.3s ease;
+}
+
+.excel-import-container .border-dashed:hover {
+  border-color: #198754 !important;
+  background-color: rgba(25, 135, 84, 0.05) !important;
+}
+
+.excel-import-container .file-selected {
+  border-color: #198754 !important;
+  background-color: rgba(25, 135, 84, 0.1) !important;
+}
+
+/* File upload animations */
+.file-info-card {
+  animation: slideInUp 0.3s ease-out;
+}
+
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Progress bar improvements */
+.progress {
+  box-shadow: inset 0 1px 2px rgba(0,0,0,.1);
+}
+
+.progress-bar-animated {
+  background-size: 20px 20px;
+}
+
+/* Button improvements */
+.btn-lg.shadow-sm {
+  box-shadow: 0 2px 4px rgba(0,0,0,.1) !important;
+}
+
+.btn-lg.shadow-sm:hover {
+  box-shadow: 0 4px 8px rgba(0,0,0,.15) !important;
+  transform: translateY(-1px);
+}
+
+/* Info panel improvements */
+.list-group-item {
+  transition: background-color 0.2s ease;
+}
+
+.list-group-item:hover {
+  background-color: rgba(0,0,0,.02);
+}
+
+/* Responsive improvements */
+@media (max-width: 768px) {
+  .table-responsive {
+    font-size: 0.875rem;
+  }
+  
+  .card-body {
+    padding: 1rem !important;
+  }
+  
+  .btn-lg {
+    padding: 0.5rem 1rem;
+    font-size: 1rem;
+  }
+  
+  .form-control-lg,
+  .form-select-lg {
+    padding: 0.5rem 0.75rem;
+    font-size: 1rem;
+  }
+}
+
+/* Print styles */
+@media print {
+  .btn,
+  .dropdown,
+  .pagination {
+    display: none !important;
+  }
+  
+  .card {
+    border: 1px solid #dee2e6 !important;
+    box-shadow: none !important;
+  }
+}
+
+/* Additional fixes for table dropdown visibility */
+.card-body {
+  overflow: visible !important;
+}
+
+/* Ensure table container allows dropdowns to overflow */
+.table-container {
+  position: relative;
+}
+
+/* Force dropdown to appear above everything */
+.table .dropdown-menu.show {
+  z-index: 1060 !important;
+  position: absolute !important;
+  will-change: transform;
+}
+
+/* Fix for table row hover effects not interfering with dropdown */
+.printer-row:hover {
+  position: relative;
+  z-index: 1;
+}
+
+/* Make sure the last few rows' dropdowns are visible */
+.table tbody tr:nth-last-child(-n+3) .dropdown-menu {
+  transform: translateY(-50%);
+}
+
+/* Icon container styling */
+.bg-gradient-primary .rounded-circle {
+  background-color: rgba(255, 255, 255, 0.2) !important;
+}
+
+.bg-gradient-primary .rounded-circle .bi {
+  color: white !important;
+}

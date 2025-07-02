@@ -1,20 +1,185 @@
-/* Contract Details Component Styles */
+/* ======================================
+   CONTRACT DETAILS COMPONENT STYLES
+   ====================================== */
+
+/* ======================================
+   CARD AND INFO ITEM STYLES
+   ====================================== */
 
 .info-item {
-  padding: 1rem;
-  background: #f8f9fa;
-  border-radius: 8px;
-  border-left: 4px solid #007bff;
+  padding: 1.5rem;
+  background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+  border-radius: 16px;
+  border: 1px solid rgba(0, 123, 255, 0.1);
+  position: relative;
+  overflow: hidden;
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
 }
 
+.info-item::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, #007bff, #28a745, #17a2b8, #ffc107);
+  border-radius: 16px 16px 0 0;
+}
+
+.info-item:hover {
+  transform: translateY(-8px) scale(1.02);
+  box-shadow: 0 20px 40px rgba(0, 123, 255, 0.2);
+  border-color: rgba(0, 123, 255, 0.3);
+}
+
+.info-item:hover::before {
+  height: 6px;
+  animation: shimmer 2s infinite;
+}
+
+@keyframes shimmer {
+  0% { background-position: -200px 0; }
+  100% { background-position: 200px 0; }
+}
+
+/* Enhanced Avatar Styles */
 .avatar-lg {
-  width: 60px;
-  height: 60px;
+  width: 70px;
+  height: 70px;
+  font-size: 1.5rem;
+  font-weight: bold;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border: 3px solid white;
+  box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+  transition: all 0.3s ease;
+  position: relative;
 }
 
+.avatar-lg:hover {
+  transform: scale(1.1) rotate(5deg);
+  box-shadow: 0 12px 30px rgba(102, 126, 234, 0.4);
+}
+
+.avatar-xl {
+  width: 90px;
+  height: 90px;
+  font-size: 2rem;
+  font-weight: bold;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border: 4px solid rgba(255, 255, 255, 0.9);
+  box-shadow: 0 12px 35px rgba(102, 126, 234, 0.4);
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  position: relative;
+  overflow: hidden;
+}
+
+.avatar-xl::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+  transform: rotate(45deg);
+  transition: all 0.6s ease;
+  opacity: 0;
+}
+
+.avatar-xl:hover {
+  transform: scale(1.15) rotate(-5deg);
+  box-shadow: 0 20px 50px rgba(102, 126, 234, 0.5);
+}
+
+.avatar-xl:hover::before {
+  animation: shine 0.8s ease-in-out;
+  opacity: 1;
+}
+
+@keyframes shine {
+  0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
+  100% { transform: translateX(100%) translateY(100%) rotate(45deg); }
+}
+
+/* Error and Empty State Icons */
+.error-icon {
+  font-size: 3rem !important;
+  animation: pulse 2s infinite;
+}
+
+.empty-state-icon {
+  font-size: 3rem !important;
+  opacity: 0.6;
+}
+
+/* Progress Circle Styles */
 .progress-circle {
   position: relative;
 }
+
+.progress-circle-lg {
+  width: 120px;
+  height: 120px;
+}
+
+.progress-circle svg {
+  transition: all 0.3s ease;
+}
+
+/* Timeline Styles */
+.timeline {
+  position: relative;
+  padding-left: 30px;
+}
+
+.timeline::before {
+  content: '';
+  position: absolute;
+  left: 15px;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: #e9ecef;
+}
+
+.timeline-item {
+  position: relative;
+  margin-bottom: 30px;
+}
+
+.timeline-marker {
+  position: absolute;
+  left: -22px;
+  top: 5px;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 2px solid white;
+  box-shadow: 0 0 0 2px #e9ecef;
+}
+
+.timeline-content {
+  background: #f8f9fa;
+  padding: 15px;
+  border-radius: 8px;
+  position: relative;
+}
+
+.timeline-content::before {
+  content: '';
+  position: absolute;
+  left: -8px;
+  top: 15px;
+  width: 0;
+  height: 0;
+  border-top: 8px solid transparent;
+  border-bottom: 8px solid transparent;
+  border-right: 8px solid #f8f9fa;
+}
+
+/* Contract Content Styles */
 
 .contract-content {
   max-height: 400px;
@@ -98,13 +263,31 @@
   transition: background-color 0.15s ease-in-out;
 }
 
+/* Fix dropdown z-index issues */
 .dropdown-menu {
   border: 0;
   box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+  z-index: 1050 !important;
 }
 
 .dropdown-item:hover {
   background-color: #f8f9fa;
+}
+
+/* Ensure dropdowns appear above all other content */
+.dropdown {
+  position: relative;
+  z-index: 1000;
+}
+
+.dropdown-toggle {
+  z-index: 1001;
+}
+
+/* Fix table responsive containers */
+.table-responsive {
+  overflow: visible !important;
+  z-index: 1;
 }
 
 /* Badge improvements */
@@ -186,18 +369,712 @@
   background-color: #f8f9fa;
 }
 
-/* Responsive improvements */
+/* Renewal Form Styles */
+.renewal-form {
+  background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+}
+
+.renewal-form .card-header {
+  background: transparent;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.renewal-summary {
+  background: rgba(0, 0, 0, 0.05);
+  border-radius: 0.5rem;
+  padding: 1.5rem;
+  margin-top: 1rem;
+}
+
+.renewal-summary h6 {
+  color: #495057;
+  margin-bottom: 1rem;
+}
+
+.renewal-summary .fw-semibold {
+  color: #28a745;
+  font-size: 1.1rem;
+}
+
+/* Enhanced UI Improvements */
+
+/* Gradient backgrounds */
+.bg-gradient-primary {
+  background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+}
+
+.bg-gradient-info {
+  background: linear-gradient(135deg, #17a2b8 0%, #138496 100%);
+}
+
+.bg-gradient-success {
+  background: linear-gradient(135deg, #28a745 0%, #1e7e34 100%);
+}
+
+.bg-gradient-light {
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+}
+
+/* Color variants for info items */
+.bg-primary-subtle {
+  background-color: rgba(13, 110, 253, 0.1) !important;
+}
+
+.bg-success-subtle {
+  background-color: rgba(25, 135, 84, 0.1) !important;
+}
+
+.bg-info-subtle {
+  background-color: rgba(13, 202, 240, 0.1) !important;
+}
+
+.bg-warning-subtle {
+  background-color: rgba(255, 193, 7, 0.1) !important;
+}
+
+.bg-purple-subtle {
+  background-color: rgba(111, 66, 193, 0.1) !important;
+}
+
+.bg-secondary-subtle {
+  background-color: rgba(108, 117, 125, 0.1) !important;
+}
+
+/* Custom purple color */
+.text-purple {
+  color: #6f42c1 !important;
+}
+
+.border-purple {
+  border-color: #6f42c1 !important;
+}
+
+/* ======================================
+   CONTACT ITEMS
+   ====================================== */
+
+.contact-item {
+  padding: 1.5rem;
+  background: #fff;
+  border-radius: 12px;
+  border: 1px solid #e9ecef;
+  transition: all 0.3s ease;
+}
+
+.contact-item:hover {
+  border-color: #007bff;
+  box-shadow: 0 4px 15px rgba(0, 123, 255, 0.1);
+}
+
+.icon-wrapper {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+}
+
+/* ======================================
+   RENEWAL CARD ENHANCEMENTS
+   ====================================== */
+.renewal-card {
+  border: 2px solid #28a745 !important;
+  animation: slideInUp 0.5s ease-out;
+}
+
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Form enhancements */
+.form-floating > .form-control:focus,
+.form-floating > .form-control:not(:placeholder-shown) {
+  padding-top: 1.625rem;
+  padding-bottom: 0.625rem;
+}
+
+.form-floating > label {
+  opacity: 0.65;
+  transform: scale(0.85) translateY(-0.5rem) translateX(0.15rem);
+}
+
+.form-control-lg {
+  border-radius: 10px;
+  border: 2px solid #e9ecef;
+  transition: all 0.3s ease;
+}
+
+.form-control-lg:focus {
+  border-color: #007bff;
+  box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.15);
+  transform: translateY(-1px);
+}
+
+/* Summary items */
+.summary-item {
+  background: rgba(255, 255, 255, 0.8);
+  padding: 1rem;
+  border-radius: 8px;
+}
+
+/* Enhanced buttons */
+.btn-lg {
+  padding: 0.75rem 1.5rem;
+  font-size: 1.1rem;
+  border-radius: 10px;
+  font-weight: 600;
+}
+
+.btn-group .btn {
+  border-radius: 8px;
+  margin-right: 2px;
+}
+
+.btn-group .btn:last-child {
+  margin-right: 0;
+}
+
+/* Progress bar enhancements */
+.progress {
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.bg-gradient-primary.progress-bar {
+  background: linear-gradient(90deg, #007bff, #28a745);
+}
+
+/* Dropdown enhancements - Consolidated styles */
+.dropdown-menu {
+  border: 0;
+  border-radius: 12px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+  padding: 0.5rem;
+  z-index: 1050 !important;
+}
+
+.dropdown-item {
+  border-radius: 8px;
+  padding: 0.7rem 1rem;
+  transition: all 0.2s ease;
+}
+
+.dropdown-item:hover {
+  background-color: #f8f9fa;
+  transform: translateX(4px);
+}
+
+/* Ensure dropdowns work properly */
+.dropdown {
+  position: relative;
+  z-index: 1000;
+}
+
+.dropdown-toggle {
+  z-index: 1001;
+}
+
+/* Card hover effects */
+.card {
+  transition: all 0.3s ease;
+}
+
+.card:hover {
+  transform: translateY(-2px);
+}
+
+/* Badge improvements */
+.badge {
+  font-weight: 500;
+  letter-spacing: 0.5px;
+}
+
+.rounded-pill {
+  font-size: 0.85rem;
+}
+
+/* Custom scrollbar for contract content */
+.contract-content::-webkit-scrollbar {
+  width: 8px;
+}
+
+.contract-content::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+.contract-content::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 4px;
+}
+
+.contract-content::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
+
+/* Loading and empty states */
+.empty-state-icon {
+  font-size: 4rem !important;
+  opacity: 0.3;
+  animation: pulse 2s infinite;
+}
+
+/* Enhanced Contract Status Indicators */
+.status-indicator {
+  position: relative;
+  padding: 0.75rem 1.5rem;
+  border-radius: 50px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+}
+
+.status-indicator:hover {
+  transform: scale(1.05);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+}
+
+.status-indicator.status-active {
+  background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+  color: white;
+}
+
+.status-indicator.status-expired {
+  background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+  color: white;
+}
+
+.status-indicator.status-pending {
+  background: linear-gradient(135deg, #ffc107 0%, #e0a800 100%);
+  color: #212529;
+}
+
+.status-indicator.status-renewed {
+  background: linear-gradient(135deg, #17a2b8 0%, #138496 100%);
+  color: white;
+}
+
+/* Contract Stats Cards */
+.stats-card {
+  background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+  border-radius: 20px;
+  padding: 2rem;
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  position: relative;
+  overflow: hidden;
+}
+
+.stats-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 100%;
+  background: linear-gradient(135deg, rgba(0, 123, 255, 0.02), rgba(40, 167, 69, 0.02));
+  z-index: 1;
+}
+
+.stats-card:hover {
+  transform: translateY(-10px);
+  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.1);
+  border-color: rgba(0, 123, 255, 0.2);
+}
+
+.stats-card .card-body {
+  position: relative;
+  z-index: 2;
+}
+
+.stats-number {
+  font-size: 3rem;
+  font-weight: 800;
+  background: linear-gradient(135deg, #007bff, #28a745);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  line-height: 1;
+}
+
+.stats-label {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #6c757d;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+/* Enhanced Progress Circle */
+.progress-circle-container {
+  position: relative;
+  display: inline-block;
+}
+
+.progress-circle-bg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, rgba(0, 123, 255, 0.1), rgba(40, 167, 69, 0.1));
+  border-radius: 50%;
+  animation: pulse 3s infinite;
+}
+
+.progress-circle-content {
+  position: relative;
+  z-index: 3;
+}
+
+/* Animated Badges */
+.animated-badge {
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.animated-badge::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+  transition: left 0.5s ease;
+}
+
+.animated-badge:hover::before {
+  left: 100%;
+}
+
+.animated-badge:hover {
+  transform: scale(1.1);
+}
+
+/* Enhanced Form Controls */
+.form-control-enhanced {
+  border: 2px solid #e9ecef;
+  border-radius: 12px;
+  padding: 1rem 1.5rem;
+  font-size: 1rem;
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+}
+
+.form-control-enhanced:focus {
+  border-color: #007bff;
+  box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.15);
+  transform: translateY(-2px);
+  background: white;
+}
+
+.form-control-enhanced:hover {
+  border-color: #007bff;
+  box-shadow: 0 4px 15px rgba(0, 123, 255, 0.1);
+}
+
+/* Enhanced Buttons */
+.btn-enhanced {
+  border-radius: 12px;
+  padding: 0.75rem 2rem;
+  font-weight: 600;
+  font-size: 0.95rem;
+  letter-spacing: 0.5px;
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.btn-enhanced::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+  transition: left 0.5s ease;
+}
+
+.btn-enhanced:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+.btn-enhanced:hover::before {
+  left: 100%;
+}
+
+.btn-enhanced:active {
+  transform: translateY(-1px);
+}
+
+/* Timeline Enhancements */
+.timeline-enhanced {
+  position: relative;
+  padding: 2rem 0;
+}
+
+.timeline-enhanced::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  background: linear-gradient(to bottom, #007bff, #28a745, #17a2b8, #ffc107);
+  border-radius: 2px;
+  transform: translateX(-50%);
+}
+
+.timeline-item-enhanced {
+  position: relative;
+  margin-bottom: 3rem;
+  display: flex;
+  align-items: center;
+}
+
+.timeline-item-enhanced:nth-child(odd) {
+  flex-direction: row;
+}
+
+.timeline-item-enhanced:nth-child(even) {
+  flex-direction: row-reverse;
+}
+
+.timeline-marker-enhanced {
+  width: 20px;
+  height: 20px;
+  background: linear-gradient(135deg, #007bff, #28a745);
+  border-radius: 50%;
+  border: 4px solid white;
+  box-shadow: 0 4px 15px rgba(0, 123, 255, 0.3);
+  z-index: 2;
+  position: relative;
+}
+
+.timeline-content-enhanced {
+  flex: 1;
+  background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+  padding: 1.5rem;
+  border-radius: 15px;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+  margin: 0 2rem;
+  position: relative;
+  transition: all 0.3s ease;
+}
+
+.timeline-content-enhanced:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
+}
+
+/* Enhanced Table Styles */
+.table-enhanced {
+  border-radius: 15px;
+  overflow: hidden;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+}
+
+.table-enhanced thead th {
+  background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+  color: white;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border: none;
+  padding: 1.5rem 1rem;
+}
+
+.table-enhanced tbody tr {
+  transition: all 0.3s ease;
+}
+
+.table-enhanced tbody tr:hover {
+  background: linear-gradient(135deg, rgba(0, 123, 255, 0.05), rgba(40, 167, 69, 0.05));
+  transform: scale(1.01);
+}
+
+.table-enhanced td {
+  padding: 1.5rem 1rem;
+  border: none;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+/* Spinning Animation */
+.spin {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* Enhanced Spinner */
+.spinner-border-lg {
+  width: 3rem;
+  height: 3rem;
+}
+
+/* ======================================
+   GLASS CARD COMPONENT
+   ====================================== */
+
+.glass-card {
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 16px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+}
+
+.glass-card:hover {
+  background: rgba(255, 255, 255, 0.95);
+  transform: translateY(-2px);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+}
+
+/* ======================================
+   ANIMATED ELEMENTS
+   ====================================== */
+
+.animate-slide-in-bottom {
+  animation: slideInBottom 0.6s ease-out;
+}
+
+.animate-slide-in-left {
+  animation: slideInLeft 0.6s ease-out;
+}
+
+.animate-slide-in-right {
+  animation: slideInRight 0.6s ease-out;
+}
+
+@keyframes slideInBottom {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideInLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* ======================================
+   ENHANCED BUTTON STYLES
+   ====================================== */
+
+.btn-enhanced {
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s ease;
+  border-radius: 8px;
+  font-weight: 500;
+}
+
+.btn-enhanced::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  transition: all 0.3s ease;
+}
+
+.btn-enhanced:hover::before {
+  width: 300px;
+  height: 300px;
+}
+
+.btn-enhanced:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* ======================================
+   Z-INDEX MANAGEMENT
+   ====================================== */
+
+/* Main content layers */
+.card { z-index: 1; }
+.stats-card .card-body { z-index: 2; }
+.progress-circle-content { z-index: 3; }
+
+/* Navigation and UI layers */
+.dropdown { z-index: 1000; }
+.dropdown-toggle { z-index: 1001; }
+.dropdown-menu { z-index: 1050 !important; }
+
+/* Special components */
+.loading-overlay::after { z-index: 1030; }
+
+/* Ensure table responsiveness doesn't interfere */
+.table-responsive { 
+  overflow: visible !important; 
+  z-index: 1; 
+}
+
+/* ======================================
+   RESPONSIVE DESIGN IMPROVEMENTS
+   ====================================== */
+
 @media (max-width: 768px) {
-  .d-flex.gap-2 {
-    flex-direction: column;
+  .btn-group .btn .d-none {
+    display: inline !important;
   }
   
-  .d-flex.gap-2 .btn {
-    margin-bottom: 0.5rem;
+  .stats-card {
+    margin-bottom: 1rem;
   }
   
-  .card-body {
-    padding: 1rem;
+  .dropdown-menu {
+    min-width: 250px;
   }
   
   .info-item {
@@ -205,19 +1082,146 @@
   }
 }
 
-/* Status indicators */
-.status-active {
-  color: #28a745;
+@media (max-width: 576px) {
+  .container-fluid {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
 }
 
-.status-expired {
-  color: #dc3545;
+/* ======================================
+   EQUIPMENT SUMMARY STYLES
+   ====================================== */
+
+.equipment-summary-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
 }
 
-.status-warning {
-  color: #ffc107;
+.equipment-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+  margin-bottom: 2rem;
 }
 
-.status-info {
-  color: #17a2b8;
+.equipment-stat-item {
+  text-align: center;
+  padding: 1rem;
+  background: rgba(255, 255, 255, 0.8);
+  border-radius: 12px;
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  transition: all 0.3s ease;
+}
+
+.equipment-stat-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.equipment-stat-item.primary {
+  border-left: 4px solid #007bff;
+}
+
+.equipment-stat-item.success {
+  border-left: 4px solid #28a745;
+}
+
+.equipment-stat-item.info {
+  border-left: 4px solid #17a2b8;
+}
+
+.equipment-stat-item.warning {
+  border-left: 4px solid #ffc107;
+}
+
+.equipment-preview-card {
+  transition: all 0.3s ease;
+  border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.equipment-preview-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.equipment-nav-button {
+  background: linear-gradient(135deg, #007bff, #0056b3);
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  text-decoration: none;
+}
+
+.equipment-nav-button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0, 123, 255, 0.3);
+  color: white;
+  text-decoration: none;
+}
+
+/* ======================================
+   ENHANCED TIMELINE STYLES
+   ====================================== */
+
+.timeline-enhanced {
+  position: relative;
+  padding: 2rem 0;
+}
+
+.timeline-enhanced::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  background: linear-gradient(to bottom, #007bff, #28a745, #17a2b8, #ffc107);
+  border-radius: 2px;
+  transform: translateX(-50%);
+}
+
+.timeline-item-enhanced {
+  position: relative;
+  margin-bottom: 3rem;
+  display: flex;
+  align-items: center;
+}
+
+.timeline-item-enhanced:nth-child(odd) {
+  flex-direction: row;
+}
+
+.timeline-item-enhanced:nth-child(even) {
+  flex-direction: row-reverse;
+}
+
+.timeline-marker-enhanced {
+  width: 20px;
+  height: 20px;
+  background: linear-gradient(135deg, #007bff, #28a745);
+  border-radius: 50%;
+  border: 4px solid white;
+  box-shadow: 0 4px 15px rgba(0, 123, 255, 0.3);
+  z-index: 2;
+  position: relative;
+}
+
+.timeline-content-enhanced {
+  flex: 1;
+  background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+  padding: 1.5rem;
+  border-radius: 15px;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+  margin: 0 2rem;
+  position: relative;
+  transition: all 0.3s ease;
+}
+
+.timeline-content-enhanced:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
 }

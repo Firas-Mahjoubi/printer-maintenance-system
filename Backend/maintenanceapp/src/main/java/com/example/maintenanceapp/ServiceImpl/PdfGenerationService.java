@@ -1,283 +1,412 @@
 package com.example.maintenanceapp.ServiceImpl;
 
 import com.example.maintenanceapp.Entity.Contrat;
+import com.example.maintenanceapp.Entity.Imprimante;
 import com.example.maintenanceapp.Entity.Utilisateur;
-import com.itextpdf.html2pdf.ConverterProperties;
+import com.example.maintenanceapp.Repositories.ImprimanteRepositorie;
 import com.itextpdf.html2pdf.HtmlConverter;
-import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.Locale;
+import java.time.temporal.ChronoUnit;
+import java.util.List;
 
 @Service
-@Slf4j
 public class PdfGenerationService {
 
-    public byte[] generateContractPdf(Contrat contrat) throws IOException {
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        
+    @Autowired
+    private ImprimanteRepositorie imprimanteRepository;
+
+    public byte[] generateContractPdf(Contrat contrat) {
         try {
-            // Create HTML content
-            String htmlContent = generateContractHtml(contrat);
-            
-            // Convert HTML to PDF
-            ConverterProperties converterProperties = new ConverterProperties();
-            HtmlConverter.convertToPdf(htmlContent, baos, converterProperties);
-            
-            log.info("PDF généré avec succès pour le contrat: {}", contrat.getNumeroContrat());
-            
+            String html = generateContractHtml(contrat);
+            ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+            HtmlConverter.convertToPdf(html, outputStream);
+            return outputStream.toByteArray();
         } catch (Exception e) {
-            log.error("Erreur lors de la génération du PDF pour le contrat: {}", contrat.getNumeroContrat(), e);
-            throw new IOException("Erreur lors de la génération du PDF", e);
+            throw new RuntimeException("Erreur lors de la génération du PDF: " + e.getMessage(), e);
         }
-        
-        return baos.toByteArray();
     }
 
     private String generateContractHtml(Contrat contrat) {
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd MMMM yyyy", Locale.FRENCH);
+        StringBuilder htmlBuilder = new StringBuilder();
         
-        StringBuilder html = new StringBuilder();
-        html.append("<!DOCTYPE html>");
-        html.append("<html lang='fr'>");
-        html.append("<head>");
-        html.append("<meta charset='UTF-8'>");
-        html.append("<title>Contrat de Maintenance - ").append(contrat.getNumeroContrat()).append("</title>");
-        html.append("<style>");
-        html.append(getStyles());
-        html.append("</style>");
-        html.append("</head>");
-        html.append("<body>");
+        // Get printers for this contract
+        List<Imprimante> imprimantes = imprimanteRepository.findByContrat_Id(contrat.getId());
         
-        // Header
-        html.append("<div class='header'>");
-        html.append("<h1>CONTRAT DE MAINTENANCE</h1>");
-        html.append("<div class='contract-number'>N° ").append(contrat.getNumeroContrat()).append("</div>");
-        html.append("</div>");
-        
-        // Contract Information
-        html.append("<div class='section'>");
-        html.append("<h2>INFORMATIONS GÉNÉRALES</h2>");
-        html.append("<table class='info-table'>");
-        html.append("<tr><td class='label'>Numéro de contrat:</td><td class='value'>").append(contrat.getNumeroContrat()).append("</td></tr>");
-        html.append("<tr><td class='label'>Date de début:</td><td class='value'>").append(formatDate(contrat.getDateDebut())).append("</td></tr>");
-        html.append("<tr><td class='label'>Date de fin:</td><td class='value'>").append(formatDate(contrat.getDateFin())).append("</td></tr>");
-        html.append("<tr><td class='label'>Statut:</td><td class='value'>").append(getStatusDisplayText(contrat.getStatutContrat().toString())).append("</td></tr>");
-        html.append("<tr><td class='label'>Date de génération:</td><td class='value'>").append(LocalDate.now().format(formatter)).append("</td></tr>");
-        html.append("</table>");
-        html.append("</div>");
-        
-        // Client Information
-        if (contrat.getClient() != null) {
-            Utilisateur client = contrat.getClient();
-            html.append("<div class='section'>");
-            html.append("<h2>INFORMATIONS CLIENT</h2>");
-            html.append("<table class='info-table'>");
-            html.append("<tr><td class='label'>Nom:</td><td class='value'>").append(client.getNom() != null ? client.getNom() : "Non spécifié").append("</td></tr>");
-            html.append("<tr><td class='label'>ID Client:</td><td class='value'>").append(client.getId()).append("</td></tr>");
-            html.append("</table>");
-            html.append("</div>");
-        }
-        
-        // Contract Content
-        if (contrat.getConditions_contrat() != null && !contrat.getConditions_contrat().isEmpty()) {
-            html.append("<div class='section'>");
-            html.append("<h2>CONDITIONS DU CONTRAT</h2>");
-            html.append("<div class='contract-content'>");
-            html.append(contrat.getConditions_contrat());
-            html.append("</div>");
-            html.append("</div>");
-        }
-        
-        // Duration Information
-        html.append("<div class='section'>");
-        html.append("<h2>DURÉE ET VALIDITÉ</h2>");
-        html.append("<div class='duration-info'>");
-        html.append("<p><strong>Durée du contrat:</strong> ").append(calculateDuration(contrat.getDateDebut(), contrat.getDateFin())).append("</p>");
-        
-        if (contrat.getDateFin().isAfter(LocalDate.now())) {
-            long daysRemaining = java.time.temporal.ChronoUnit.DAYS.between(LocalDate.now(), contrat.getDateFin());
-            html.append("<p><strong>Jours restants:</strong> ").append(daysRemaining).append(" jours</p>");
-        } else {
-            html.append("<p><strong>Statut:</strong> <span class='expired'>Contrat expiré</span></p>");
-        }
-        html.append("</div>");
-        html.append("</div>");
-        
-        // Footer
-        html.append("<div class='footer'>");
-        html.append("<p>Document généré automatiquement le ").append(LocalDate.now().format(formatter)).append("</p>");
-        html.append("<p>Système de Gestion de Maintenance</p>");
-        html.append("</div>");
-        
-        html.append("</body>");
-        html.append("</html>");
-        
-        return html.toString();
-    }
-
-    private String getStyles() {
-        return """
-            body {
-                font-family: 'Arial', sans-serif;
-                margin: 0;
-                padding: 20px;
-                line-height: 1.6;
-                color: #333;
-            }
-            
-            .header {
-                text-align: center;
-                border-bottom: 3px solid #2c3e50;
-                padding-bottom: 20px;
-                margin-bottom: 30px;
-            }
-            
-            .header h1 {
-                color: #2c3e50;
-                font-size: 28px;
-                margin: 0;
-                font-weight: bold;
-            }
-            
-            .contract-number {
-                font-size: 18px;
-                color: #3498db;
-                font-weight: bold;
-                margin-top: 10px;
-            }
-            
-            .section {
-                margin-bottom: 30px;
-                page-break-inside: avoid;
-            }
-            
-            .section h2 {
-                color: #2c3e50;
-                font-size: 18px;
-                border-bottom: 2px solid #ecf0f1;
-                padding-bottom: 10px;
-                margin-bottom: 20px;
-            }
-            
-            .info-table {
-                width: 100%;
-                border-collapse: collapse;
-                margin-bottom: 20px;
-            }
-            
-            .info-table td {
-                padding: 12px;
-                border-bottom: 1px solid #ecf0f1;
-            }
-            
-            .info-table .label {
-                background-color: #f8f9fa;
-                font-weight: bold;
-                width: 200px;
-                color: #2c3e50;
-            }
-            
-            .info-table .value {
-                color: #555;
-            }
-            
-            .contract-content {
-                background-color: #f8f9fa;
-                padding: 20px;
-                border-radius: 5px;
-                border-left: 4px solid #3498db;
-            }
-            
-            .contract-content h1, .contract-content h2, .contract-content h3 {
-                color: #2c3e50;
-                margin-top: 20px;
-                margin-bottom: 10px;
-            }
-            
-            .contract-content p {
-                margin-bottom: 15px;
-                text-align: justify;
-            }
-            
-            .contract-content ul, .contract-content ol {
-                margin-bottom: 15px;
-                padding-left: 25px;
-            }
-            
-            .duration-info {
-                background-color: #e8f6f3;
-                padding: 15px;
-                border-radius: 5px;
-                border-left: 4px solid #27ae60;
-            }
-            
-            .duration-info p {
-                margin: 5px 0;
-            }
-            
-            .expired {
-                color: #e74c3c;
-                font-weight: bold;
-            }
-            
-            .footer {
-                margin-top: 50px;
-                text-align: center;
-                font-size: 12px;
-                color: #7f8c8d;
-                border-top: 1px solid #ecf0f1;
-                padding-top: 20px;
-            }
-            
-            @page {
-                margin: 2cm;
-                @bottom-center {
-                    content: "Page " counter(page) " sur " counter(pages);
-                    font-size: 10px;
-                    color: #7f8c8d;
+        // CSS Styles
+        String css = """
+            <style>
+                body { 
+                    font-family: 'Segoe UI', Arial, sans-serif; 
+                    line-height: 1.6; 
+                    color: #333; 
+                    margin: 0; 
+                    background: #f8f9fa; 
                 }
-            }
+                .container { 
+                    max-width: 800px; 
+                    margin: 20px auto; 
+                    background: white; 
+                    box-shadow: 0 4px 12px rgba(0,0,0,0.1); 
+                    border-radius: 8px; 
+                    overflow: hidden; 
+                }
+                .header { 
+                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+                    color: white; 
+                    padding: 30px; 
+                    text-align: center; 
+                }
+                .header h1 { 
+                    margin: 0; 
+                    font-size: 2.2em; 
+                    font-weight: 300; 
+                }
+                .header .company { 
+                    font-size: 1.1em; 
+                    opacity: 0.9; 
+                    margin-top: 10px; 
+                }
+                .content { 
+                    padding: 40px; 
+                }
+                .section { 
+                    margin-bottom: 35px; 
+                    background: #f8f9fa; 
+                    padding: 25px; 
+                    border-radius: 8px; 
+                    border-left: 4px solid #667eea; 
+                }
+                .section h2 { 
+                    color: #667eea; 
+                    margin-top: 0; 
+                    font-size: 1.4em; 
+                    display: flex; 
+                    align-items: center; 
+                }
+                .section h2::before { 
+                    content: '●'; 
+                    margin-right: 10px; 
+                    color: #764ba2; 
+                }
+                .info-grid { 
+                    display: grid; 
+                    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); 
+                    gap: 20px; 
+                    margin-bottom: 20px; 
+                }
+                .info-item { 
+                    background: white; 
+                    padding: 15px; 
+                    border-radius: 6px; 
+                    border: 1px solid #e9ecef; 
+                }
+                .info-label { 
+                    font-weight: 600; 
+                    color: #667eea; 
+                    font-size: 0.9em; 
+                    text-transform: uppercase; 
+                    letter-spacing: 0.5px; 
+                }
+                .info-value { 
+                    font-size: 1.1em; 
+                    margin-top: 5px; 
+                    word-break: break-word; 
+                }
+                .status { 
+                    display: inline-block; 
+                    padding: 6px 12px; 
+                    border-radius: 20px; 
+                    font-size: 0.9em; 
+                    font-weight: 600; 
+                    text-transform: uppercase; 
+                }
+                .status.actif { 
+                    background: #d4edda; 
+                    color: #155724; 
+                }
+                .status.expire { 
+                    background: #f8d7da; 
+                    color: #721c24; 
+                }
+                .status.en_attente { 
+                    background: #fff3cd; 
+                    color: #856404; 
+                }
+                .equipment-list { 
+                    background: white; 
+                    border-radius: 6px; 
+                    overflow: hidden; 
+                }
+                .equipment-header { 
+                    background: #667eea; 
+                    color: white; 
+                    padding: 15px; 
+                    font-weight: 600; 
+                }
+                .equipment-item { 
+                    padding: 15px; 
+                    border-bottom: 1px solid #e9ecef; 
+                    display: grid; 
+                    grid-template-columns: 1fr 1fr 1fr; 
+                    gap: 15px; 
+                }
+                .equipment-item:last-child { 
+                    border-bottom: none; 
+                }
+                .progress-bar { 
+                    background: #e9ecef; 
+                    border-radius: 10px; 
+                    height: 20px; 
+                    overflow: hidden; 
+                    margin-top: 10px; 
+                }
+                .progress-fill { 
+                    height: 100%; 
+                    background: linear-gradient(90deg, #667eea, #764ba2); 
+                    transition: width 0.3s ease; 
+                }
+                .client-avatar { 
+                    width: 60px; 
+                    height: 60px; 
+                    background: #667eea; 
+                    border-radius: 50%; 
+                    display: flex; 
+                    align-items: center; 
+                    justify-content: center; 
+                    color: white; 
+                    font-size: 24px; 
+                    font-weight: bold; 
+                    margin-right: 20px; 
+                }
+                .client-info { 
+                    display: flex; 
+                    align-items: center; 
+                    margin-bottom: 20px; 
+                }
+                .footer { 
+                    background: #343a40; 
+                    color: white; 
+                    padding: 20px; 
+                    text-align: center; 
+                    font-size: 0.9em; 
+                }
+            </style>
             """;
+
+        // Build HTML
+        htmlBuilder.append("<!DOCTYPE html><html><head><meta charset='UTF-8'>")
+                  .append(css)
+                  .append("</head><body>");
+
+        // Header
+        htmlBuilder.append("<div class='container'>")
+                  .append("<div class='header'>")
+                  .append("<h1>Contrat de Maintenance</h1>")
+                  .append("<div class='company'>TechMaintenance Solutions</div>")
+                  .append("</div>");
+
+        // Content
+        htmlBuilder.append("<div class='content'>");
+
+        // Contract Summary Section
+        htmlBuilder.append("<div class='section'>")
+                  .append("<h2>Résumé du Contrat</h2>")
+                  .append("<div class='info-grid'>");
+        
+        htmlBuilder.append("<div class='info-item'>")
+                  .append("<div class='info-label'>Numéro de Contrat</div>")
+                  .append("<div class='info-value'>").append(contrat.getNumeroContrat() != null ? contrat.getNumeroContrat() : "N/A").append("</div>")
+                  .append("</div>");
+        
+        htmlBuilder.append("<div class='info-item'>")
+                  .append("<div class='info-label'>Date de Début</div>")
+                  .append("<div class='info-value'>").append(formatDate(contrat.getDateDebut())).append("</div>")
+                  .append("</div>");
+        
+        htmlBuilder.append("<div class='info-item'>")
+                  .append("<div class='info-label'>Date de Fin</div>")
+                  .append("<div class='info-value'>").append(formatDate(contrat.getDateFin())).append("</div>")
+                  .append("</div>");
+        
+        htmlBuilder.append("<div class='info-item'>")
+                  .append("<div class='info-label'>Statut</div>")
+                  .append("<div class='info-value'>")
+                  .append("<span class='status ").append(getStatusClass(contrat)).append("'>")
+                  .append(getStatusDisplay(contrat))
+                  .append("</span></div>")
+                  .append("</div>");
+        
+        htmlBuilder.append("</div></div>");
+
+        // Client Information Section
+        if (contrat.getClient() != null) {
+            htmlBuilder.append("<div class='section'>")
+                      .append("<h2>Informations Client</h2>")
+                      .append("<div class='client-info'>")
+                      .append("<div class='client-avatar'>")
+                      .append(getClientInitials(contrat.getClient()))
+                      .append("</div>")
+                      .append("<div>")
+                      .append("<div style='font-size: 1.2em; font-weight: 600; margin-bottom: 5px;'>")
+                      .append(getClientFullName(contrat.getClient()))
+                      .append("</div>");
+            
+            if (contrat.getClient().getEmail() != null) {
+                htmlBuilder.append("<div style='color: #667eea; margin-bottom: 3px;'>")
+                          .append(contrat.getClient().getEmail())
+                          .append("</div>");
+            }
+            
+            if (contrat.getClient().getTelephone() != null) {
+                htmlBuilder.append("<div style='color: #6c757d;'>")
+                          .append(contrat.getClient().getTelephone())
+                          .append("</div>");
+            }
+            
+            htmlBuilder.append("</div></div></div>");
+        }
+
+        // Equipment Section
+        if (imprimantes != null && !imprimantes.isEmpty()) {
+            htmlBuilder.append("<div class='section'>")
+                      .append("<h2>Équipements Couverts</h2>")
+                      .append("<div class='equipment-list'>")
+                      .append("<div class='equipment-header'>")
+                      .append("<div>Marque & Modèle</div><div>Numéro de Série</div><div>Emplacement</div>")
+                      .append("</div>");
+            
+            for (Imprimante imprimante : imprimantes) {
+                htmlBuilder.append("<div class='equipment-item'>")
+                          .append("<div><strong>").append(imprimante.getMarque() != null ? imprimante.getMarque() : "N/A")
+                          .append("</strong><br>").append(imprimante.getModele() != null ? imprimante.getModele() : "N/A").append("</div>")
+                          .append("<div>").append(imprimante.getNumeroSerie() != null ? imprimante.getNumeroSerie() : "N/A").append("</div>")
+                          .append("<div>").append(imprimante.getEmplacement() != null ? imprimante.getEmplacement() : "N/A").append("</div>")
+                          .append("</div>");
+            }
+            
+            htmlBuilder.append("</div></div>");
+        }
+
+        // Contract Content Section
+        if (contrat.getConditions_contrat() != null && !contrat.getConditions_contrat().trim().isEmpty()) {
+            htmlBuilder.append("<div class='section'>")
+                      .append("<h2>Conditions du Contrat</h2>")
+                      .append("<div style='background: white; padding: 20px; border-radius: 6px; border-left: 3px solid #667eea;'>")
+                      .append(contrat.getConditions_contrat())
+                      .append("</div></div>");
+        }
+
+        // Duration and Progress Section
+        if (contrat.getDateDebut() != null && contrat.getDateFin() != null) {
+            long totalDays = ChronoUnit.DAYS.between(contrat.getDateDebut(), contrat.getDateFin());
+            long daysPassed = ChronoUnit.DAYS.between(contrat.getDateDebut(), LocalDate.now());
+            double progressPercentage = totalDays > 0 ? Math.min(100.0, Math.max(0.0, (daysPassed * 100.0) / totalDays)) : 0;
+            
+            htmlBuilder.append("<div class='section'>")
+                      .append("<h2>Durée et Progression</h2>")
+                      .append("<div class='info-grid'>")
+                      .append("<div class='info-item'>")
+                      .append("<div class='info-label'>Durée Totale</div>")
+                      .append("<div class='info-value'>").append(totalDays).append(" jours</div>")
+                      .append("</div>")
+                      .append("<div class='info-item'>")
+                      .append("<div class='info-label'>Jours Écoulés</div>")
+                      .append("<div class='info-value'>").append(Math.max(0, daysPassed)).append(" jours</div>")
+                      .append("</div>")
+                      .append("</div>")
+                      .append("<div style='margin-top: 15px;'>")
+                      .append("<div style='font-weight: 600; margin-bottom: 8px;'>Progression: ").append(String.format("%.1f", progressPercentage)).append("%</div>")
+                      .append("<div class='progress-bar'>")
+                      .append("<div class='progress-fill' style='width: ").append(progressPercentage).append("%;'></div>")
+                      .append("</div></div></div>");
+        }
+
+        // Service Coverage Section
+        htmlBuilder.append("<div class='section'>")
+                  .append("<h2>Couverture de Service</h2>")
+                  .append("<div class='info-grid'>")
+                  .append("<div class='info-item'>")
+                  .append("<div class='info-label'>Type de Service</div>")
+                  .append("<div class='info-value'>Maintenance Préventive et Corrective</div>")
+                  .append("</div>")
+                  .append("<div class='info-item'>")
+                  .append("<div class='info-label'>Horaires de Service</div>")
+                  .append("<div class='info-value'>Lundi - Vendredi, 8h00 - 18h00</div>")
+                  .append("</div>")
+                  .append("<div class='info-item'>")
+                  .append("<div class='info-label'>Support d'Urgence</div>")
+                  .append("<div class='info-value'>24/7 pour les pannes critiques</div>")
+                  .append("</div>")
+                  .append("<div class='info-item'>")
+                  .append("<div class='info-label'>Temps de Réponse</div>")
+                  .append("<div class='info-value'>4 heures max en jours ouvrés</div>")
+                  .append("</div>")
+                  .append("</div></div>");
+
+        // Close content and container
+        htmlBuilder.append("</div>");
+
+        // Footer
+        htmlBuilder.append("<div class='footer'>")
+                  .append("Document généré le ").append(LocalDate.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")))
+                  .append(" • TechMaintenance Solutions - Service client: support@techmaintenance.com")
+                  .append("</div>");
+
+        htmlBuilder.append("</div></body></html>");
+
+        return htmlBuilder.toString();
     }
 
     private String formatDate(LocalDate date) {
-        if (date == null) return "Non spécifié";
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd MMMM yyyy", Locale.FRENCH);
-        return date.format(formatter);
+        if (date == null) return "N/A";
+        return date.format(DateTimeFormatter.ofPattern("dd/MM/yyyy"));
     }
 
-    private String calculateDuration(LocalDate startDate, LocalDate endDate) {
-        if (startDate == null || endDate == null) return "Durée inconnue";
-        
-        long days = java.time.temporal.ChronoUnit.DAYS.between(startDate, endDate);
-        long months = days / 30;
-        
-        if (months > 0) {
-            return months + " mois (" + days + " jours)";
-        } else {
-            return days + " jours";
+    private String getClientInitials(Utilisateur client) {
+        if (client == null) return "??";
+        StringBuilder initials = new StringBuilder();
+        if (client.getPrenom() != null && !client.getPrenom().isEmpty()) {
+            initials.append(client.getPrenom().charAt(0));
         }
+        if (client.getNom() != null && !client.getNom().isEmpty()) {
+            initials.append(client.getNom().charAt(0));
+        }
+        return initials.length() > 0 ? initials.toString().toUpperCase() : "??";
     }
 
-    private String getStatusDisplayText(String status) {
-        switch (status.toLowerCase()) {
-            case "actif":
-                return "Actif";
-            case "expire":
-                return "Expiré";
-            case "suspendu":
-                return "Suspendu";
-            case "brouillon":
-                return "Brouillon";
-            case "renouvele":
-                return "Renouvelé";
-            default:
-                return status;
+    private String getClientFullName(Utilisateur client) {
+        if (client == null) return "Client inconnu";
+        StringBuilder name = new StringBuilder();
+        if (client.getPrenom() != null && !client.getPrenom().isEmpty()) {
+            name.append(client.getPrenom());
         }
+        if (client.getNom() != null && !client.getNom().isEmpty()) {
+            if (name.length() > 0) name.append(" ");
+            name.append(client.getNom());
+        }
+        return name.length() > 0 ? name.toString() : "Client inconnu";
+    }
+
+    private String getStatusClass(Contrat contrat) {
+        if (contrat.getStatutContrat() == null) return "en_attente";
+        return switch (contrat.getStatutContrat().toString().toLowerCase()) {
+            case "actif" -> "actif";
+            case "expire" -> "expire";
+            default -> "en_attente";
+        };
+    }
+
+    private String getStatusDisplay(Contrat contrat) {
+        if (contrat.getStatutContrat() == null) return "En Attente";
+        return switch (contrat.getStatutContrat().toString().toLowerCase()) {
+            case "actif" -> "Actif";
+            case "expire" -> "Expiré";
+            default -> "En Attente";
+        };
     }
 }
