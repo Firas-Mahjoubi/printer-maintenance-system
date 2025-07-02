@@ -1,6 +1,8 @@
 // contrat.component.ts
 import { Component, OnInit } from '@angular/core';
 import { ContratService, Contrat } from '../../service/contrat.service';
+import { NotificationService } from '../../service/notification.service';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-contrat',
@@ -28,10 +30,22 @@ export class ContratComponent implements OnInit {
   loading: boolean = false;
   showHistory: boolean = false;
   error: string | null = null;
+  
+  // Button loading states
+  toggleHistoryLoading: boolean = false;
+  newContratLoading: boolean = false;
 
-  constructor(private contratService: ContratService) {}
+  constructor(
+    private contratService: ContratService,
+    private notificationService: NotificationService,
+    private router: Router
+  ) {}
 
   ngOnInit() {
+    // Reset loading states on component initialization
+    this.toggleHistoryLoading = false;
+    this.newContratLoading = false;
+    
     this.loadContrats();
   }
 
@@ -43,6 +57,10 @@ export class ContratComponent implements OnInit {
       next: (data) => {
         console.log('Contracts loaded:', data);
         this.allContrats = data || [];
+        
+        // Separate active and non-active contracts
+        this.filterActiveAndHistoryContracts();
+        
         this.applyFilters();
         this.loading = false;
       },
@@ -50,8 +68,34 @@ export class ContratComponent implements OnInit {
         console.error('Error loading contracts:', error);
         this.error = 'Erreur lors du chargement des contrats';
         this.loading = false;
+        this.notificationService.showError(
+          'Impossible de charger la liste des contrats. Veuillez rafraîchir la page.',
+          'Erreur de chargement'
+        );
       }
     });
+  }
+  
+  // New method to filter active contracts and history contracts
+  filterActiveAndHistoryContracts() {
+    // Reset history contracts when loading new data
+    this.contratsHistory = [];
+    
+    // Filter active contracts for main view
+    const activeContracts = this.allContrats.filter(contrat => 
+      this.isStatusMatch(contrat.statutContrat, 'actif')
+    );
+    
+    // All non-active contracts go to history
+    const historyContracts = this.allContrats.filter(contrat => 
+      !this.isStatusMatch(contrat.statutContrat, 'actif')
+    );
+    
+    // Update main table data to only show active contracts
+    this.allContrats = activeContracts;
+    
+    // Store history contracts for history view
+    this.contratsHistory = historyContracts;
   }
 
   loadContractHistory() {
@@ -171,9 +215,57 @@ export class ContratComponent implements OnInit {
 
   // Toggle between current contracts and history
   toggleHistoryView() {
-    this.showHistory = !this.showHistory;
-    if (this.showHistory && this.contratsHistory.length === 0) {
-      this.loadContractHistory();
+    // Set loading state to true to prevent multiple clicks
+    this.toggleHistoryLoading = true;
+    
+    // Simulate a short delay for a better user experience
+    setTimeout(() => {
+      this.showHistory = !this.showHistory;
+      
+      // Reset pagination when switching views
+      this.currentPage = 1;
+      
+      if (this.showHistory) {
+        // We're now showing history, apply filters to history contracts
+        this.applyHistoryFilters();
+      } else {
+        // We're showing active contracts, apply regular filters
+        this.applyFilters();
+      }
+      
+      // Reset loading state
+      this.toggleHistoryLoading = false;
+    }, 500); // Short delay for visual feedback
+  }
+  
+  // Apply filters to history contracts
+  applyHistoryFilters() {
+    let filteredContracts = [...this.contratsHistory];
+    
+    // Filter by search term
+    if (this.searchTerm && this.searchTerm.trim() !== '') {
+      const searchLower = this.searchTerm.toLowerCase().trim();
+      filteredContracts = filteredContracts.filter(contrat =>
+        contrat.numeroContrat?.toLowerCase().includes(searchLower) ||
+        contrat.client?.nom?.toLowerCase().includes(searchLower) ||
+        contrat.client?.email?.toLowerCase().includes(searchLower) ||
+        contrat.id?.toString().includes(searchLower)
+      );
+    }
+    
+    // Filter by client
+    if (this.selectedClient && this.selectedClient !== '') {
+      filteredContracts = filteredContracts.filter(contrat =>
+        contrat.client?.id?.toString() === this.selectedClient
+      );
+    }
+    
+    this.totalItems = filteredContracts.length;
+    this.totalPages = Math.ceil(this.totalItems / this.itemsPerPage);
+    
+    // Reset to first page if current page is out of bounds
+    if (this.currentPage > this.totalPages) {
+      this.currentPage = 1;
     }
   }
 
@@ -200,36 +292,61 @@ export class ContratComponent implements OnInit {
     return (this.currentPage - 1) * this.itemsPerPage + 1;
   }
 
-  // Get contracts by status for statistics
+  // Get contracts by status for statistics - checking both active and history lists
   getContractsByStatus(status: string): Contrat[] {
-    return this.allContrats.filter(contrat => this.isStatusMatch(contrat.statutContrat, status));
+    // Combine active and history contracts for accurate counts
+    const combinedContracts = [...this.allContrats, ...this.contratsHistory];
+    return combinedContracts.filter(contrat => this.isStatusMatch(contrat.statutContrat, status));
   }
 
   deleteContrat(id: number | undefined) {
     if (!id) return;
     if (confirm('Êtes-vous sûr de vouloir supprimer ce contrat ?')) {
-      this.contratService.delete(id).subscribe(() => this.loadContrats());
+      this.loading = true;
+      this.contratService.delete(id).subscribe({
+        next: () => {
+          this.loadContrats();
+          this.notificationService.showSuccess('Le contrat a été supprimé avec succès.', 'Suppression réussie');
+        },
+        error: (error) => {
+          console.error('Error deleting contract:', error);
+          this.loading = false;
+          this.notificationService.showError('Impossible de supprimer ce contrat. Veuillez réessayer.', 'Erreur de suppression');
+        }
+      });
     }
   }
 
   newContrat() {
-    // Implement modal/form or route to create
-    alert("Ouvrir formulaire de création");
+    // Set loading state to true to prevent multiple clicks
+    this.newContratLoading = true;
+    
+    // Simulate a short delay for a better user experience
+    setTimeout(() => {
+      // Navigate to the contract form
+      this.router.navigate(['/contrats/add']).then(() => {
+        // Reset loading state if navigation fails
+        this.newContratLoading = false;
+      });
+    }, 500); // Short delay for visual feedback
   }
 
   editContrat(contrat: Contrat) {
-    // Implement modal/form or route to edit
-    alert("Ouvrir formulaire d'édition pour: " + contrat.numeroContrat);
+    if (!contrat.id) return;
+    // Navigate to the edit form
+    this.router.navigate(['/contrats/edit', contrat.id]);
   }
 
   viewContrat(contrat: Contrat) {
-    // Implement view details functionality
-    alert("Voir les détails du contrat: " + contrat.numeroContrat);
+    if (!contrat.id) return;
+    // Navigate to contract details
+    this.router.navigate(['/contrats/details', contrat.id]);
   }
 
   exportToPdf(contrat: Contrat) {
     if (!contrat.id) return;
     
+    this.loading = true;
     this.contratService.exportContratToPdf(contrat.id).subscribe({
       next: (blob) => {
         const url = window.URL.createObjectURL(blob);
@@ -238,10 +355,13 @@ export class ContratComponent implements OnInit {
         link.download = `contrat-${contrat.numeroContrat || contrat.id}.pdf`;
         link.click();
         window.URL.revokeObjectURL(url);
+        this.loading = false;
+        this.notificationService.showSuccess('Le PDF a été généré avec succès.', 'Export PDF réussi');
       },
       error: (error) => {
         console.error('Erreur lors de l\'export PDF:', error);
-        alert('Erreur lors de l\'export PDF. Veuillez réessayer.');
+        this.loading = false;
+        this.notificationService.showError('Impossible de générer le PDF. Veuillez réessayer.', 'Erreur d\'export');
       }
     });
   }
@@ -250,8 +370,17 @@ export class ContratComponent implements OnInit {
     // Implement duplicate functionality
     if (confirm(`Voulez-vous dupliquer le contrat ${contrat.numeroContrat} ?`)) {
       // Here you would call the backend to duplicate the contract
+      this.loading = true;
       console.log('Duplicating contract:', contrat);
-      alert(`Fonctionnalité de duplication en cours de développement pour: ${contrat.numeroContrat}`);
+      
+      // Since we don't have the actual implementation yet, we'll show a notification
+      setTimeout(() => {
+        this.loading = false;
+        this.notificationService.showInfo(
+          `Fonctionnalité de duplication en cours de développement pour le contrat ${contrat.numeroContrat}`, 
+          'Fonctionnalité à venir'
+        );
+      }, 1000);
     }
   }
 
@@ -259,8 +388,17 @@ export class ContratComponent implements OnInit {
     // Implement archive functionality
     if (confirm(`Voulez-vous archiver le contrat ${contrat.numeroContrat} ?`)) {
       // Here you would call the backend to archive the contract
+      this.loading = true;
       console.log('Archiving contract:', contrat);
-      alert(`Fonctionnalité d'archivage en cours de développement pour: ${contrat.numeroContrat}`);
+      
+      // Since we don't have the actual implementation yet, we'll show a notification
+      setTimeout(() => {
+        this.loading = false;
+        this.notificationService.showInfo(
+          `Fonctionnalité d'archivage en cours de développement pour le contrat ${contrat.numeroContrat}`, 
+          'Fonctionnalité à venir'
+        );
+      }, 1000);
     }
   }
 
@@ -275,15 +413,21 @@ export class ContratComponent implements OnInit {
       this.contratService.renew(contrat.id, contrat).subscribe({
         next: (renewedContract) => {
           console.log('Contract renewed successfully:', renewedContract);
-          alert(`Contrat ${contrat.numeroContrat} renouvelé avec succès !`);
           this.loadContrats(); // Reload contracts to show the updated data
           this.loading = false;
+          this.notificationService.showSuccess(
+            `Le contrat ${contrat.numeroContrat} a été renouvelé avec succès !`,
+            'Renouvellement réussi'
+          );
         },
         error: (error) => {
           console.error('Error renewing contract:', error);
           this.error = 'Erreur lors du renouvellement du contrat';
           this.loading = false;
-          alert('Erreur lors du renouvellement du contrat. Veuillez réessayer.');
+          this.notificationService.showError(
+            'Impossible de renouveler ce contrat. Veuillez réessayer.',
+            'Erreur de renouvellement'
+          );
         }
       });
     }
@@ -295,7 +439,7 @@ export class ContratComponent implements OnInit {
     const endDate = new Date(contrat.dateFin);
     const diffTime = endDate.getTime() - today.getTime();
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    return diffDays <= 30 && diffDays > 0; // Expires within 30 days
+    return diffDays <= 60 && diffDays > 0; // Expires within 60 days (2 months)
   }
 
   getStatusText(status: string): string {
@@ -337,7 +481,7 @@ export class ContratComponent implements OnInit {
     }
   }
 
-  getStatusDescription(status: string): string {
+  getStatusDescription(status: string, contrat?: Contrat): string {
     if (!status || status === null || status === undefined) {
       return 'Aucun statut défini';
     }
@@ -347,7 +491,12 @@ export class ContratComponent implements OnInit {
     switch (normalizedStatus.toLowerCase()) {
       case 'actif':
       case 'active':
-        return 'Maintenance en cours';
+        // Check if the contract has active tickets
+        if (contrat && this.hasActiveTickets(contrat)) {
+          return 'Maintenance en cours';
+        } else {
+          return 'Contrat actif';
+        }
       case 'en_attente':
       case 'en attente':
       case 'attente':
@@ -397,6 +546,22 @@ export class ContratComponent implements OnInit {
     }
   }
 
+  // Check if a contract has active tickets
+  hasActiveTickets(contrat: Contrat): boolean {
+    // For now, we'll use a placeholder. In a real implementation, this would 
+    // check the tickets associated with this contract
+    
+    // Placeholder logic: use contract ID to simulate some contracts having active tickets
+    if (!contrat.id) return false;
+    
+    // Every contract with an even ID has an active ticket (for demonstration purposes)
+    return contrat.id % 2 === 0;
+    
+    // In a real implementation, you would check from a ticketService or the contract object
+    // if there are any tickets with status 'actif' or 'en_cours'
+    // return contrat.tickets?.some(ticket => ticket.status === 'actif') || false;
+  }
+
   // Dropdown event handlers for z-index fix fallback
   onDropdownShow(event: Event) {
     const target = event.target as HTMLElement;
@@ -412,5 +577,10 @@ export class ContratComponent implements OnInit {
     if (tableRow) {
       tableRow.classList.remove('dropdown-open');
     }
+  }
+
+  // Helper method to check if any loading state is active
+  isAnyLoadingActive(): boolean {
+    return this.loading || this.toggleHistoryLoading || this.newContratLoading;
   }
 }

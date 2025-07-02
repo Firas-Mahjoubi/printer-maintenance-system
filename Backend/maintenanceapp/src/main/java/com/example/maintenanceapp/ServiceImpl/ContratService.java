@@ -158,4 +158,9 @@ public class ContratService implements IContratService {
         
         return pdfGenerationService.generateContractPdf(contrat);
     }
+
+    @Override
+    public boolean checkNumeroContratExists(String numeroContrat) {
+        return contratRepositorie.existsByNumeroContrat(numeroContrat);
+    }
 }

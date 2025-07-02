@@ -20,6 +20,7 @@ import { ContratPrintersComponent } from './components/contrat-printers/contrat-
 import { ClientsComponent } from './clients/clients/clients.component';
 import { AddClientComponent } from './clients/add-client/add-client.component';
 import { NotificationsComponent } from './components/notifications/notifications.component';
+import { ToastNotificationsComponent } from './components/toast-notifications/toast-notifications.component';
 import { TicketCreationComponent } from './components/ticket-creation/ticket-creation.component';
 import { TicketListComponent } from './components/ticket-list/ticket-list.component';
 import { TicketDetailsComponent } from './components/ticket-details/ticket-details.component';
@@ -49,6 +50,7 @@ import { ClientHistoryComponent } from './client-history/client-history.componen
     ClientsComponent,
     AddClientComponent,
     NotificationsComponent,
+    ToastNotificationsComponent,
     TicketCreationComponent,
     TicketListComponent,
     TicketDetailsComponent,

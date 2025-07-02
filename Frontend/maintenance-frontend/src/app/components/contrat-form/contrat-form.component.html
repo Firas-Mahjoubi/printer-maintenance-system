@@ -1,521 +1,528 @@
-<div class="container-fluid py-4">
-  <!-- Success/Error Messages -->
-  <div class="row justify-content-center mb-3" *ngIf="showSuccessMessage || showErrorMessage">
-    <div class="col-lg-8 col-xl-6">
-      <div class="alert alert-success border-0 shadow-sm" *ngIf="showSuccessMessage">
-        <div class="d-flex align-items-center">
-          <i class="bi bi-check-circle-fill me-3 fs-4"></i>
-          <div>
-            <strong>Succès!</strong> Contrat créé avec succès. Redirection en cours...
-          </div>
+<!-- Modern Contract Creation Form -->
+<div class="contract-container">
+  <!-- Header Section -->
+  <div class="header-section">
+    <div class="header-content">
+      <div class="header-left">
+        <div class="header-icon">
+          <i class="bi bi-file-earmark-plus"></i>
+        </div>
+        <div class="header-text">
+          <h1>Nouveau Contrat de Maintenance</h1>
+          <p>Créez un contrat professionnel en quelques étapes simples</p>
         </div>
       </div>
-      <div class="alert alert-danger border-0 shadow-sm" *ngIf="showErrorMessage">
-        <div class="d-flex align-items-center">
-          <i class="bi bi-exclamation-triangle-fill me-3 fs-4"></i>
-          <div>
-            <strong>Erreur!</strong> {{ errorMessage }}
-          </div>
+      <div class="header-right">
+        <div class="date-info">
+          <i class="bi bi-calendar3"></i>
+          <span>{{ today | date:'dd/MM/yyyy' }}</span>
         </div>
       </div>
     </div>
   </div>
 
-  <div class="row justify-content-center">
-    <div class="col-lg-10 col-xl-8">
-      <div class="card border-0 shadow-lg">
-        <div class="card-header text-white py-4">
-          <div class="d-flex align-items-center justify-content-between">
-            <div class="d-flex align-items-center">
-              <div class="bg-white bg-opacity-20 rounded-circle p-3 me-4">
-                <i class="bi bi-file-earmark-text text-white fs-2"></i>
+  <!-- Toast notifications now handle all messages -->
+
+  <!-- Main Form -->
+  <div class="form-container">
+    <div class="form-card">
+      <!-- Progress Bar -->
+      <div class="progress-section">
+        <div class="progress-header">
+          <h3>Progression du formulaire</h3>
+          <span class="progress-text">{{ getFormProgress() }}% complété</span>
+        </div>
+        <div class="progress-bar">
+          <div class="progress-fill" [style.width.%]="getFormProgress()"></div>
+        </div>
+        <p class="progress-help">
+          <i class="bi bi-info-circle"></i>
+          Complétez tous les champs obligatoires pour créer le contrat
+        </p>
+      </div>
+
+      <!-- Form -->
+      <form class="contract-form" #contratForm="ngForm" (ngSubmit)="onSubmit(contratForm)" novalidate>
+        
+        <!-- Step 1: Basic Information -->
+        <div class="form-section">
+          <div class="section-header">
+            <div class="step-number">1</div>
+            <div class="section-title">
+              <h2>Informations générales</h2>
+              <p>Numéro et statut du contrat</p>
+            </div>
+          </div>
+          
+          <div class="fields-grid">
+            <!-- Contract Number -->
+            <div class="field-group">
+              <label class="field-label">
+                <i class="bi bi-hash"></i>
+                Numéro du contrat
+                <span class="required">*</span>
+              </label>
+              <div class="input-group">
+                <input 
+                  type="text" 
+                  class="form-input" 
+                  [(ngModel)]="contrat.numeroContrat" 
+                  name="numeroContrat" 
+                  #numeroContrat="ngModel"
+                  placeholder="Ex: CONT-2025-001"
+                  required
+                  (input)="checkContractNumberUnique()"
+                  [class.valid]="numeroContrat.valid && numeroContrat.touched && contractNumberIsUnique"
+                  [class.invalid]="(numeroContrat.invalid && numeroContrat.touched) || !contractNumberIsUnique">
+                <button type="button" class="input-action" (click)="generateContractNumber()" title="Générer automatiquement">
+                  <i class="bi bi-arrow-clockwise"></i>
+                </button>
               </div>
-              <div>
-                <h3 class="mb-1 fw-bold">Nouveau Contrat de Maintenance</h3>
-                <p class="mb-0 text-white-50">Créer un nouveau contrat pour votre client</p>
+              <div class="field-feedback error" *ngIf="numeroContrat.invalid && numeroContrat.touched && !validationErrors.numeroContrat">
+                <i class="bi bi-exclamation-triangle"></i>
+                Le numéro de contrat est obligatoire
+              </div>
+              <div class="field-feedback error" *ngIf="!contractNumberIsUnique">
+                <i class="bi bi-exclamation-triangle"></i>
+                {{ contractNumberError }}
+              </div>
+              <div class="field-feedback error" *ngIf="validationErrors.numeroContrat">
+                <i class="bi bi-exclamation-triangle"></i>
+                {{ validationErrors.numeroContrat }}
+              </div>
+              <div class="field-feedback info" *ngIf="checkingContractNumber">
+                <i class="bi bi-hourglass-split"></i>
+                Vérification de la disponibilité du numéro...
+              </div>
+              <div class="field-feedback success" *ngIf="numeroContrat.valid && numeroContrat.touched && contractNumberIsUnique && !checkingContractNumber">
+                <i class="bi bi-check-circle"></i>
+                Numéro valide et disponible
               </div>
             </div>
-            <div class="d-none d-md-block">
-              <div class="bg-white bg-opacity-10 rounded-pill px-3 py-2">
-                <small class="text-white fw-semibold">
-                  <i class="bi bi-calendar me-1"></i>
-                  {{ today | date:'dd/MM/yyyy' }}
-                </small>
+
+            <!-- Contract Status -->
+            <div class="field-group">
+              <label class="field-label">
+                <i class="bi bi-flag"></i>
+                Statut du contrat
+                <span class="required">*</span>
+              </label>
+              <select 
+                class="form-select" 
+                [(ngModel)]="contrat.statutContrat" 
+                name="statutContrat"
+                #statutContrat="ngModel"
+                required
+                [class.valid]="statutContrat.valid && statutContrat.touched"
+                [class.invalid]="statutContrat.invalid && statutContrat.touched">
+                <option value="" disabled>Sélectionner un statut...</option>
+                <option value="ACTIF">🟢 ACTIF - Contrat en cours</option>
+                <option value="EN_ATTENTE">🟡 EN_ATTENTE - En attente de validation</option>
+                <option value="BROUILLON">📝 BROUILLON - En préparation</option>
+                <option value="SUSPENDU">⏸️ SUSPENDU - Temporairement arrêté</option>
+              </select>
+              <div class="field-feedback error" *ngIf="statutContrat.invalid && statutContrat.touched">
+                <i class="bi bi-exclamation-triangle"></i>
+                Veuillez sélectionner un statut
+              </div>
+              <div class="field-feedback success" *ngIf="statutContrat.valid && statutContrat.touched">
+                <i class="bi bi-check-circle"></i>
+                Statut sélectionné
               </div>
             </div>
           </div>
         </div>
-        
-        <div class="card-body p-5">
-          <!-- Enhanced Progress Indicator -->
-          <div class="mb-5">
-            <div class="d-flex justify-content-between align-items-center mb-3">
-              <span class="fw-bold text-primary">Progression du formulaire</span>
-              <span class="badge bg-primary px-3 py-2 rounded-pill">{{ getFormProgress() }}%</span>
+
+        <!-- Step 2: Period -->
+        <div class="form-section">
+          <div class="section-header">
+            <div class="step-number">2</div>
+            <div class="section-title">
+              <h2>Période de validité</h2>
+              <p>Dates de début et de fin du contrat</p>
             </div>
-            <div class="progress mb-2" style="height: 10px;">
-              <div class="progress-bar" 
-                   role="progressbar" 
-                   [style.width.%]="getFormProgress()" 
-                   [attr.aria-valuenow]="getFormProgress()" 
-                   aria-valuemin="0" 
-                   aria-valuemax="100">
+          </div>
+          
+          <div class="fields-grid">
+            <!-- Start Date -->
+            <div class="field-group">
+              <label class="field-label">
+                <i class="bi bi-calendar-event"></i>
+                Date de début
+                <span class="required">*</span>
+              </label>
+              <input 
+                type="date" 
+                class="form-input" 
+                [(ngModel)]="contrat.dateDebut" 
+                name="dateDebut"
+                #dateDebut="ngModel"
+                [min]="today"
+                required
+                [class.valid]="dateDebut.valid && dateDebut.touched"
+                [class.invalid]="dateDebut.invalid && dateDebut.touched">
+              <div class="field-feedback error" *ngIf="dateDebut.invalid && dateDebut.touched">
+                <i class="bi bi-exclamation-triangle"></i>
+                La date de début est obligatoire
+              </div>
+              <div class="field-feedback success" *ngIf="dateDebut.valid && dateDebut.touched">
+                <i class="bi bi-check-circle"></i>
+                Date valide
               </div>
             </div>
-            <small class="text-muted">
-              <i class="bi bi-info-circle me-1"></i>
-              Complétez tous les champs obligatoires pour activer la création du contrat
-            </small>
+
+            <!-- End Date -->
+            <div class="field-group">
+              <label class="field-label">
+                <i class="bi bi-calendar-x"></i>
+                Date de fin
+                <span class="required">*</span>
+              </label>
+              <input 
+                type="date" 
+                class="form-input" 
+                [(ngModel)]="contrat.dateFin" 
+                name="dateFin"
+                #dateFin="ngModel"
+                [min]="contrat.dateDebut || today"
+                required
+                [class.valid]="dateFin.valid && dateFin.touched"
+                [class.invalid]="dateFin.invalid && dateFin.touched">
+              <div class="field-feedback error" *ngIf="dateFin.invalid && dateFin.touched">
+                <i class="bi bi-exclamation-triangle"></i>
+                La date de fin est obligatoire
+              </div>
+              <div class="field-feedback success" *ngIf="dateFin.valid && dateFin.touched">
+                <i class="bi bi-check-circle"></i>
+                Date valide
+              </div>
+            </div>
           </div>
 
-          <form class="needs-validation" 
-                #contratForm="ngForm" 
-                (ngSubmit)="onSubmit(contratForm)" 
-                novalidate>
-            
-            <!-- Section 1: Informations de base -->
-            <div class="form-section">
-              <h5 class="text-primary fw-bold mb-4 d-flex align-items-center">
-                <div class="bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center me-3 shadow" style="width: 40px; height: 40px;">
-                  <i class="bi bi-1-circle"></i>
+          <!-- Duration Display -->
+          <div class="duration-card" *ngIf="contrat.dateDebut && contrat.dateFin && calculateDuration() > 0">
+            <div class="duration-icon">
+              <i class="bi bi-clock-history"></i>
+            </div>
+            <div class="duration-content">
+              <h4>Durée du contrat</h4>
+              <p>{{ formatDuration() }}</p>
+              <small>Du {{ contrat.dateDebut | date:'dd/MM/yyyy' }} au {{ contrat.dateFin | date:'dd/MM/yyyy' }}</small>
+            </div>
+          </div>
+        </div>
+
+        <!-- Step 3: Client Attribution - Improved UI -->
+        <div class="form-section">
+          <div class="section-header">
+            <div class="step-number">3</div>
+            <div class="section-title">
+              <h2>Attribution du client</h2>
+              <p>Sélectionner le client pour ce contrat</p>
+            </div>
+          </div>
+          
+          <div *ngIf="clients?.length; else noClientsTemplate">
+            <div class="client-selection-table">
+              <!-- Client Search Bar -->
+              <div class="client-search-bar">
+                <div class="search-input-container">
+                  <i class="bi bi-search search-icon"></i>
+                  <input 
+                    #searchInput
+                    type="text" 
+                    class="form-input search-input" 
+                    [(ngModel)]="clientSearchTerm"
+                    name="clientSearch"
+                    placeholder="Rechercher par nom, prénom ou ID..."
+                    (input)="onClientSearch()"
+                    (focus)="onClientInputFocus()"
+                    autocomplete="off">
+                  <button 
+                    type="button" 
+                    class="clear-btn" 
+                    *ngIf="clientSearchTerm"
+                    (click)="clearClientSearch()">
+                    <i class="bi bi-x"></i>
+                  </button>
                 </div>
-                Informations de base
-              </h5>
-              
-              <div class="row g-4">
-                <div class="col-md-6">
-                  <label for="numeroContrat" class="form-label">
-                    <i class="bi bi-hash text-primary me-2"></i>
-                    <span class="text-danger">*</span> Numéro du contrat
-                  </label>
-                  <div class="input-group">
-                    <span class="input-group-text">
-                      <i class="bi bi-tag text-primary"></i>
-                    </span>
-                    <input type="text" 
-                           class="form-control" 
-                           id="numeroContrat" 
-                           required 
-                           [(ngModel)]="contrat.numeroContrat" 
-                           name="numeroContrat" 
-                           #numeroContrat="ngModel"
-                           placeholder="Ex: CONT-2025-001"
-                           [class.is-valid]="numeroContrat.valid && numeroContrat.touched && !validationErrors.numeroContrat"
-                           [class.is-invalid]="(numeroContrat.invalid && numeroContrat.touched) || validationErrors.numeroContrat">
-                    <button type="button" 
-                            class="btn btn-outline-secondary" 
-                            (click)="generateContractNumber()"
-                            title="Générer un numéro automatique">
-                      <i class="bi bi-arrow-clockwise"></i>
+                
+                <!-- Client status indicator -->
+                <div class="client-status" *ngIf="contrat.clientId">
+                  <div class="status-indicator selected">
+                    <i class="bi bi-check-circle-fill"></i>
+                    <span>Client sélectionné</span>
+                  </div>
+                </div>
+                <div class="client-status" *ngIf="!contrat.clientId">
+                  <div class="status-indicator pending">
+                    <i class="bi bi-exclamation-circle"></i>
+                    <span>Aucun client sélectionné</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Client Results Table -->
+              <div class="client-table-container">
+                <table class="client-table" *ngIf="!loadingClients && paginatedClients && paginatedClients.length > 0">
+                  <thead>
+                    <tr>
+                      <th>Client</th>
+                      <th>Email</th>
+                      <th>Action</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr 
+                      *ngFor="let client of paginatedClients; trackBy: trackByClientId; let i = index" 
+                      [class.selected]="contrat.clientId === client.id"
+                      [class.highlighted]="i === highlightedIndex">
+                      <td class="client-info-cell">
+                        <div class="client-avatar">
+                          {{ getClientInitials(client) }}
+                        </div>
+                        <div>
+                          <div class="client-name">{{ client.nom }} {{ client.prenom || '' }}</div>
+                          <div class="client-id">#{{ client.id }}</div>
+                        </div>
+                      </td>
+                      <td>{{ client.email || '-' }}</td>
+                      <td>
+                        <button 
+                          type="button" 
+                          class="select-btn"
+                          [class.selected]="contrat.clientId === client.id"
+                          (click)="selectClient(client)">
+                          <i class="bi" [ngClass]="contrat.clientId === client.id ? 'bi-check-circle-fill' : 'bi-circle'"></i>
+                          {{ contrat.clientId === client.id ? 'Sélectionné' : 'Sélectionner' }}
+                        </button>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+
+                <!-- Pagination Controls -->
+                <div class="pagination-controls" *ngIf="!loadingClients && totalPages > 1">
+                  <div class="pagination-info">
+                    Page {{ currentPage }} sur {{ totalPages }}
+                  </div>
+                  <div class="pagination-buttons">
+                    <button 
+                      class="pagination-btn" 
+                      [disabled]="currentPage === 1"
+                      (click)="previousPage()"
+                      aria-label="Page précédente">
+                      <i class="bi bi-chevron-left"></i>
+                    </button>
+                    
+                    <ng-container *ngIf="totalPages <= 5">
+                      <button 
+                        *ngFor="let page of [].constructor(totalPages); let i = index" 
+                        class="pagination-btn page-number" 
+                        [class.active]="currentPage === i + 1"
+                        (click)="goToPage(i + 1)"
+                        [attr.aria-label]="'Page ' + (i + 1)">
+                        {{ i + 1 }}
+                      </button>
+                    </ng-container>
+                    
+                    <ng-container *ngIf="totalPages > 5">
+                      <!-- First page -->
+                      <button 
+                        class="pagination-btn page-number" 
+                        [class.active]="currentPage === 1"
+                        (click)="goToPage(1)">
+                        1
+                      </button>
+                      
+                      <!-- Ellipsis if needed -->
+                      <span class="pagination-ellipsis" *ngIf="currentPage > 3">...</span>
+                      
+                      <!-- Pages around current -->
+                      <ng-container *ngFor="let offset of [-1, 0, 1]">
+                        <button 
+                          *ngIf="currentPage + offset > 1 && currentPage + offset < totalPages"
+                          class="pagination-btn page-number" 
+                          [class.active]="offset === 0"
+                          (click)="goToPage(currentPage + offset)">
+                          {{ currentPage + offset }}
+                        </button>
+                      </ng-container>
+                      
+                      <!-- Ellipsis if needed -->
+                      <span class="pagination-ellipsis" *ngIf="currentPage < totalPages - 2">...</span>
+                      
+                      <!-- Last page -->
+                      <button 
+                        class="pagination-btn page-number" 
+                        [class.active]="currentPage === totalPages"
+                        (click)="goToPage(totalPages)">
+                        {{ totalPages }}
+                      </button>
+                    </ng-container>
+                    
+                    <button 
+                      class="pagination-btn" 
+                      [disabled]="currentPage === totalPages"
+                      (click)="nextPage()"
+                      aria-label="Page suivante">
+                      <i class="bi bi-chevron-right"></i>
                     </button>
                   </div>
-                  <div *ngIf="(numeroContrat.invalid && numeroContrat.touched) || validationErrors.numeroContrat" class="invalid-feedback d-block">
-                    <i class="bi bi-exclamation-triangle me-2"></i>
-                    {{ validationErrors.numeroContrat || 'Le numéro de contrat est obligatoire' }}
-                  </div>
-                  <div *ngIf="numeroContrat.valid && numeroContrat.touched && !validationErrors.numeroContrat" class="valid-feedback d-block">
-                    <i class="bi bi-check-circle me-2"></i>
-                    Numéro de contrat valide
-                  </div>
                 </div>
 
-                <div class="col-md-6">
-                  <label for="statutContrat" class="form-label">
-                    <i class="bi bi-flag text-primary me-2"></i>
-                    <span class="text-danger">*</span> Statut du contrat
-                  </label>
-                  <select class="form-select" 
-                          id="statutContrat" 
-                          required 
-                          [(ngModel)]="contrat.statutContrat" 
-                          name="statutContrat"
-                          #statutContrat="ngModel"
-                          [class.is-valid]="statutContrat.valid && statutContrat.touched && !validationErrors.statutContrat"
-                          [class.is-invalid]="(statutContrat.invalid && statutContrat.touched) || validationErrors.statutContrat">
-                    <option [ngValue]="null" disabled>Sélectionner un statut...</option>
-                    <option value="ACTIF">
-                      🟢 ACTIF - Contrat en cours d'exécution
-                    </option>
-                    <option value="EN_ATTENTE">
-                      🟡 EN_ATTENTE - En attente de validation
-                    </option>
-                    <option value="BROUILLON">
-                      📝 BROUILLON - En préparation, non finalisé
-                    </option>
-                    <option value="SUSPENDU">
-                      ⏸️ SUSPENDU - Temporairement arrêté
-                    </option>
-                  </select>
-                  <div *ngIf="(statutContrat.invalid && statutContrat.touched) || validationErrors.statutContrat" class="invalid-feedback d-block">
-                    <i class="bi bi-exclamation-triangle me-2"></i>
-                    {{ validationErrors.statutContrat || 'Veuillez sélectionner un statut' }}
-                  </div>
-                  <div *ngIf="statutContrat.valid && statutContrat.touched && !validationErrors.statutContrat" class="valid-feedback d-block">
-                    <i class="bi bi-check-circle me-2"></i>
-                    Statut sélectionné
-                  </div>
+                <!-- Loading indicator -->
+                <div class="table-loading" *ngIf="loadingClients">
+                  <div class="spinner"></div>
+                  <span>Chargement des clients...</span>
+                </div>
+
+                <!-- Empty state -->
+                <div class="table-empty" *ngIf="!loadingClients && ((filteredClients.length === 0) || (paginatedClients.length === 0 && filteredClients.length > 0))">
+                  <i class="bi bi-search"></i>
+                  <p>Aucun client ne correspond à votre recherche</p>
+                  <button type="button" class="form-btn primary" (click)="showAllClients()">
+                    <i class="bi bi-people"></i>
+                    Voir tous les clients
+                  </button>
                 </div>
               </div>
-            </div>
 
-            <!-- Section 2: Période de validité -->
-            <div class="form-section">
-              <h5 class="text-primary fw-bold mb-4 d-flex align-items-center">
-                <div class="bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center me-3 shadow" style="width: 40px; height: 40px;">
-                  <i class="bi bi-2-circle"></i>
-                </div>
-                Période de validité
-              </h5>
-              
-              <div class="row g-4">
-                <div class="col-md-6">
-                  <label for="dateDebut" class="form-label">
-                    <i class="bi bi-calendar-event text-success me-2"></i>
-                    <span class="text-danger">*</span> Date de début
-                  </label>
-                  <div class="input-group">
-                    <span class="input-group-text">
-                      <i class="bi bi-play-circle text-success"></i>
-                    </span>
-                    <input type="date" 
-                           class="form-control" 
-                           id="dateDebut" 
-                           required 
-                           [(ngModel)]="contrat.dateDebut" 
-                           name="dateDebut" 
-                           #dateDebut="ngModel"
-                           [min]="today"
-                           [class.is-valid]="dateDebut.valid && dateDebut.touched && !validationErrors.dateDebut"
-                           [class.is-invalid]="(dateDebut.invalid && dateDebut.touched) || validationErrors.dateDebut">
-                  </div>
-                  <div *ngIf="(dateDebut.invalid && dateDebut.touched) || validationErrors.dateDebut" class="invalid-feedback d-block">
-                    <i class="bi bi-exclamation-triangle me-2"></i>
-                    {{ validationErrors.dateDebut || 'La date de début est obligatoire' }}
-                  </div>
-                  <div *ngIf="dateDebut.valid && dateDebut.touched && !validationErrors.dateDebut" class="valid-feedback d-block">
-                    <i class="bi bi-check-circle me-2"></i>
-                    Date de début valide
-                  </div>
-                </div>
-
-                <div class="col-md-6">
-                  <label for="dateFin" class="form-label">
-                    <i class="bi bi-calendar-x text-warning me-2"></i>
-                    <span class="text-danger">*</span> Date de fin
-                  </label>
-                  <div class="input-group">
-                    <span class="input-group-text">
-                      <i class="bi bi-stop-circle text-warning"></i>
-                    </span>
-                    <input type="date" 
-                           class="form-control" 
-                           id="dateFin" 
-                           required 
-                           [(ngModel)]="contrat.dateFin" 
-                           name="dateFin" 
-                           #dateFin="ngModel"
-                           [min]="contrat.dateDebut || today"
-                           [class.is-valid]="dateFin.valid && dateFin.touched && !validationErrors.dateFin"
-                           [class.is-invalid]="(dateFin.invalid && dateFin.touched) || validationErrors.dateFin">
-                  </div>
-                  <div *ngIf="(dateFin.invalid && dateFin.touched) || validationErrors.dateFin" class="invalid-feedback d-block">
-                    <i class="bi bi-exclamation-triangle me-2"></i>
-                    {{ validationErrors.dateFin || 'La date de fin est obligatoire' }}
-                  </div>
-                  <div *ngIf="dateFin.valid && dateFin.touched && !validationErrors.dateFin" class="valid-feedback d-block">
-                    <i class="bi bi-check-circle me-2"></i>
-                    Date de fin valide
-                  </div>
-                </div>
+              <!-- Hidden input for validation -->
+              <input type="hidden" [(ngModel)]="contrat.clientId" name="clientId" required #clientId="ngModel">
+              <div class="field-feedback error" *ngIf="!contrat.clientId && clientId.touched">
+                <i class="bi bi-exclamation-triangle"></i>
+                Veuillez sélectionner un client
               </div>
               
-              <!-- Enhanced Duration Display -->
-              <div *ngIf="contrat.dateDebut && contrat.dateFin && calculateDuration() > 0" class="mt-4">
-                <div class="alert alert-info border-0 shadow-sm">
-                  <div class="d-flex align-items-center">
-                    <i class="bi bi-clock text-info me-3 fs-4"></i>
-                    <div>
-                      <strong>Durée du contrat:</strong> {{ formatDuration() }}
-                      <div class="small text-muted mt-1">
-                        <i class="bi bi-calendar-range me-1"></i>
-                        Du {{ contrat.dateDebut | date:'dd/MM/yyyy' }} au {{ contrat.dateFin | date:'dd/MM/yyyy' }}
-                      </div>
+              <!-- Client details card if selected -->
+              <div class="selected-client-details" *ngIf="getSelectedClient()">
+                <div class="details-header">
+                  <i class="bi bi-info-circle"></i>
+                  Détails du client sélectionné
+                </div>
+                <div class="details-content">
+                  <div class="client-avatar large">
+                    {{ getClientInitials(getSelectedClient()!) }}
+                  </div>
+                  <div class="client-details">
+                    <h4>{{ getSelectedClient()?.nom }} {{ getSelectedClient()?.prenom || '' }}</h4>
+                    <div class="detail-item">
+                      <i class="bi bi-hash"></i>
+                      <span>ID: {{ getSelectedClient()?.id }}</span>
+                    </div>
+                    <div class="detail-item" *ngIf="getSelectedClient()?.email">
+                      <i class="bi bi-envelope"></i>
+                      <span>{{ getSelectedClient()?.email }}</span>
                     </div>
                   </div>
                 </div>
               </div>
             </div>
-
-            <!-- Section 3: Attribution du client -->
-            <div class="form-section">
-              <h5 class="text-primary fw-bold mb-4 d-flex align-items-center">
-                <div class="bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center me-3 shadow" style="width: 40px; height: 40px;">
-                  <i class="bi bi-3-circle"></i>
-                </div>
-                Attribution du client
-              </h5>
-              
-              <div class="row g-4" *ngIf="clients?.length; else noClientsMessage">
-                <div class="col-md-8">
-                  <label for="clientSearch" class="form-label">
-                    <i class="bi bi-person-check text-success me-2"></i>
-                    <span class="text-danger">*</span> Client assigné
-                  </label>
-                  
-                  <!-- Simplified Client Search -->
-                  <div class="client-search-container">
-                    <div class="input-group">
-                      <span class="input-group-text">
-                        <i class="bi bi-search text-success"></i>
-                      </span>
-                      <input type="text" 
-                             class="form-control" 
-                             id="clientSearch"
-                             [(ngModel)]="clientSearchTerm"
-                             name="clientSearch"
-                             placeholder="Rechercher un client par nom, prénom ou ID..."
-                             (input)="onClientSearch()"
-                             (focus)="onClientInputFocus()"
-                             (blur)="onClientInputBlur()"
-                             autocomplete="off"
-                             [class.is-valid]="contrat.clientId && !validationErrors.clientId"
-                             [class.is-invalid]="validationErrors.clientId">
-                      <button type="button" 
-                              class="btn btn-outline-secondary" 
-                              *ngIf="clientSearchTerm"
-                              (click)="clearClientSearch()"
-                              title="Effacer la recherche">
-                        <i class="bi bi-x"></i>
-                      </button>
-                    </div>
-                    
-                    <!-- Simplified Dropdown -->
-                    <div class="client-dropdown" 
-                         *ngIf="showClientDropdown"
-                         [class.show]="showClientDropdown">
-                      
-                      <!-- Loading -->
-                      <div class="dropdown-item" *ngIf="loadingClients">
-                        <div class="d-flex align-items-center">
-                          <div class="spinner-border spinner-border-sm text-primary me-3"></div>
-                          <span>Chargement des clients...</span>
-                        </div>
-                      </div>
-                      
-                      <!-- Client List -->
-                      <div *ngIf="!loadingClients">
-                        <!-- Search Results Header -->
-                        <div class="dropdown-header" *ngIf="clientSearchTerm">
-                          <small class="text-muted">
-                            {{ filteredClients.length }} résultat(s) pour "{{ clientSearchTerm }}"
-                          </small>
-                        </div>
-                        
-                        <!-- Client Items -->
-                        <div class="dropdown-item client-item" 
-                             *ngFor="let client of filteredClients; let i = index; trackBy: trackByClientId"
-                             (click)="selectClient(client)"
-                             [class.selected]="contrat.clientId === client.id"
-                             [class.highlighted]="i === highlightedIndex">
-                          <div class="d-flex align-items-center">
-                            <div class="client-avatar me-3">
-                              <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center"
-                                   style="width: 36px; height: 36px; font-size: 12px;">
-                                {{ getClientInitials(client) }}
-                              </div>
-                            </div>
-                            <div class="flex-grow-1">
-                              <div class="fw-semibold">
-                                {{ client.nom }} {{ client.prenom || '' }}
-                                <span class="badge bg-light text-primary ms-2 small">#{{ client.id }}</span>
-                              </div>
-                              <small class="text-muted" *ngIf="client.email">
-                                <i class="bi bi-envelope me-1"></i>{{ client.email }}
-                              </small>
-                            </div>
-                            <div class="client-actions">
-                              <i class="bi bi-check-circle text-success" *ngIf="contrat.clientId === client.id"></i>
-                            </div>
-                          </div>
-                        </div>
-                        
-                        <!-- No Results -->
-                        <div class="dropdown-item text-center" *ngIf="filteredClients.length === 0">
-                          <div class="text-muted py-3">
-                            <i class="bi bi-search fs-3 d-block mb-2 opacity-50"></i>
-                            <div>Aucun client trouvé</div>
-                            <small>Essayez avec d'autres termes</small>
-                          </div>
-                        </div>
-                        
-                        <!-- Show All Button -->
-                        <div class="dropdown-item border-top" *ngIf="!clientSearchTerm && clients.length > 10">
-                          <button type="button" class="btn btn-link btn-sm w-100" (click)="showAllClients()">
-                            Afficher tous les clients ({{ clients.length }})
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <!-- Hidden Input for Form Validation -->
-                  <input type="hidden" 
-                         [(ngModel)]="contrat.clientId" 
-                         name="clientId"
-                         #clientId="ngModel"
-                         required>
-                  
-                  <!-- Validation Messages -->
-                  <div *ngIf="validationErrors.clientId" class="invalid-feedback d-block">
-                    <i class="bi bi-exclamation-triangle me-2"></i>
-                    {{ validationErrors.clientId }}
-                  </div>
-                  <div *ngIf="contrat.clientId && !validationErrors.clientId" class="valid-feedback d-block">
-                    <i class="bi bi-check-circle me-2"></i>
-                    Client sélectionné avec succès
-                  </div>
-                  
-                  <!-- Quick Tips -->
-                  <div class="form-text mt-2">
-                    <i class="bi bi-lightbulb text-warning me-1"></i>
-                    <small class="text-muted">
-                      Tapez le nom, prénom ou ID du client pour le rechercher rapidement
-                    </small>
-                  </div>
-                </div>
-                
-                <!-- Selected Client Info -->
-                <div class="col-md-4" *ngIf="getSelectedClient()">
-                  <div class="card border-success bg-light h-100">
-                    <div class="card-body p-3">
-                      <h6 class="card-title text-success mb-2">
-                        <i class="bi bi-person-check me-1"></i>
-                        Client sélectionné
-                      </h6>
-                      <div class="small">
-                        <div class="fw-bold">{{ getSelectedClient()?.nom }} {{ getSelectedClient()?.prenom || '' }}</div>
-                        <div class="text-muted">ID: #{{ getSelectedClient()?.id }}</div>
-                        <div class="text-muted" *ngIf="getSelectedClient()?.email">
-                          <i class="bi bi-envelope me-1"></i>{{ getSelectedClient()?.email }}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
+          </div>
+          
+          <!-- No Clients Message -->
+          <ng-template #noClientsTemplate>
+            <div class="no-clients">
+              <div class="no-clients-icon">
+                <i class="bi bi-person-x"></i>
               </div>
-              
-              <ng-template #noClientsMessage>
-                <div class="alert alert-warning border-0 shadow-sm">
-                  <div class="d-flex align-items-center">
-                    <i class="bi bi-exclamation-triangle-fill me-3 fs-4"></i>
-                    <div>
-                      <strong>Aucun client disponible</strong>
-                      <div class="small mt-1">Veuillez ajouter des clients avant de créer un contrat.</div>
-                    </div>
-                  </div>
-                </div>
-              </ng-template>
-            </div>
-
-            <!-- Section 4: Conditions détaillées -->
-            <div class="form-section conditions-section">
-              <h5 class="text-primary fw-bold mb-4 d-flex align-items-center">
-                <div class="bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center me-3 shadow" style="width: 40px; height: 40px;">
-                  <i class="bi bi-4-circle"></i>
-                </div>
-                Conditions détaillées
-              </h5>
-              
-              <div class="row g-4">
-                <div class="col-12">
-                  <label for="conditionsContrat" class="form-label">
-                    <i class="bi bi-file-text text-info me-2"></i>
-                    Conditions du contrat
-                    <span class="text-muted small">(optionnel)</span>
-                  </label>
-                  <textarea
-                    class="form-control"
-                    id="conditionsContrat"
-                    name="conditions_contrat"
-                    [(ngModel)]="contrat.conditions_contrat"
-                    rows="6"
-                    placeholder="Décrivez les conditions spécifiques du contrat de maintenance...
-
-Exemples :
-• Interventions préventives mensuelles
-• Support technique 24h/7j
-• Garantie sur les pièces de rechange
-• Délai d'intervention : 4h maximum
-• Couverture géographique
-• Conditions de renouvellement"
-                    style="resize: vertical;">
-                  </textarea>
-                  <div class="form-text">
-                    <div class="d-flex align-items-center">
-                      <i class="bi bi-lightbulb text-warning me-2"></i>
-                      <small class="text-muted">
-                        <strong>Conseil :</strong> Soyez précis sur les services inclus, les délais d'intervention et les garanties offertes.
-                      </small>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Boutons d'action -->
-            <div class="d-flex justify-content-between align-items-center pt-4 border-top">
-              <button type="button" 
-                      class="btn btn-outline-secondary"
-                      (click)="cancel()">
-                <i class="bi bi-arrow-left me-2"></i>
-                Annuler
-              </button>
-              
-              <div class="d-flex gap-2">
-                <button type="button" 
-                        class="btn btn-outline-primary"
-                        [disabled]="isSubmitting"
-                        (click)="saveDraft()">
-                  <i class="bi bi-save me-2"></i>
-                  Enregistrer comme brouillon
-                </button>
-                
-                <button class="btn btn-success px-4" 
-                        type="submit" 
-                        [disabled]="contratForm.invalid || isSubmitting">
-                  <i *ngIf="!isSubmitting" class="bi bi-check-circle me-2"></i>
-                  <span *ngIf="isSubmitting" class="spinner-border spinner-border-sm me-2" role="status"></span>
-                  {{ isSubmitting ? 'Enregistrement...' : 'Créer le contrat' }}
+              <div class="no-clients-content">
+                <h3>Aucun client disponible</h3>
+                <p>Vous devez d'abord ajouter des clients avant de créer un contrat.</p>
+                <button type="button" class="form-btn primary">
+                  <i class="bi bi-person-plus"></i>
+                  Ajouter un client
                 </button>
               </div>
             </div>
+          </ng-template>
+        </div>
 
-            <!-- Aide et informations -->
-            <div class="mt-4 p-4 bg-light rounded">
-              <div class="d-flex align-items-start">
-                <i class="bi bi-info-circle text-primary me-3 fs-4"></i>
-                <div>
-                  <h6 class="mb-3 text-primary">Aide et conseils</h6>
-                  <div class="row g-3">
-                    <div class="col-md-6">
-                      <ul class="small text-muted mb-0 ps-3">
-                        <li>Les champs marqués d'un <span class="text-danger">*</span> sont obligatoires</li>
-                        <li>La date de fin doit être postérieure à la date de début</li>
-                        <li>Un contrat peut être modifié après sa création</li>
-                      </ul>
-                    </div>
-                    <div class="col-md-6">
-                      <ul class="small text-muted mb-0 ps-3">
-                        <li>Les brouillons ne sont pas visibles par les clients</li>
-                        <li>Le numéro de contrat est généré automatiquement</li>
-                        <li>Vos données sont sauvegardées automatiquement</li>
-                      </ul>
-                    </div>
-                  </div>
-                </div>
-              </div>
+        <!-- Step 4: Contract Details -->
+        <div class="form-section">
+          <div class="section-header">
+            <div class="step-number">4</div>
+            <div class="section-title">
+              <h2>Conditions du contrat</h2>
+              <p>Détails et spécifications (optionnel)</p>
             </div>
-          </form>
+          </div>
+          
+          <div class="field-group full-width">
+            <label class="field-label">
+              <i class="bi bi-file-text"></i>
+              Conditions et spécifications
+              <span class="optional">(optionnel)</span>
+            </label>
+            <textarea 
+              class="form-textarea" 
+              [(ngModel)]="contrat.conditions_contrat"
+              name="conditions_contrat"
+              rows="6"
+              placeholder="Décrivez les conditions spécifiques du contrat...
+
+• Services inclus
+• Délais d'intervention
+• Garanties offertes
+• Conditions de renouvellement
+• Modalités de paiement"></textarea>
+            <div class="field-help">
+              <i class="bi bi-lightbulb"></i>
+              Soyez précis sur les services inclus et les conditions d'intervention
+            </div>
+          </div>
+        </div>
+
+        <!-- Form Actions -->
+        <div class="form-actions">
+          <div class="actions-left">
+            <button type="button" class="form-btn secondary" (click)="cancel()">
+              <i class="bi bi-x-circle"></i>
+              Annuler
+            </button>
+          </div>
+          
+          <div class="actions-right">
+            <button type="button" class="form-btn secondary" (click)="saveDraft()" [disabled]="isSubmitting">
+              <i class="bi bi-save"></i>
+              Sauvegarder brouillon
+            </button>
+            <button type="submit" class="form-btn primary" [disabled]="contratForm.invalid || isSubmitting">
+              <div class="spinner small" *ngIf="isSubmitting"></div>
+              <i class="bi bi-check-circle" *ngIf="!isSubmitting"></i>
+              {{ isSubmitting ? 'Création...' : 'Créer le contrat' }}
+            </button>
+          </div>
+        </div>
+      </form>
+    </div>
+
+    <!-- Help Section -->
+    <div class="help-section">
+      <div class="help-header">
+        <i class="bi bi-question-circle"></i>
+        <h3>Aide et conseils</h3>
+      </div>
+      <div class="help-content">
+        <div class="help-grid">
+          <div class="help-card">
+            <h4><i class="bi bi-info-circle"></i>Informations importantes</h4>
+            <ul>
+              <li>Les champs avec <span class="required">*</span> sont obligatoires</li>
+              <li>La date de fin doit être postérieure à la date de début</li>
+              <li>Le numéro de contrat doit être unique dans le système</li>
+              <li>Un contrat peut être modifié après sa création</li>
+            </ul>
+          </div>
+          <div class="help-card">
+            <h4><i class="bi bi-lightbulb"></i>Conseils pratiques</h4>
+            <ul>
+              <li>Utilisez un numéro de contrat unique</li>
+              <li>Vérifiez les informations du client</li>
+              <li>Sauvegardez régulièrement vos modifications</li>
+            </ul>
+          </div>
         </div>
       </div>
     </div>

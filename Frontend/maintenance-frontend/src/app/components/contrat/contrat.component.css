@@ -1,44 +1,196 @@
-/* contrat.component.css */
+/* ==================== MODERN CONTRACT LIST - BEAUTIFUL DESIGN ==================== */
 
-/* Custom hover effects for cards */
+/* Base card styling with modern design */
 .card {
   transition: all 0.3s ease;
+  border: none;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 8px 25px rgba(15, 23, 42, 0.1);
+  margin-bottom: 2rem;
 }
 
 .card:hover {
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+  transform: translateY(-3px);
+  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.15);
 }
 
-/* Statistics cards styling */
+/* Header styling with dark blue gradient matching sidebar */
+.card-header.bg-primary {
+  background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%) !important;
+  padding: 1.25rem !important;
+  border: none !important;
+  position: relative;
+  overflow: hidden;
+}
+
+.card-header.bg-primary::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(59, 130, 246, 0.15), transparent);
+  animation: shimmer 3s infinite;
+  z-index: 1;
+}
+
+@keyframes shimmer {
+  0% { left: -100%; }
+  100% { left: 100%; }
+}
+
+.card-header h5 {
+  font-weight: 700 !important;
+  font-size: 1.25rem !important;
+  position: relative;
+  z-index: 2;
+}
+
+.card-header .badge.bg-light {
+  background: rgba(255, 255, 255, 0.15) !important;
+  color: #ffffff !important;
+  font-weight: 600;
+  padding: 0.35rem 0.75rem;
+  border-radius: 8px;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Button styling */
+.btn-outline-light {
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+  background: rgba(255, 255, 255, 0.05) !important;
+  color: #ffffff !important;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+  font-weight: 500;
+  border-radius: 8px;
+}
+
+.btn-outline-light:hover {
+  background: rgba(255, 255, 255, 0.15) !important;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
+}
+
+.btn-light.text-primary {
+  background: rgba(255, 255, 255, 0.9) !important;
+  border: none !important;
+  font-weight: 600;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+  border-radius: 8px;
+}
+
+.btn-light.text-primary:hover {
+  background: #ffffff !important;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+}
+
+/* Button loading states */
+.btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.8;
+}
+
+.btn .spinner-border-sm {
+  width: 1rem;
+  height: 1rem;
+  border-width: 0.15em;
+}
+
+.btn-outline-light:disabled {
+  background: rgba(255, 255, 255, 0.05) !important;
+  color: rgba(255, 255, 255, 0.7) !important;
+}
+
+.btn-light:disabled {
+  background: rgba(255, 255, 255, 0.7) !important;
+}
+
+/* Button with loading state display */
+.btn span.d-flex {
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Statistics cards with modern gradients */
 .statistics-card {
   transition: all 0.3s ease;
   cursor: pointer;
+  border-radius: 8px;
+  margin: 0.5rem;
+  padding: 1.25rem !important;
+  background: #ffffff;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
 }
 
 .statistics-card:hover {
   background: linear-gradient(135deg, #f8f9fa, #e9ecef);
-  transform: translateY(-2px);
+  transform: translateY(-3px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
 }
 
-/* Custom table styling */
+.statistics-card .h4 {
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+.statistics-card small {
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+/* Custom table styling with modern look */
+.table-responsive {
+  border-radius: 0 0 12px 12px;
+  overflow: hidden;
+}
+
+.table {
+  margin-bottom: 0;
+}
+
 .table > tbody > tr > td {
   vertical-align: middle;
-  border-bottom: 1px solid #e9ecef;
+  padding: 1.25rem 1rem;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+  transition: all 0.2s ease;
+}
+
+.table > tbody > tr:hover > td {
+  background-color: rgba(59, 130, 246, 0.05);
 }
 
 .table > thead > tr > th {
-  background: linear-gradient(135deg, #343a40, #495057);
+  background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%) !important;
+  color: #ffffff !important;
   border: none;
   font-weight: 600;
   text-transform: uppercase;
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   letter-spacing: 0.5px;
+  padding: 1rem;
+  position: relative;
 }
 
-/* Status badges with custom animations */
+/* Status badges with modern look and animations */
 .status-badge {
   position: relative;
   overflow: hidden;
+  padding: 0.5rem 1rem !important;
+  border-radius: 50px !important;
+  min-width: 120px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1) !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.3px;
 }
 
 .status-badge::before {
@@ -56,84 +208,242 @@
   left: 100%;
 }
 
-/* Client avatar styling */
+/* Client avatar styling with modern look */
 .client-avatar {
   position: relative;
   transition: all 0.3s ease;
+  width: 50px !important;
+  height: 50px !important;
+  border-radius: 12px !important; 
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%) !important;
+  color: #ffffff !important;
 }
 
 .client-avatar:hover {
   transform: scale(1.1);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
 }
 
-/* Action buttons styling */
+/* Contract identifier with gradient background */
+.bg-gradient-primary {
+  background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%) !important;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+/* Action buttons styling with modern look */
 .btn-group .btn {
   transition: all 0.3s ease;
-  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 8px !important;
+  margin: 0 2px;
+  font-weight: 500;
+  padding: 0.5rem 1rem;
 }
 
 .btn-group .btn:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  z-index: 2;
 }
 
-/* Search input styling */
+.btn-outline-info {
+  color: #0dcaf0 !important;
+  border-color: #0dcaf0 !important;
+}
+
+.btn-outline-info:hover {
+  background-color: #0dcaf0 !important;
+  color: #fff !important;
+}
+
+.btn-outline-warning {
+  color: #ffc107 !important;
+  border-color: #ffc107 !important;
+}
+
+.btn-outline-warning:hover {
+  background-color: #ffc107 !important;
+  color: #212529 !important;
+}
+
+.btn-outline-secondary {
+  color: #6c757d !important;
+  border-color: #6c757d !important;
+}
+
+.btn-outline-secondary:hover {
+  background-color: #6c757d !important;
+  color: #fff !important;
+}
+
+/* Search input styling with modern look */
 .search-input {
   border-radius: 25px;
   transition: all 0.3s ease;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  padding: 0.75rem 1.25rem;
+  font-size: 0.95rem;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
 }
 
 .search-input:focus {
-  box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
-  border-color: #007bff;
+  box-shadow: 0 0 0 0.25rem rgba(59, 130, 246, 0.25);
+  border-color: #3b82f6;
 }
 
-/* Filter select styling */
+.input-group-text {
+  border-radius: 25px 0 0 25px;
+  background-color: #ffffff;
+}
+
+/* Filter select styling with modern look */
 .filter-select {
-  border-radius: 8px;
+  border-radius: 25px;
   transition: all 0.3s ease;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  padding: 0.75rem 1.25rem;
+  font-size: 0.95rem;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+  background-position: right 1rem center;
 }
 
 .filter-select:focus {
-  box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
-  border-color: #007bff;
+  box-shadow: 0 0 0 0.25rem rgba(59, 130, 246, 0.25);
+  border-color: #3b82f6;
 }
 
-/* Empty state styling */
+/* Empty state styling with modern look */
 .empty-state {
-  padding: 4rem 2rem;
+  padding: 5rem 2rem;
   text-align: center;
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  border-radius: 12px;
 }
 
 .empty-state .display-1 {
-  font-size: 4rem;
-  margin-bottom: 1rem;
+  font-size: 4.5rem;
+  margin-bottom: 1.5rem;
   opacity: 0.7;
+  color: #1e293b;
 }
 
-/* Loading spinner enhancement */
-.spinner-border {
-  border-width: 3px;
+.empty-state h5 {
+  font-weight: 600;
+  color: #1e293b;
+  margin-bottom: 1rem;
 }
 
-/* Pagination styling */
-.pagination .page-link {
+.empty-state p {
+  font-size: 1.1rem;
+  max-width: 600px;
+  margin: 0 auto 2rem auto;
+  color: #64748b;
+}
+
+.empty-state .btn-primary {
+  background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%) !important;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  font-weight: 600;
   border-radius: 8px;
-  margin: 0 2px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
   transition: all 0.3s ease;
 }
 
-.pagination .page-link:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+.empty-state .btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
 }
 
-/* Responsive improvements */
+/* Loading spinner enhancement */
+.spinner-border.text-primary {
+  color: #1e293b !important;
+  width: 3rem;
+  height: 3rem;
+  border-width: 0.25rem;
+}
+
+/* Enhanced pagination styling */
+.pagination {
+  margin-bottom: 0;
+}
+
+.pagination .page-link {
+  border-radius: 8px;
+  margin: 0 3px;
+  transition: all 0.3s ease;
+  color: #1e293b;
+  border: none;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.pagination .page-link:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  background-color: #f1f5f9;
+  color: #1e293b;
+}
+
+.pagination .page-link.bg-primary {
+  background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%) !important;
+}
+
+/* Status description text */
+.status-container small {
+  font-size: 0.8rem !important;
+  display: block;
+  width: 120px;
+  margin: 0 auto;
+  line-height: 1.2;
+}
+
+/* Card footer styling */
+.card-footer {
+  background-color: #f8fafc !important;
+  border-top: 1px solid rgba(0, 0, 0, 0.05) !important;
+  padding: 1.25rem !important;
+}
+
+/* Contract number styling */
+.contract-number {
+  color: #1e293b !important;
+  font-weight: 700 !important;
+}
+
+/* Dropdown menu styling */
+.dropdown-menu {
+  border: none;
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+  animation: fadeIn 0.2s ease;
+  padding: 0.5rem;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.dropdown-item {
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+  transition: all 0.2s ease;
+}
+
+.dropdown-item:hover {
+  background-color: rgba(59, 130, 246, 0.1);
+}
+
+.dropdown-item.text-danger:hover {
+  background-color: rgba(220, 38, 38, 0.1);
+}
+
+/* Responsive improvements for mobile */
 @media (max-width: 768px) {
   .btn-group .btn {
     font-size: 0.75rem;
-    padding: 0.25rem 0.5rem;
+    padding: 0.35rem 0.6rem;
   }
   
   .btn-group .btn .bi {
@@ -141,170 +451,16 @@
   }
   
   .client-avatar {
-    width: 35px !important;
-    height: 35px !important;
-    font-size: 14px !important;
+    width: 40px !important;
+    height: 40px !important;
+    font-size: 16px !important;
   }
   
-  .status-badge {
-    font-size: 0.7rem !important;
-    min-width: 80px !important;
+  .search-input, .filter-select {
+    padding: 0.5rem 1rem;
   }
   
-  .table td {
-    padding: 0.5rem !important;
+  .card-header h5 {
+    font-size: 1.1rem !important;
   }
-}
-
-@media (max-width: 576px) {
-  .statistics-card {
-    margin-bottom: 1rem;
-  }
-  
-  .btn-group {
-    flex-direction: column;
-    gap: 0.25rem;
-  }
-  
-  .btn-group .btn {
-    border-radius: 0.375rem !important;
-  }
-}
-
-/* Custom animations */
-@keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.table tbody tr {
-  animation: fadeInUp 0.6s ease forwards;
-}
-
-.table tbody tr:nth-child(odd) {
-  animation-delay: 0.1s;
-}
-
-.table tbody tr:nth-child(even) {
-  animation-delay: 0.2s;
-}
-
-/* Custom scrollbar for table container */
-.table-responsive::-webkit-scrollbar {
-  height: 8px;
-}
-
-.table-responsive::-webkit-scrollbar-track {
-  background: #f1f1f1;
-  border-radius: 4px;
-}
-
-.table-responsive::-webkit-scrollbar-thumb {
-  background: linear-gradient(135deg, #007bff, #0056b3);
-  border-radius: 4px;
-}
-
-.table-responsive::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(135deg, #0056b3, #004085);
-}
-
-/* Badge improvements */
-.badge {
-  font-weight: 600;
-  letter-spacing: 0.025em;
-}
-
-/* Card header improvements */
-.card-header {
-  background: linear-gradient(135deg, #007bff, #0056b3) !important;
-}
-
-/* Alert improvements */
-.alert {
-  border: none;
-  border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-}
-
-/* Input group improvements */
-.input-group .input-group-text {
-  border-radius: 25px 0 0 25px;
-}
-
-.input-group .form-control {
-  border-radius: 0 25px 25px 0;
-}
-
-/* Dropdown menu improvements */
-.dropdown-menu {
-  border-radius: 12px;
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
-  border: none;
-  padding: 0.5rem 0;
-}
-
-.dropdown-item {
-  padding: 0.5rem 1rem;
-  transition: all 0.3s ease;
-}
-
-.dropdown-item:hover {
-  background: linear-gradient(135deg, #f8f9fa, #e9ecef);
-  transform: translateX(5px);
-}
-
-/* Contract number styling */
-.contract-number {
-  font-family: 'Courier New', monospace;
-  font-weight: 700;
-  background: linear-gradient(135deg, #007bff, #0056b3);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-
-/* Fix for table dropdowns appearing behind rows */
-.table-responsive {
-  overflow-x: auto;
-  overflow-y: visible; /* Allow dropdowns to show outside table bounds */
-}
-
-.table tbody tr {
-  position: relative;
-  z-index: 1;
-}
-
-.table tbody tr:hover {
-  z-index: 10; /* Elevate hovered row */
-}
-
-/* Ensure dropdown menus have high z-index and appear above everything */
-.table .btn-group {
-  position: relative;
-  z-index: 1000;
-}
-
-.table .btn-group .dropdown-menu {
-  z-index: 1050 !important; /* Higher than Bootstrap modal backdrop */
-  position: absolute !important;
-}
-
-.table .btn-group.show {
-  z-index: 1060 !important; /* Even higher when dropdown is open */
-}
-
-/* Ensure the entire row containing dropdown is elevated when dropdown is open */
-.table tbody tr:has(.btn-group.show) {
-  z-index: 1055 !important;
-}
-
-/* Fallback for browsers that don't support :has() selector */
-.table tbody tr.dropdown-open {
-  z-index: 1055 !important;
 }

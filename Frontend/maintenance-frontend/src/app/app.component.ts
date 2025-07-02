@@ -1,5 +1,6 @@
 import { Component } from '@angular/core';
 import { Router, NavigationEnd } from '@angular/router';
+import { NotificationService } from './service/notification.service';
 
 @Component({
   selector: 'app-root',
@@ -8,9 +9,12 @@ import { Router, NavigationEnd } from '@angular/router';
 })
 export class AppComponent {
   title = 'maintenance-frontend';
-   showLayout = true;
+  showLayout = true;
 
-  constructor(private router: Router) {
+  constructor(
+    private router: Router,
+    private notificationService: NotificationService
+  ) {
     this.router.events.subscribe(event => {
       if (event instanceof NavigationEnd) {
         // Hide layout on login, client landing pages, and all client routes

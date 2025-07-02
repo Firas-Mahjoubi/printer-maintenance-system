@@ -16,4 +16,5 @@ public interface IContratService {
     Contrat renouvelerContrat(Long oldContratId, Contrat newContratData) ;
     List<Contrat> getContratsHistorie();
     byte[] exportContratToPdf(Long contratId) throws IOException;
+    boolean checkNumeroContratExists(String numeroContrat);
     }

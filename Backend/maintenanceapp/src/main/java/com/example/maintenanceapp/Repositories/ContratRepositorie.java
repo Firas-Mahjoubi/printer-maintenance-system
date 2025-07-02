@@ -14,6 +14,6 @@ public interface ContratRepositorie extends JpaRepository<Contrat, Long> {
     List<Contrat> findByDateFinBetweenAndStatutContratNot(LocalDate start, LocalDate end, StatutContrat statut);
     List<Contrat> findByStatutContratNot(StatutContrat statut);
     List<Contrat> findByStatutContrat(StatutContrat statut);
-
+    boolean existsByNumeroContrat(String numeroContrat);
 
 }

@@ -27,6 +27,10 @@ export class NotificationService {
   private unreadCountSubject = new BehaviorSubject<number>(0);
   public unreadCount$ = this.unreadCountSubject.asObservable();
 
+  // UI Toast notifications
+  private toastSubject = new BehaviorSubject<any>(null);
+  public toast$ = this.toastSubject.asObservable();
+
   constructor(private http: HttpClient) {}
 
   // Get notifications for a user
@@ -129,5 +133,45 @@ export class NotificationService {
     } else {
       return 'À l\'instant';
     }
+  }
+
+  // Show a success toast notification
+  showSuccess(message: string, title: string = 'Succès', duration: number = 5000): void {
+    this.toastSubject.next({
+      type: 'success',
+      title,
+      message,
+      duration
+    });
+  }
+
+  // Show an error toast notification
+  showError(message: string, title: string = 'Erreur', duration: number = 7000): void {
+    this.toastSubject.next({
+      type: 'error',
+      title,
+      message,
+      duration
+    });
+  }
+
+  // Show an info toast notification
+  showInfo(message: string, title: string = 'Information', duration: number = 5000): void {
+    this.toastSubject.next({
+      type: 'info',
+      title,
+      message,
+      duration
+    });
+  }
+
+  // Show a warning toast notification
+  showWarning(message: string, title: string = 'Attention', duration: number = 5000): void {
+    this.toastSubject.next({
+      type: 'warning',
+      title,
+      message,
+      duration
+    });
   }
 }

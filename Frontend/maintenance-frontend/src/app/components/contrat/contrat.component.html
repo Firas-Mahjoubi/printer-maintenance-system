@@ -1,22 +1,39 @@
-<!-- contrat.component.html -->
+<!-- contrat.component.html - Modern UI with Dark Blue Theme -->
 <div class="card border-0 shadow">
   <div class="card-header bg-primary text-white border-0 d-flex justify-content-between align-items-center py-3">
     <div class="d-flex align-items-center">
       <h5 class="mb-0 fw-bold">
         <i class="bi bi-file-earmark-text me-2"></i>
-        {{ showHistory ? 'Historique des Contrats' : 'Gestion des Contrats' }}
+        {{ showHistory ? 'Tous les Contrats Non-Actifs' : 'Contrats Actifs' }}
       </h5>
       <span class="badge bg-light text-primary ms-2" *ngIf="!loading">
         {{ showHistory ? contratsHistory.length : totalItems }} contrat(s)
       </span>
     </div>
     <div class="d-flex gap-2">
-      <button class="btn btn-outline-light btn-sm" (click)="toggleHistoryView()">
-        <i class="bi" [ngClass]="showHistory ? 'bi-arrow-left' : 'bi-clock-history'"></i>
-        {{ showHistory ? 'Retour aux contrats' : 'Voir l\'historique' }}
+      <button class="btn btn-outline-light btn-sm" 
+              (click)="toggleHistoryView()" 
+              [disabled]="toggleHistoryLoading">
+        <span *ngIf="!toggleHistoryLoading">
+          <i class="bi" [ngClass]="showHistory ? 'bi-arrow-left' : 'bi-clock-history'"></i>
+          {{ showHistory ? 'Voir les contrats actifs' : 'Voir les autres contrats' }}
+        </span>
+        <span *ngIf="toggleHistoryLoading" class="d-flex align-items-center">
+          <span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
+          <span>Chargement...</span>
+        </span>
       </button>
-      <button class="btn btn-light text-primary btn-sm" (click)="newContrat()" *ngIf="!showHistory">
-        <i class="bi bi-plus-circle me-1"></i>Nouveau Contrat
+      <button class="btn btn-light text-primary btn-sm" 
+              (click)="newContrat()" 
+              *ngIf="!showHistory"
+              [disabled]="newContratLoading">
+        <span *ngIf="!newContratLoading">
+          <i class="bi bi-plus-circle me-1"></i>Nouveau Contrat
+        </span>
+        <span *ngIf="newContratLoading" class="d-flex align-items-center">
+          <span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
+          <span>Création...</span>
+        </span>
       </button>
     </div>
   </div>
@@ -38,21 +55,21 @@
   </div>
   
   <div class="card-body p-0" *ngIf="!loading">
-    <!-- Statistics Cards -->
-    <div class="row g-0 border-bottom" *ngIf="!showHistory">
-      <div class="col-md-3 col-6 border-end">
+    <!-- Statistics Cards - Always visible with dynamic content -->
+    <div class="row g-3 m-2 pt-2">
+      <div class="col-md-3 col-6">
         <div class="p-3 text-center statistics-card">
           <div class="h4 mb-1 text-primary fw-bold">{{ getContractsByStatus('actif').length }}</div>
           <small class="text-muted"><i class="bi bi-check-circle me-1"></i>Actifs</small>
         </div>
       </div>
-      <div class="col-md-3 col-6 border-end">
+      <div class="col-md-3 col-6">
         <div class="p-3 text-center statistics-card">
           <div class="h4 mb-1 text-warning fw-bold">{{ getContractsByStatus('expire').length }}</div>
           <small class="text-muted"><i class="bi bi-exclamation-triangle me-1"></i>Expirés</small>
         </div>
       </div>
-      <div class="col-md-3 col-6 border-end">
+      <div class="col-md-3 col-6">
         <div class="p-3 text-center statistics-card">
           <div class="h4 mb-1 text-info fw-bold">{{ getContractsByStatus('renouvele').length }}</div>
           <small class="text-muted"><i class="bi bi-arrow-repeat me-1"></i>Renouvelés</small>
@@ -60,14 +77,14 @@
       </div>
       <div class="col-md-3 col-6">
         <div class="p-3 text-center statistics-card">
-          <div class="h4 mb-1 text-success fw-bold">{{ allContrats.length }}</div>
+          <div class="h4 mb-1 text-success fw-bold">{{ allContrats.length + contratsHistory.length }}</div>
           <small class="text-muted"><i class="bi bi-files me-1"></i>Total</small>
         </div>
       </div>
     </div>
 
     <!-- Search and Filter Bar -->
-    <div class="px-4 py-3 bg-light border-bottom" *ngIf="!showHistory">
+    <div class="px-4 py-3 bg-light" *ngIf="!showHistory">
       <div class="row g-3">
         <div class="col-md-6">
           <div class="input-group">
@@ -146,11 +163,11 @@
             <td class="py-3 px-4">
               <div class="d-flex align-items-center">
                 <div class="bg-gradient-primary text-white rounded-circle d-flex align-items-center justify-content-center me-3 shadow-sm"
-                     style="width: 40px; height: 40px; font-size: 13px; font-weight: 700; background: linear-gradient(135deg, #007bff, #0056b3);">
+                     style="width: 40px; height: 40px; font-size: 13px; font-weight: 700;">
                   {{ showHistory ? 'H' : 'C' }}{{ i + 1 }}
                 </div>
                 <div>
-                  <span class="fw-bold text-primary fs-6 contract-number">{{ contrat.numeroContrat }}</span>
+                  <span class="fw-bold contract-number fs-6">{{ contrat.numeroContrat }}</span>
                   <small class="d-block text-muted">Réf: #{{ contrat.id }}</small>
                   <small class="d-block text-success" *ngIf="!showHistory">
                     <i class="bi bi-shield-check me-1"></i>Contrat Vérifié
@@ -204,8 +221,7 @@
                         'bg-info text-white': isStatusMatch(contrat.statutContrat, 'brouillon'),
                         'bg-primary text-white': isStatusMatch(contrat.statutContrat, 'renouvele'),
                         'bg-dark text-white': !contrat.statutContrat || contrat.statutContrat === ''
-                      }"
-                      style="font-size: 11px; min-width: 120px; box-shadow: 0 2px 6px rgba(0,0,0,0.2);">
+                      }">
                   <i class="bi me-1" 
                      [ngClass]="{
                        'bi-check-circle-fill': isStatusMatch(contrat.statutContrat, 'actif'),
@@ -222,7 +238,7 @@
                 </span>
                 <div class="mt-2">
                   <small class="text-muted d-block" style="font-size: 10px;">
-                    {{ getStatusDescription(contrat.statutContrat) }}
+                    {{ getStatusDescription(contrat.statutContrat, contrat) }}
                   </small>
                 </div>
               </div>
@@ -230,10 +246,8 @@
             <td class="py-3 d-none d-lg-table-cell">
               <div class="d-flex align-items-center">
                 <div class="position-relative me-3">
-                  <!-- Client Avatar with Gradient Background -->
-                  <div class="client-avatar d-flex align-items-center justify-content-center text-white fw-bold shadow-sm"
-                       style="width: 50px; height: 50px; font-size: 18px; border-radius: 12px; 
-                              background: linear-gradient(135deg, #17a2b8, #138496);">
+                  <!-- Client Avatar with Dark Blue Gradient Background -->
+                  <div class="client-avatar d-flex align-items-center justify-content-center text-white fw-bold shadow-sm">
                     {{ contrat.client?.nom?.charAt(0)?.toUpperCase() || 'C' }}
                   </div>
                   <!-- Status Indicator -->
@@ -325,7 +339,7 @@
             <td colspan="6" class="text-center py-5">
               <div class="empty-state">
                 <div class="display-1 text-muted mb-3">
-                  {{ showHistory ? '�' : '�📄' }}
+                  {{ showHistory ? '📂' : '📄' }}
                 </div>
                 <h5 class="text-muted mb-2">
                   {{ showHistory ? 'Aucun historique de contrat' : 'Aucun contrat trouvé' }}
@@ -333,8 +347,17 @@
                 <p class="text-muted mb-4">
                   {{ showHistory ? 'L\'historique des contrats apparaîtra ici' : 'Commencez par créer votre premier contrat' }}
                 </p>
-                <button class="btn btn-primary" (click)="newContrat()" *ngIf="!showHistory">
-                  <i class="bi bi-plus-circle me-2"></i>Créer un contrat
+                <button class="btn btn-primary" 
+                        (click)="newContrat()" 
+                        *ngIf="!showHistory"
+                        [disabled]="newContratLoading">
+                  <span *ngIf="!newContratLoading">
+                    <i class="bi bi-plus-circle me-2"></i>Créer un contrat
+                  </span>
+                  <span *ngIf="newContratLoading" class="d-flex align-items-center">
+                    <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                    <span>Création en cours...</span>
+                  </span>
                 </button>
               </div>
             </td>

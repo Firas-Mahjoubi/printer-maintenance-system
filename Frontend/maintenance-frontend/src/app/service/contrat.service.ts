@@ -71,4 +71,9 @@ export class ContratService {
       responseType: 'blob'
     });
   }
+
+  // Check if contract number already exists
+  checkContractNumberExists(numeroContrat: string): Observable<boolean> {
+    return this.http.get<boolean>(`${this.baseUrl}/checkNumeroContratExists/${numeroContrat}`);
+  }
 }

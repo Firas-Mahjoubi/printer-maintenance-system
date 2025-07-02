@@ -27,25 +27,7 @@ public class ContratController {
     public ResponseEntity<ContratDTO> save(@RequestBody Contrat contrat,@PathVariable long clientId) {
         try {
             Contrat savedContrat = contratService.save(contrat,clientId);
-            
-            // Convert to DTO to avoid serialization issues
-            ContratDTO contratDTO = ContratDTO.builder()
-                .id(savedContrat.getId())
-                .numeroContrat(savedContrat.getNumeroContrat())
-                .dateDebut(savedContrat.getDateDebut())
-                .dateFin(savedContrat.getDateFin())
-                .statutContrat(savedContrat.getStatutContrat())
-                .conditions_contrat(savedContrat.getConditions_contrat())
-                .client(savedContrat.getClient() != null ? 
-                    ContratDTO.ClientDTO.builder()
-                        .id(savedContrat.getClient().getId())
-                        .nom(savedContrat.getClient().getNom())
-                        .prenom(savedContrat.getClient().getPrenom())
-                        .email(savedContrat.getClient().getEmail())
-                        .telephone(savedContrat.getClient().getTelephone())
-                        .build() : null)
-                .build();
-                
+            ContratDTO contratDTO = convertToDTO(savedContrat);
             return ResponseEntity.ok(contratDTO);
         } catch (Exception e) {
             log.error("Erreur lors de la création du contrat: {}", e.getMessage());
@@ -53,20 +35,25 @@ public class ContratController {
         }
     }
 @GetMapping("/findAll")
-    public List<Contrat> findAll() {
-        return contratService.findAll();
+    public List<ContratDTO> findAll() {
+        List<Contrat> contrats = contratService.findAll();
+        return contrats.stream()
+                .map(this::convertToDTO)
+                .toList();
     }
 @PostMapping("/delete/{id}")
     public void delete(@PathVariable Long id) {
         contratService.delete(id);
     }
 @GetMapping("/findById/{id}")
-    public Contrat findById(@PathVariable Long id) {
-        return contratService.findById(id);
+    public ContratDTO findById(@PathVariable Long id) {
+        Contrat contrat = contratService.findById(id);
+        return convertToDTO(contrat);
     }
 @PutMapping("/update/{id}")
-    public Contrat update(@PathVariable long id,@RequestBody Contrat contrat) {
-        return contratService.update(id, contrat);
+    public ContratDTO update(@PathVariable long id,@RequestBody Contrat contrat) {
+        Contrat updatedContrat = contratService.update(id, contrat);
+        return convertToDTO(updatedContrat);
     }
    /* @PutMapping("/update/{encryptedId}")
     public Contrat update(@PathVariable String encryptedId,@RequestBody Contrat contrat) {
@@ -75,12 +62,16 @@ public class ContratController {
     }*/
 
     @PostMapping("/renouveler/{id}")
-    public Contrat renouvelerContrat(@PathVariable Long id,@RequestBody Contrat newContratData) {
-        return contratService.renouvelerContrat(id, newContratData);
+    public ContratDTO renouvelerContrat(@PathVariable Long id,@RequestBody Contrat newContratData) {
+        Contrat renewedContrat = contratService.renouvelerContrat(id, newContratData);
+        return convertToDTO(renewedContrat);
     }
 @GetMapping("/getContratsHistorie")
-    public List<Contrat> getContratsHistorie() {
-        return contratService.getContratsHistorie();
+    public List<ContratDTO> getContratsHistorie() {
+        List<Contrat> contrats = contratService.getContratsHistorie();
+        return contrats.stream()
+                .map(this::convertToDTO)
+                .toList();
     }
 
     @GetMapping("/export/pdf/{id}")
@@ -102,6 +93,41 @@ public class ContratController {
             log.error("Contrat non trouvé pour l'ID {}: {}", id, e.getMessage());
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
+    }
+
+    @GetMapping("/checkNumeroContratExists/{numeroContrat}")
+    public ResponseEntity<Boolean> checkNumeroContratExists(@PathVariable String numeroContrat) {
+        try {
+            boolean exists = contratService.checkNumeroContratExists(numeroContrat);
+            return ResponseEntity.ok(exists);
+        } catch (Exception e) {
+            log.error("Erreur lors de la vérification du numéro de contrat: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    // Helper method to convert Contrat entity to ContratDTO
+    private ContratDTO convertToDTO(Contrat contrat) {
+        if (contrat == null) {
+            return null;
+        }
+        
+        return ContratDTO.builder()
+                .id(contrat.getId())
+                .numeroContrat(contrat.getNumeroContrat())
+                .dateDebut(contrat.getDateDebut())
+                .dateFin(contrat.getDateFin())
+                .statutContrat(contrat.getStatutContrat())
+                .conditions_contrat(contrat.getConditions_contrat())
+                .client(contrat.getClient() != null ? 
+                    ContratDTO.ClientDTO.builder()
+                        .id(contrat.getClient().getId())
+                        .nom(contrat.getClient().getNom())
+                        .prenom(contrat.getClient().getPrenom())
+                        .email(contrat.getClient().getEmail())
+                        .telephone(contrat.getClient().getTelephone())
+                        .build() : null)
+                .build();
     }
 
     IContratService contratService;
