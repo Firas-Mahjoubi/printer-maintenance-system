@@ -1,85 +1,111 @@
 <div class="container-fluid py-4">
-  <div class="row">
+  <div class="row mb-4">
     <div class="col-12">
       <div class="card">
-        <div class="card-header pb-0">
-          <div class="d-flex align-items-center">
-            <h6 class="mb-0">Gestion des tickets de maintenance</h6>
-            <button class="btn btn-primary btn-sm ms-auto" (click)="createNewTicket()">
-              <i class="fas fa-plus me-2"></i>Nouveau ticket
+        <div class="card-header bg-white border-0">
+          <div class="d-flex align-items-center justify-content-between">
+            <div class="card-title mb-0">
+              <h5 class="mb-0 fw-bold"><i class="bi bi-ticket-detailed me-2"></i>Tickets de maintenance</h5>
+              <p class="text-muted mb-0 mt-1">Gérez tous vos tickets de maintenance</p>
+            </div>
+            <button class="btn btn-primary d-flex align-items-center" (click)="createNewTicket()">
+              <i class="bi bi-plus-circle me-2"></i>Nouveau ticket
             </button>
           </div>
         </div>
         
         <!-- Filtres -->
-        <div class="card-body border-bottom">
+        <div class="card-body border-bottom filter-section">
           <div class="row g-3">
             <div class="col-md-3">
-              <label class="form-label">Recherche</label>
-              <input
-                type="text"
-                class="form-control"
-                placeholder="Numéro, titre, description..."
-                [(ngModel)]="filters.recherche"
-                (input)="onSearchChange()"
-              >
+              <div class="form-group">
+                <label class="form-label">Recherche</label>
+                <div class="input-group">
+                  <span class="input-group-text"><i class="bi bi-search"></i></span>
+                  <input
+                    type="text"
+                    class="form-control"
+                    placeholder="Numéro, titre, description..."
+                    [(ngModel)]="filters.recherche"
+                    (input)="onSearchChange()"
+                  >
+                  <button *ngIf="filters.recherche" 
+                          class="btn btn-outline-secondary input-group-clear" 
+                          type="button"
+                          (click)="filters.recherche = ''; onSearchChange()">
+                    <i class="bi bi-x"></i>
+                  </button>
+                </div>
+              </div>
             </div>
             <div class="col-md-2">
-              <label class="form-label">Statut</label>
-              <select
-                class="form-select"
-                [(ngModel)]="filters.statut"
-                (change)="onFilterChange()"
-              >
-                <option *ngFor="let option of statutOptions" [value]="option.value">
-                  {{ option.label }}
-                </option>
-              </select>
+              <div class="form-group">
+                <label class="form-label">Statut</label>
+                <select
+                  class="form-select"
+                  [(ngModel)]="filters.statut"
+                  (change)="onFilterChange()"
+                >
+                  <option *ngFor="let option of statutOptions" [value]="option.value">
+                    {{ option.label }}
+                  </option>
+                </select>
+              </div>
             </div>
             <div class="col-md-2">
-              <label class="form-label">Type</label>
-              <select
-                class="form-select"
-                [(ngModel)]="filters.type"
-                (change)="onFilterChange()"
-              >
-                <option *ngFor="let option of typeOptions" [value]="option.value">
-                  {{ option.label }}
-                </option>
-              </select>
+              <div class="form-group">
+                <label class="form-label">Type</label>
+                <select
+                  class="form-select"
+                  [(ngModel)]="filters.type"
+                  (change)="onFilterChange()"
+                >
+                  <option *ngFor="let option of typeOptions" [value]="option.value">
+                    {{ option.label }}
+                  </option>
+                </select>
+              </div>
             </div>
             <div class="col-md-2">
-              <label class="form-label">Priorité</label>
-              <select
-                class="form-select"
-                [(ngModel)]="filters.priorite"
-                (change)="onFilterChange()"
-              >
-                <option *ngFor="let option of prioriteOptions" [value]="option.value">
-                  {{ option.label }}
-                </option>
-              </select>
+              <div class="form-group">
+                <label class="form-label">Priorité</label>
+                <select
+                  class="form-select"
+                  [(ngModel)]="filters.priorite"
+                  (change)="onFilterChange()"
+                >
+                  <option *ngFor="let option of prioriteOptions" [value]="option.value">
+                    {{ option.label }}
+                  </option>
+                </select>
+              </div>
             </div>
             <div class="col-md-3 d-flex align-items-end">
-              <button class="btn btn-outline-secondary" (click)="loadTickets()">
-                <i class="fas fa-sync-alt me-2"></i>Actualiser
+              <button class="btn btn-primary me-2" (click)="loadTickets()">
+                <i class="bi bi-arrow-clockwise me-2"></i>Actualiser
+              </button>
+              <button class="btn btn-outline-secondary" (click)="resetFilters()">
+                <i class="bi bi-x-circle me-2"></i>Réinitialiser
               </button>
             </div>
           </div>
         </div>
         
         <!-- Liste des tickets -->
-        <div class="card-body">
+        <div class="card-body p-0">
           <!-- Loading -->
-          <div *ngIf="isLoading" class="text-center py-4">
-            <div class="spinner-border text-primary" role="status">
-              <span class="visually-hidden">Chargement...</span>
+          <div *ngIf="isLoading" class="d-flex justify-content-center py-5 loading-container">
+            <div class="spinner-container">
+              <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Chargement...</span>
+              </div>
+              <p class="mt-3 text-muted">Chargement des tickets...</p>
             </div>
           </div>
           
           <!-- Table -->
           <div *ngIf="!isLoading" class="table-responsive">
-            <table class="table table-hover">
+            <table class="table table-hover align-middle mb-0">
               <thead>
                 <tr>
                   <th>Numéro</th>
@@ -90,24 +116,30 @@
                   <th>Demandeur</th>
                   <th>Technicien</th>
                   <th>Date création</th>
-                  <th>Actions</th>
+                  <th class="text-center">Actions</th>
                 </tr>
               </thead>
               <tbody>
-                <tr *ngFor="let ticket of filteredTickets" [class.table-warning]="ticket.priorite === 'CRITIQUE'">
+                <tr *ngFor="let ticket of filteredTickets" 
+                    [class.high-priority-row]="ticket.priorite === 'CRITIQUE'">
                   <td>
-                    <a [routerLink]="['/tickets', ticket.id]" class="text-decoration-none ticket-link">
-                      <strong class="text-primary">{{ ticket.numero }}</strong>
+                    <a [routerLink]="['/tickets', ticket.id]" class="ticket-number">
+                      <span class="badge bg-primary">{{ ticket.numero }}</span>
                     </a>
                   </td>
                   <td>
-                    <div class="d-flex flex-column">
-                      <a [routerLink]="['/tickets', ticket.id]" class="fw-bold text-decoration-none text-primary ticket-link" style="cursor: pointer;">
+                    <div class="d-flex flex-column ticket-info">
+                      <a [routerLink]="['/tickets', ticket.id]" class="ticket-title mb-1">
                         {{ ticket.titre }}
                       </a>
-                      <small class="text-muted text-truncate" style="max-width: 200px;">
+                      <small class="text-muted description-text">
                         {{ ticket.description }}
                       </small>
+                      <div *ngIf="ticket.imprimantesAssociees && ticket.imprimantesAssociees.length > 0" class="mt-1">
+                        <span class="badge bg-light text-dark border">
+                          <i class="bi bi-printer me-1"></i>{{ ticket.imprimantesAssociees.length }} imprimante(s)
+                        </span>
+                      </div>
                     </div>
                   </td>
                   <td>
@@ -119,54 +151,51 @@
                     </span>
                   </td>
                   <td>
-                    <span class="badge bg-{{ getStatutClass(ticket.statut!) }}">
+                    <span class="badge bg-{{ getStatutClass(ticket.statut!) }} status-badge">
                       {{ getStatutLabel(ticket.statut!) }}
                     </span>
                   </td>
                   <td>
                     <div class="d-flex align-items-center">
-                      <i class="fas fa-user me-2 text-muted"></i>
-                      {{ ticket.demandeurNom || 'Non assigné' }}
+                      <div class="avatar">
+                        <i class="bi bi-person"></i>
+                      </div>
+                      <span class="ms-2">{{ ticket.demandeurNom || 'Non assigné' }}</span>
                     </div>
                   </td>
                   <td>
                     <div class="d-flex align-items-center" *ngIf="ticket.technicienNom; else noTechnicien">
-                      <i class="fas fa-tools me-2 text-primary"></i>
-                      {{ ticket.technicienNom }}
+                      <div class="avatar tech-avatar">
+                        <i class="bi bi-tools"></i>
+                      </div>
+                      <span class="ms-2">{{ ticket.technicienNom }}</span>
                     </div>
                     <ng-template #noTechnicien>
                       <span class="text-muted">
-                        <i class="fas fa-user-clock me-2"></i>
+                        <i class="bi bi-clock me-2"></i>
                         Non assigné
                       </span>
                     </ng-template>
                   </td>
                   <td>
-                    <small>{{ formatDate(ticket.dateCreation) }}</small>
+                    <div class="d-flex flex-column">
+                      <span class="date-text">{{ formatDate(ticket.dateCreation) }}</span>
+                      <small class="text-muted" *ngIf="ticket.dateModification">
+                        Modifié: {{ formatDate(ticket.dateModification) }}
+                      </small>
+                    </div>
                   </td>
                   <td>
-                    <div class="dropdown">
-                      <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
-                        <i class="fas fa-ellipsis-v"></i>
+                    <div class="actions-container">
+                      <button class="btn btn-sm btn-icon btn-primary" [routerLink]="['/tickets', ticket.id]" title="Voir">
+                        <i class="bi bi-eye"></i>
                       </button>
-                      <ul class="dropdown-menu">
-                        <li>
-                          <a class="dropdown-item" (click)="viewTicket(ticket)">
-                            <i class="fas fa-eye me-2"></i>Voir
-                          </a>
-                        </li>
-                        <li>
-                          <a class="dropdown-item" (click)="editTicket(ticket)">
-                            <i class="fas fa-edit me-2"></i>Modifier
-                          </a>
-                        </li>
-                        <li><hr class="dropdown-divider"></li>
-                        <li>
-                          <a class="dropdown-item text-danger" (click)="deleteTicket(ticket)">
-                            <i class="fas fa-trash me-2"></i>Supprimer
-                          </a>
-                        </li>
-                      </ul>
+                      <button class="btn btn-sm btn-icon btn-info" (click)="editTicket(ticket)" title="Modifier">
+                        <i class="bi bi-pencil"></i>
+                      </button>
+                      <button class="btn btn-sm btn-icon btn-danger" (click)="deleteTicket(ticket)" title="Supprimer">
+                        <i class="bi bi-trash"></i>
+                      </button>
                     </div>
                   </td>
                 </tr>
@@ -174,27 +203,29 @@
             </table>
             
             <!-- Message si aucun ticket -->
-            <div *ngIf="filteredTickets.length === 0" class="text-center py-4">
-              <i class="fas fa-ticket-alt fa-3x text-muted mb-3"></i>
-              <h5 class="text-muted">Aucun ticket trouvé</h5>
-              <p class="text-muted">Créez votre premier ticket de maintenance ou modifiez vos filtres.</p>
-              <button class="btn btn-primary" (click)="createNewTicket()">
-                <i class="fas fa-plus me-2"></i>Créer un ticket
-              </button>
+            <div *ngIf="filteredTickets.length === 0" class="empty-state">
+              <div class="empty-state-container">
+                <i class="bi bi-ticket-detailed empty-icon"></i>
+                <h5>Aucun ticket trouvé</h5>
+                <p class="text-muted">Créez votre premier ticket de maintenance ou modifiez vos filtres.</p>
+                <button class="btn btn-primary mt-3" (click)="createNewTicket()">
+                  <i class="bi bi-plus-circle me-2"></i>Créer un ticket
+                </button>
+              </div>
             </div>
           </div>
           
           <!-- Pagination -->
-          <nav *ngIf="!isLoading && totalPages > 1" aria-label="Navigation des pages">
-            <ul class="pagination justify-content-center">
+          <nav *ngIf="!isLoading && totalPages > 1" aria-label="Navigation des pages" class="pagination-container">
+            <ul class="pagination justify-content-center mb-2">
               <li class="page-item" [class.disabled]="currentPage === 0">
                 <a class="page-link" (click)="onPageChange(0)" aria-label="Première">
-                  <span aria-hidden="true">&laquo;&laquo;</span>
+                  <i class="bi bi-chevron-double-left"></i>
                 </a>
               </li>
               <li class="page-item" [class.disabled]="currentPage === 0">
                 <a class="page-link" (click)="onPageChange(currentPage - 1)" aria-label="Précédente">
-                  <span aria-hidden="true">&laquo;</span>
+                  <i class="bi bi-chevron-left"></i>
                 </a>
               </li>
               
@@ -204,18 +235,18 @@
               
               <li class="page-item" [class.disabled]="currentPage === totalPages - 1">
                 <a class="page-link" (click)="onPageChange(currentPage + 1)" aria-label="Suivante">
-                  <span aria-hidden="true">&raquo;</span>
+                  <i class="bi bi-chevron-right"></i>
                 </a>
               </li>
               <li class="page-item" [class.disabled]="currentPage === totalPages - 1">
                 <a class="page-link" (click)="onPageChange(totalPages - 1)" aria-label="Dernière">
-                  <span aria-hidden="true">&raquo;&raquo;</span>
+                  <i class="bi bi-chevron-double-right"></i>
                 </a>
               </li>
             </ul>
             
-            <div class="text-center text-muted">
-              Page {{ currentPage + 1 }} sur {{ totalPages }} 
+            <div class="text-center text-muted pagination-info">
+              Page <span class="fw-bold">{{ currentPage + 1 }}</span> sur <span class="fw-bold">{{ totalPages }}</span> 
               ({{ totalElements }} ticket{{ totalElements > 1 ? 's' : '' }} au total)
             </div>
           </nav>

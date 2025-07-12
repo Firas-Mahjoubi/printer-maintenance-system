@@ -89,8 +89,8 @@ export class NavbarComponent implements OnInit {
       {
         id: 4,
         type: 'danger',
-        title: 'Équipement hors service',
-        message: 'Canon Pixma TS3350 - Bureau 105 est hors service',
+        title: 'Équipement en panne',
+        message: 'Canon Pixma TS3350 - Bureau 105 est en panne',
         time: new Date(Date.now() - 6 * 60 * 60 * 1000), // 6 hours ago
         read: false
       },

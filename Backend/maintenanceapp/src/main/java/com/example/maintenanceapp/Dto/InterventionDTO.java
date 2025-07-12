@@ -4,7 +4,10 @@ import com.example.maintenanceapp.Entity.Enum.PrioriteIntervention;
 import com.example.maintenanceapp.Entity.Enum.StatutIntervention;
 import com.example.maintenanceapp.Entity.Enum.TypeIntervention;
 
+
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 public class InterventionDTO {
     private Long id;
@@ -40,6 +43,9 @@ public class InterventionDTO {
     private String technicienNom;
     private Long modificateurId;
     private String modificateurNom;
+    
+    // Liste des imprimantes associées
+    private List<ImprimanteDTO> imprimantesAssociees = new ArrayList<>();
 
     // Constructeurs
     public InterventionDTO() {}
@@ -267,5 +273,13 @@ public class InterventionDTO {
 
     public void setModificateurNom(String modificateurNom) {
         this.modificateurNom = modificateurNom;
+    }
+
+    public List<ImprimanteDTO> getImprimantesAssociees() {
+        return imprimantesAssociees;
+    }
+
+    public void setImprimantesAssociees(List<ImprimanteDTO> imprimantesAssociees) {
+        this.imprimantesAssociees = imprimantesAssociees;
     }
 }

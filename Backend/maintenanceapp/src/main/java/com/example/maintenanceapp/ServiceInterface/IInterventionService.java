@@ -21,6 +21,8 @@ public interface IInterventionService {
     // ====================== MÉTHODES DTO ======================
     // Nouvelles méthodes qui retournent des DTOs pour l'API REST
     InterventionDTO creerIntervention(InterventionCreateDTO createDTO);
+    InterventionDTO creerInterventionMultipleImprimantes(InterventionCreateDTO createDTO);
+    List<InterventionDTO> creerInterventionsParImprimante(InterventionCreateDTO createDTO);
     InterventionDTO obtenirInterventionParId(Long id);
     InterventionDTO obtenirInterventionParNumero(String numero);
     InterventionDTO mettreAJourIntervention(Long id, InterventionUpdateDTO updateDTO);
@@ -100,4 +102,24 @@ public interface IInterventionService {
     
     // Satisfaction Client
     Intervention evaluerSatisfaction(Long interventionId, Integer note, String commentaire);
+    
+    /**
+     * Obtenir tous les IDs de contrats qui ont des interventions actives
+     * @return Liste des IDs des contrats avec des interventions actives
+     */
+    List<Long> obtenirContratIdsAvecInterventionsActives();
+    
+    /**
+     * Vérifier si un contrat a des interventions actives
+     * @param contratId ID du contrat à vérifier
+     * @return true si le contrat a au moins une intervention active, false sinon
+     */
+    boolean hasActiveInterventionsForContract(Long contratId);
+    
+    /**
+     * Obtenir les interventions actives pour un contrat
+     * @param contratId ID du contrat
+     * @return Liste des interventions actives
+     */
+    List<InterventionDTO> obtenirInterventionsActivesPourContrat(Long contratId);
 }

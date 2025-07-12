@@ -1,70 +1,242 @@
-<div class="container-fluid py-4">
-  <div class="row">
-    <div class="col-12">
-      <div class="card shadow-sm">
-        <div class="card-header d-flex justify-content-between align-items-center">
-          <h5 class="card-title mb-0">
-            <i class="fas fa-print me-2"></i>
-            Liste des Imprimantes
+<div class="printer-container">
+  <div class="content-wrapper">
+    <!-- Header Card -->
+    <div class="printer-card">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <div>
+          <h5 class="card-title">
+            <i class="fas fa-print"></i>
+            Gestion du Parc d'Imprimantes
           </h5>
+          <p class="text-muted mt-1 mb-0">Vue d'ensemble et statistiques des imprimantes</p>
         </div>
-        
-        <div class="card-body">
-          <div class="table-responsive">
-            <table class="table table-hover">
-              <thead class="table-light">
-                <tr>
-                  <th>ID</th>
-                  <th>Modèle</th>
-                  <th>Client</th>
-                  <th>Statut</th>
-                  <th>Nb. Interventions</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr *ngFor="let printer of printers">
-                  <td>{{ printer.id }}</td>
-                  <td>
-                    <div class="d-flex align-items-center">
-                      <div class="avatar-sm bg-primary rounded-circle me-2 d-flex align-items-center justify-content-center">
-                        <i class="fas fa-print text-white"></i>
-                      </div>
-                      {{ printer.modele }}
-                    </div>
-                  </td>
-                  <td>{{ printer.client }}</td>
-                  <td>
-                    <span [class]="getStatusBadgeClass(printer.statut)">
-                      {{ printer.statut }}
-                    </span>
-                  </td>
-                  <td>
-                    <span class="badge bg-info">{{ printer.interventions }}</span>
-                  </td>
-                  <td>
-                    <button 
-                      type="button" 
-                      class="btn btn-sm btn-outline-primary"
-                      (click)="viewHistory(printer.id)"
-                      title="Voir l'historique des interventions">
-                      <i class="fas fa-history me-1"></i>
-                      Historique
-                    </button>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
+        <div class="header-actions">
+          <button class="btn btn-action" (click)="refreshData()" title="Actualiser">
+            <i class="fas fa-sync-alt" [class.fa-spin]="loading"></i>
+          </button>
+          <button class="btn btn-action btn-details ms-2">
+            <i class="fas fa-plus"></i> Ajouter une imprimante
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Alert for errors -->
+    <div class="alert alert-danger" *ngIf="error">
+      <i class="fas fa-exclamation-triangle me-2"></i>
+      {{ errorMessage }}
+      <button type="button" class="btn-close float-end" (click)="error = false"></button>
+    </div>
+
+    <!-- Filter Section -->
+    <div class="filter-section">
+      <div class="search-input">
+        <i class="fas fa-search"></i>
+        <input type="text" placeholder="Rechercher une imprimante..." (input)="filterPrinters($event)">
+      </div>
+      <div class="filter-dropdown">
+        <select (change)="filterByStatus($event)">
+          <option value="all">Tous les statuts</option>
+          <option value="Actif">Actif</option>
+          <option value="En maintenance">En maintenance</option>
+          <option value="En panne">En panne</option>
+        </select>
+      </div>
+      <div class="filter-dropdown">
+        <select (change)="sortPrinters($event)">
+          <option value="id">Trier par ID</option>
+          <option value="modele">Trier par modèle</option>
+          <option value="client">Trier par client</option>
+          <option value="interventions">Trier par interventions</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Statistics Cards Row -->
+    <div class="row mb-4">
+      <div class="col-md-3 mb-3">
+        <div class="printer-card d-flex align-items-center p-3">
+          <div class="printer-avatar active">
+            <i class="fas fa-print"></i>
           </div>
-          
-          <div class="text-center mt-4" *ngIf="printers.length === 0">
-            <div class="text-muted">
-              <i class="fas fa-print fa-3x mb-3"></i>
-              <p>Aucune imprimante enregistrée</p>
-            </div>
+          <div class="ms-3">
+            <div class="fs-6 text-muted">Total Imprimantes</div>
+            <div class="fs-4 fw-bold">{{ getTotalPrinters() }}</div>
           </div>
         </div>
       </div>
+      <div class="col-md-3 mb-3">
+        <div class="printer-card d-flex align-items-center p-3">
+          <div class="printer-avatar active">
+            <i class="fas fa-check-circle"></i>
+          </div>
+          <div class="ms-3">
+            <div class="fs-6 text-muted">Actives</div>
+            <div class="fs-4 fw-bold">{{ getActivePrinters() }}</div>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-3 mb-3">
+        <div class="printer-card d-flex align-items-center p-3">
+          <div class="printer-avatar maintenance">
+            <i class="fas fa-tools"></i>
+          </div>
+          <div class="ms-3">
+            <div class="fs-6 text-muted">En maintenance</div>
+            <div class="fs-4 fw-bold">{{ getMaintenancePrinters() }}</div>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-3 mb-3">
+        <div class="printer-card d-flex align-items-center p-3">
+          <div class="printer-avatar offline">
+            <i class="fas fa-exclamation-triangle"></i>
+          </div>
+          <div class="ms-3">
+            <div class="fs-6 text-muted">En panne</div>
+            <div class="fs-4 fw-bold">{{ getOfflinePrinters() }}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Main Printer List Card -->
+    <div class="printer-card">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="card-title">
+          <i class="fas fa-list"></i>
+          Liste des Imprimantes
+        </h5>
+        <span class="counter-badge">{{ filteredPrinters.length }}</span>
+      </div>
+      
+      <div class="card-body">
+        <!-- Loading spinner -->
+        <div class="text-center p-5" *ngIf="loading">
+          <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Loading...</span>
+          </div>
+          <p class="mt-2">Chargement des imprimantes...</p>
+        </div>
+        
+        <div class="table-responsive" *ngIf="!loading && filteredPrinters.length > 0">
+          <table class="table table-hover">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Imprimante</th>
+                <th>Client</th>
+                <th>Statut</th>
+                <th>Interventions</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let printer of paginatedPrinters">
+                <td>{{ printer.id }}</td>
+                <td>
+                  <div class="d-flex align-items-center">
+                    <div class="printer-avatar" [ngClass]="getPrinterAvatarClass(printer.statut)">
+                      <i class="fas fa-print"></i>
+                    </div>
+                    <div class="model-info">
+                      <span class="model-name">{{ printer.modele }}</span>
+                      <span class="model-brand">{{ getPrinterBrand(printer.modele) }}</span>
+                    </div>
+                  </div>
+                </td>
+                <td>{{ printer.client }}</td>
+                <td>
+                  <span class="status-badge" [ngClass]="getPrinterStatusClass(printer.statut)">
+                    <span class="status-indicator" [ngClass]="getPrinterStatusClass(printer.statut)"></span>
+                    {{ printer.statut }}
+                  </span>
+                </td>
+                <td>
+                  <span class="counter-badge">{{ printer.interventions }}</span>
+                </td>
+                <td>
+                  <div class="d-flex">
+                    <button 
+                      type="button" 
+                      class="btn-action btn-history me-2"
+                      (click)="viewHistory(printer.id)"
+                      title="Voir l'historique des interventions">
+                      <i class="fas fa-history"></i>
+                      Historique
+                    </button>
+                    <button 
+                      type="button" 
+                      class="btn-action btn-details"
+                      (click)="viewDetails(printer.id)"
+                      title="Voir les détails de l'imprimante">
+                      <i class="fas fa-info-circle"></i>
+                      Détails
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        
+        <div class="empty-state" *ngIf="!loading && filteredPrinters.length === 0">
+          <i class="fas fa-print"></i>
+          <p>Aucune imprimante trouvée</p>
+          <button class="btn-action btn-details">
+            <i class="fas fa-plus"></i> Ajouter une imprimante
+          </button>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Pagination -->
+    <div class="pagination-container" *ngIf="filteredPrinters.length > pageSize">
+      <div class="pagination-info">
+        Affichage de {{ (currentPage - 1) * pageSize + 1 }} à {{ Math.min(currentPage * pageSize, filteredPrinters.length) }} sur {{ filteredPrinters.length }} imprimantes
+      </div>
+      <nav aria-label="Pagination des imprimantes">
+        <ul class="pagination">
+          <!-- Previous button -->
+          <li class="page-item" [class.disabled]="currentPage === 1">
+            <a class="page-link" href="javascript:void(0)" (click)="prevPage()" [tabindex]="currentPage === 1 ? -1 : 0" aria-label="Précédent">
+              <i class="fas fa-chevron-left"></i>
+            </a>
+          </li>
+          
+          <!-- First page -->
+          <li class="page-item" [class.active]="currentPage === 1">
+            <a class="page-link" href="javascript:void(0)" (click)="goToPage(1)">1</a>
+          </li>
+          
+          <!-- Ellipsis for start (if needed) -->
+          <li class="page-item ellipsis" *ngIf="startPage > 2">
+            <span class="page-link">...</span>
+          </li>
+          
+          <!-- Page numbers -->
+          <li class="page-item" *ngFor="let page of pageNumbers" [class.active]="currentPage === page">
+            <a class="page-link" href="javascript:void(0)" (click)="goToPage(page)">{{ page }}</a>
+          </li>
+          
+          <!-- Ellipsis for end (if needed) -->
+          <li class="page-item ellipsis" *ngIf="endPage < totalPages - 1 && totalPages > 1">
+            <span class="page-link">...</span>
+          </li>
+          
+          <!-- Last page (if not already shown and there are multiple pages) -->
+          <li class="page-item" *ngIf="totalPages > 1" [class.active]="currentPage === totalPages">
+            <a class="page-link" href="javascript:void(0)" (click)="goToPage(totalPages)">{{ totalPages }}</a>
+          </li>
+          
+          <!-- Next button -->
+          <li class="page-item" [class.disabled]="currentPage === totalPages">
+            <a class="page-link" href="javascript:void(0)" (click)="nextPage()" [tabindex]="currentPage === totalPages ? -1 : 0" aria-label="Suivant">
+              <i class="fas fa-chevron-right"></i>
+            </a>
+          </li>
+        </ul>
+      </nav>
     </div>
   </div>
 </div>

@@ -1,6 +1,8 @@
 package com.example.maintenanceapp.Entity;
 
 import com.example.maintenanceapp.Entity.Enum.StatutIntervention;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -21,6 +23,7 @@ public class InterventionHistorique {
     private Long id;
     
     @ManyToOne(fetch = FetchType.LAZY)
+        @JsonIgnore
     @JoinColumn(name = "intervention_id", nullable = false)
     private Intervention intervention;
     
@@ -39,6 +42,7 @@ public class InterventionHistorique {
     private String commentaire;
     
     @ManyToOne(fetch = FetchType.LAZY)
+        @JsonIgnore
     @JoinColumn(name = "utilisateur_id")
     private Utilisateur utilisateur;
     

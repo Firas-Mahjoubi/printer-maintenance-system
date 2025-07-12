@@ -1,5 +1,24 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
+import { ImprimanteService, Imprimante, PrinterStatus } from '../service/imprimante.service';
+import { firstValueFrom } from 'rxjs';
+
+interface EquipmentItem {
+  id: string;
+  name: string;
+  model: string;
+  location: string;
+  serialNumber: string;
+  status: string;
+  statusLabel: string;
+  pageCount: number;
+  monthlyPages: number;
+  installDate: Date;
+  lastMaintenance: Date;
+  nextMaintenance: Date;
+  supplies?: { name: string, level: number }[];
+  recentIssues?: { date: Date, description: string, status: string, statusLabel: string }[];
+}
 
 @Component({
   selector: 'app-client-equipment',
@@ -7,8 +26,8 @@ import { Router } from '@angular/router';
   styleUrls: ['./client-equipment.component.css']
 })
 export class ClientEquipmentComponent implements OnInit {
-  equipmentList: any[] = [];
-  filteredEquipment: any[] = [];
+  equipmentList: EquipmentItem[] = [];
+  filteredEquipment: EquipmentItem[] = [];
   selectedStatus: string = '';
   selectedLocation: string = '';
   uniqueLocations: string[] = [];
@@ -19,123 +38,91 @@ export class ClientEquipmentComponent implements OnInit {
   maintenanceCount: number = 0;
   errorCount: number = 0;
 
-  constructor(private router: Router) { }
+  constructor(
+    private router: Router,
+    private imprimanteService: ImprimanteService
+  ) { }
 
   ngOnInit(): void {
     this.loadEquipment();
-    this.calculateStats();
-    this.extractUniqueLocations();
   }
 
-  loadEquipment(): void {
-    // Mock data - replace with actual service call
-    this.equipmentList = [
-      {
-        id: '1',
-        name: 'HP LaserJet Pro M404n',
-        model: 'M404n',
-        location: 'Bureau 201',
-        serialNumber: 'HP001234567',
-        status: 'operational',
-        statusLabel: 'Opérationnel',
-        pageCount: 15420,
-        monthlyPages: 1250,
-        installDate: new Date('2023-03-15'),
-        lastMaintenance: new Date('2024-01-10'),
-        nextMaintenance: new Date('2024-04-10'),
-        supplies: [
-          { name: 'Toner noir', level: 75 },
-          { name: 'Tambour', level: 45 }
-        ],
-        recentIssues: []
-      },
-      {
-        id: '2',
-        name: 'Canon Pixma TS3350',
-        model: 'TS3350',
-        location: 'Bureau 105',
-        serialNumber: 'CN001987654',
-        status: 'warning',
-        statusLabel: 'Attention requise',
-        pageCount: 8950,
-        monthlyPages: 650,
-        installDate: new Date('2023-07-22'),
-        lastMaintenance: new Date('2023-12-15'),
-        nextMaintenance: new Date('2024-03-15'),
-        supplies: [
-          { name: 'Encre noire', level: 15 },
-          { name: 'Encre couleur', level: 25 }
-        ],
-        recentIssues: [
-          {
-            date: new Date('2024-01-12'),
-            description: 'Qualité d\'impression dégradée',
-            status: 'pending',
-            statusLabel: 'En attente'
-          }
-        ]
-      },
-      {
-        id: '3',
-        name: 'Epson EcoTank L3150',
-        model: 'L3150',
-        location: 'Salle de réunion',
-        serialNumber: 'EP002345789',
-        status: 'maintenance',
-        statusLabel: 'En maintenance',
-        pageCount: 12300,
-        monthlyPages: 890,
-        installDate: new Date('2023-05-10'),
-        lastMaintenance: new Date('2024-01-15'),
-        nextMaintenance: new Date('2024-04-15'),
-        supplies: [
-          { name: 'Réservoir noir', level: 60 },
-          { name: 'Réservoir couleur', level: 70 }
-        ],
-        recentIssues: [
-          {
-            date: new Date('2024-01-15'),
-            description: 'Maintenance préventive en cours',
-            status: 'in-progress',
-            statusLabel: 'En cours'
-          }
-        ]
-      },
-      {
-        id: '4',
-        name: 'Brother DCP-L2530DW',
-        model: 'DCP-L2530DW',
-        location: 'Comptabilité',
-        serialNumber: 'BR003456890',
-        status: 'error',
-        statusLabel: 'Hors service',
-        pageCount: 22100,
-        monthlyPages: 0,
-        installDate: new Date('2022-11-08'),
-        lastMaintenance: new Date('2023-11-08'),
-        nextMaintenance: new Date('2024-02-08'),
-        supplies: [
-          { name: 'Toner noir', level: 0 },
-          { name: 'Tambour', level: 20 }
-        ],
-        recentIssues: [
-          {
-            date: new Date('2024-01-10'),
-            description: 'Bourrage papier récurrent',
-            status: 'pending',
-            statusLabel: 'En attente'
-          },
-          {
-            date: new Date('2024-01-08'),
-            description: 'Erreur système',
-            status: 'pending',
-            statusLabel: 'En attente'
-          }
-        ]
+  async loadEquipment(): Promise<void> {
+    try {
+      // Assuming you can get the current contract ID from localStorage or a service
+      const contratId = this.getCurrentContractId();
+      
+      if (!contratId) {
+        console.error('No contract ID available');
+        return;
       }
-    ];
-    
-    this.filteredEquipment = [...this.equipmentList];
+      
+      // Get all printers for the current contract
+      const printers = await firstValueFrom(this.imprimanteService.getAllByContrat(contratId));
+      
+      // Get all printer statuses in one call
+      const statusesMap = await firstValueFrom(this.imprimanteService.getAllPrinterStatuses());
+      
+      // Map printers to the equipment format used by this component
+      this.equipmentList = printers.map(printer => {
+        // Get the status for this printer
+        const status = statusesMap[printer.id] || 'Actif';
+        
+        // Map backend status to frontend status codes
+        let statusCode: string;
+        switch (status) {
+          case 'Actif': statusCode = 'operational'; break;
+          case 'En maintenance': statusCode = 'maintenance'; break;
+          case 'En panne': statusCode = 'error'; break;
+          case 'Hors service': statusCode = 'error'; break;
+          default: statusCode = 'operational';
+        }
+        
+        // Create an equipment item with the printer data
+        return {
+          id: printer.id.toString(),
+          name: `${printer.marque} ${printer.modele}`,
+          model: printer.modele,
+          location: printer.emplacement || 'Non spécifié',
+          serialNumber: printer.numeroSerie || 'Non spécifié',
+          status: statusCode,
+          statusLabel: status,
+          pageCount: 0, // These fields are not available in the backend model
+          monthlyPages: 0,
+          installDate: new Date(),
+          lastMaintenance: new Date(),
+          nextMaintenance: new Date(),
+          supplies: [],
+          recentIssues: []
+        } as EquipmentItem;
+      });
+      
+      // Initialize filtered equipment
+      this.filteredEquipment = [...this.equipmentList];
+      
+      // Calculate stats and extract locations
+      this.calculateStats();
+      this.extractUniqueLocations();
+      
+    } catch (error) {
+      console.error('Error loading equipment:', error);
+    }
+  }
+  
+  // Helper method to get the current contract ID
+  private getCurrentContractId(): number {
+    // This should be replaced with your actual method to get the contract ID
+    // For example, from localStorage or a user service
+    const userDataStr = localStorage.getItem('userData');
+    if (userDataStr) {
+      try {
+        const userData = JSON.parse(userDataStr);
+        return userData.contratId || 1; // Default to 1 if not found
+      } catch (e) {
+        console.error('Error parsing user data', e);
+      }
+    }
+    return 1; // Default contract ID as fallback
   }
 
   calculateStats(): void {

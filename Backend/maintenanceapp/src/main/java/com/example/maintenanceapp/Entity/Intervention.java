@@ -9,6 +9,8 @@ import lombok.*;
 import lombok.experimental.FieldDefaults;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Getter
@@ -76,7 +78,17 @@ public class Intervention {
     @ManyToOne
     @JsonIgnore
     @JoinColumn(name = "imprimante_id")
-    Imprimante imprimante; // Imprimante concernée
+    Imprimante imprimante; // Imprimante principale concernée (pour compatibilité legacy)
+    
+    // Nouvelle relation many-to-many avec les imprimantes
+    @ManyToMany
+    @JoinTable(
+        name = "intervention_imprimantes",
+        joinColumns = @JoinColumn(name = "intervention_id"),
+        inverseJoinColumns = @JoinColumn(name = "imprimante_id")
+    )
+    @Builder.Default
+    List<Imprimante> imprimantesAssociees = new ArrayList<>();
     
     @ManyToOne
     @JsonIgnore

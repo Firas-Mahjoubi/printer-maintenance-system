@@ -4,10 +4,10 @@ import { DashboardComponent } from './dashboard/dashboard.component';
 import { LoginComponent } from './login/login.component';
 import { AuthGuard } from './guards/auth.guard';
 import { ContratComponent } from './components/contrat/contrat.component';
+import { ContratHistoryComponent } from './components/contrat-history/contrat-history.component';
 import { ContratFormComponent } from './components/contrat-form/contrat-form.component';
 import { ContratDetailsComponent } from './components/contrat-details/contrat-details.component';
 import { ContratPrintersComponent } from './components/contrat-printers/contrat-printers.component';
-import { ClientService } from './service/client.service';
 import { ClientsComponent } from './clients/clients/clients.component';
 import { AddClientComponent } from './clients/add-client/add-client.component';
 import { NotificationsComponent } from './components/notifications/notifications.component';
@@ -23,6 +23,7 @@ import { ClientRequestsComponent } from './client-requests/client-requests.compo
 import { ClientNewRequestComponent } from './client-new-request/client-new-request.component';
 import { ClientEquipmentComponent } from './client-equipment/client-equipment.component';
 import { ClientHistoryComponent } from './client-history/client-history.component';
+import { TechnicianCalendarComponent } from './components/technician-calendar/technician-calendar.component';
 
 const routes: Routes = [
   { path: '', component: ClientLandingComponent },
@@ -42,7 +43,9 @@ const routes: Routes = [
   
   // Shared routes (both admin and client can access)
   { path: 'contrats', component: ContratComponent, canActivate: [AuthGuard] },
+  { path: 'contrats/historique', component: ContratHistoryComponent, canActivate: [AuthGuard] },
   { path: 'contrats/add', component: ContratFormComponent, canActivate: [AuthGuard] },
+  { path: 'contrats/edit/:id', component: ContratFormComponent, canActivate: [AuthGuard] },
   { path: 'contrats/details/:id', component: ContratDetailsComponent, canActivate: [AuthGuard] },
   { path: 'contrats/:id/printers', component: ContratPrintersComponent, canActivate: [AuthGuard] },
   { path: 'clients', component: ClientsComponent, canActivate: [AuthGuard] },
@@ -51,6 +54,7 @@ const routes: Routes = [
   { path: 'tickets', component: TicketListComponent, canActivate: [AuthGuard] },
   { path: 'tickets/create', component: TicketCreationComponent, canActivate: [AuthGuard] },
   { path: 'tickets/:id', component: TicketDetailsComponent, canActivate: [AuthGuard] },
+  { path: 'technician-calendar', component: TechnicianCalendarComponent, canActivate: [AuthGuard] },
   { path: 'printers', component: PrinterListComponent, canActivate: [AuthGuard] },
   { path: 'printers/history', component: PrinterHistorySelectorComponent, canActivate: [AuthGuard] },
   { path: 'printers/:id/history', component: PrinterHistoryComponent, canActivate: [AuthGuard] },

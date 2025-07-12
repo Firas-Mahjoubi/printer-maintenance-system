@@ -1,13 +1,21 @@
 package com.example.maintenanceapp.Mapper;
 
+import com.example.maintenanceapp.Dto.ImprimanteDTO;
 import com.example.maintenanceapp.Dto.InterventionCreateDTO;
 import com.example.maintenanceapp.Dto.InterventionDTO;
 import com.example.maintenanceapp.Dto.InterventionUpdateDTO;
+import com.example.maintenanceapp.Entity.Imprimante;
 import com.example.maintenanceapp.Entity.Intervention;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+
+import java.util.stream.Collectors;
 
 @Component
 public class InterventionMapper {
+
+    @Autowired
+    private ImprimanteMapper imprimanteMapper;
 
     public InterventionDTO toDTO(Intervention intervention) {
         if (intervention == null) {
@@ -61,6 +69,15 @@ public class InterventionMapper {
         if (intervention.getModifiePar() != null) {
             dto.setModificateurId(intervention.getModifiePar().getId());
             dto.setModificateurNom(intervention.getModifiePar().getNom() + " " + intervention.getModifiePar().getPrenom());
+        }
+        
+        // Ajouter les imprimantes associées
+        if (intervention.getImprimantesAssociees() != null && !intervention.getImprimantesAssociees().isEmpty()) {
+            dto.setImprimantesAssociees(
+                intervention.getImprimantesAssociees().stream()
+                    .map(imprimanteMapper::toDTO)
+                    .collect(Collectors.toList())
+            );
         }
         
         return dto;

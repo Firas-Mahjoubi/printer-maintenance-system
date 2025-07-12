@@ -2,10 +2,13 @@ package com.example.maintenanceapp.ServiceImpl;
 
 import com.example.maintenanceapp.Entity.Contrat;
 import com.example.maintenanceapp.Entity.Enum.StatutContrat;
+import com.example.maintenanceapp.Entity.Enum.StatutIntervention;
 import com.example.maintenanceapp.Entity.Imprimante;
+import com.example.maintenanceapp.Entity.Intervention;
 import com.example.maintenanceapp.Entity.Utilisateur;
 import com.example.maintenanceapp.Repositories.ContratRepositorie;
 import com.example.maintenanceapp.Repositories.ImprimanteRepositorie;
+import com.example.maintenanceapp.Repositories.InterventionRepositorie;
 import com.example.maintenanceapp.Repositories.UtilisateurRepositorie;
 import com.example.maintenanceapp.ServiceInterface.IContratService;
 import lombok.AllArgsConstructor;
@@ -15,7 +18,10 @@ import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.time.LocalDate;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @AllArgsConstructor
@@ -24,6 +30,7 @@ public class ContratService implements IContratService {
     ContratRepositorie contratRepositorie;
     ImprimanteRepositorie imprimanteRepositorie;
     UtilisateurRepositorie utilisateurRepositorie;
+    InterventionRepositorie interventionRepositorie;
     PdfGenerationService pdfGenerationService;
     NotificationService notificationService;
     @Override
@@ -152,6 +159,11 @@ public class ContratService implements IContratService {
     }
 
     @Override
+    public List<Contrat> getContratsActifs() {
+        return contratRepositorie.findByStatutContrat(StatutContrat.ACTIF);
+    }
+
+    @Override
     public byte[] exportContratToPdf(Long contratId) throws IOException {
         Contrat contrat = contratRepositorie.findById(contratId)
                 .orElseThrow(() -> new RuntimeException("Contrat non trouvé avec l'ID: " + contratId));
@@ -162,5 +174,77 @@ public class ContratService implements IContratService {
     @Override
     public boolean checkNumeroContratExists(String numeroContrat) {
         return contratRepositorie.existsByNumeroContrat(numeroContrat);
+    }
+
+    /**
+     * Vérifie si un contrat a des interventions actives
+     * @param contratId ID du contrat à vérifier
+     * @return true si le contrat a au moins une intervention active, false sinon
+     */
+    @Override
+    public boolean hasActiveInterventions(Long contratId) {
+        // Vérifier que le contrat existe
+        contratRepositorie.findById(contratId)
+                .orElseThrow(() -> new RuntimeException("Contrat non trouvé avec l'ID: " + contratId));
+
+        // Liste des statuts considérés comme "actifs"
+        List<StatutIntervention> statutsActifs = Arrays.asList(
+                StatutIntervention.EN_ATTENTE,
+                StatutIntervention.PLANIFIEE,
+                StatutIntervention.EN_COURS,
+                StatutIntervention.EN_PAUSE,
+                StatutIntervention.ATTENTE_PIECES,
+                StatutIntervention.ATTENTE_CLIENT
+        );
+
+        // Utiliser le repository des interventions pour chercher celles liées au contrat
+        List<Intervention> interventions = interventionRepositorie.findByContrat_IdOrderByDateCreationDesc(contratId);
+        
+        // Vérifier si au moins une intervention a un statut actif
+        return interventions.stream()
+                .anyMatch(intervention -> statutsActifs.contains(intervention.getStatutIntervention()));
+    }
+    
+    /**
+     * Récupère la liste des interventions actives pour un contrat
+     * @param contratId ID du contrat
+     * @return Liste des interventions actives
+     */
+    @Override
+    public List<?> getActiveInterventions(Long contratId) {
+        // Vérifier que le contrat existe
+        contratRepositorie.findById(contratId)
+                .orElseThrow(() -> new RuntimeException("Contrat non trouvé avec l'ID: " + contratId));
+                
+        // Liste des statuts considérés comme "actifs"
+        List<StatutIntervention> statutsActifs = Arrays.asList(
+                StatutIntervention.EN_ATTENTE,
+                StatutIntervention.PLANIFIEE,
+                StatutIntervention.EN_COURS,
+                StatutIntervention.EN_PAUSE,
+                StatutIntervention.ATTENTE_PIECES,
+                StatutIntervention.ATTENTE_CLIENT
+        );
+        
+        // Récupérer toutes les interventions liées au contrat
+        List<Intervention> interventions = interventionRepositorie.findByContrat_IdOrderByDateCreationDesc(contratId);
+        
+        // Filtrer les interventions actives et les convertir en DTO
+        return interventions.stream()
+                .filter(intervention -> statutsActifs.contains(intervention.getStatutIntervention()))
+                .map(intervention -> {
+                    // Conversion en DTO pour éviter les références circulaires
+                    return new HashMap<String, Object>() {{
+                        put("id", intervention.getId());
+                        put("numeroTicket", intervention.getNumeroTicket());
+                        put("titre", intervention.getTitre());
+                        put("statutIntervention", intervention.getStatutIntervention());
+                        put("priorite", intervention.getPriorite());
+                        put("typeIntervention", intervention.getTypeIntervention());
+                        put("dateCreation", intervention.getDateCreation());
+                        put("dateDemande", intervention.getDateDemande());
+                    }};
+                })
+                .collect(Collectors.toList());
     }
 }

@@ -2,6 +2,15 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
+export interface ImprimanteDTO {
+  id: number;
+  marque?: string;
+  modele: string;
+  emplacement?: string;
+  numeroSerie?: string;
+  contratId?: number;
+}
+
 export interface InterventionDTO {
   id?: number;
   numero?: string;
@@ -31,6 +40,7 @@ export interface InterventionDTO {
   technicienNom?: string;
   modificateurId?: number;
   modificateurNom?: string;
+  imprimantesAssociees?: ImprimanteDTO[];
 }
 
 export interface InterventionCreateDTO {
@@ -41,6 +51,7 @@ export interface InterventionCreateDTO {
   datePlanifiee?: Date;
   contratId: number;
   imprimanteId?: number;
+  imprimanteIds?: number[];
   demandeurId: number;
   technicienId?: number;
 }
@@ -76,8 +87,11 @@ export enum TypeIntervention {
   CORRECTIVE = 'CORRECTIVE',
   URGENTE = 'URGENTE',
   INSTALLATION = 'INSTALLATION',
-  MAINTENANCE = 'MAINTENANCE',
-  FORMATION = 'FORMATION'
+  MISE_A_JOUR = 'MISE_A_JOUR',
+  DIAGNOSTIC = 'DIAGNOSTIC',
+  FORMATION = 'FORMATION',
+  NETTOYAGE = 'NETTOYAGE',
+  MAINTENANCE = 'MAINTENANCE'
 }
 
 export enum PrioriteIntervention {
@@ -125,6 +139,21 @@ export class InterventionService {
    */
   creerTicket(intervention: InterventionCreateDTO): Observable<InterventionDTO> {
     return this.http.post<InterventionDTO>(this.apiUrl, intervention);
+  }
+  
+  /**
+   * Créer un ticket de maintenance pour plusieurs imprimantes
+   */
+  creerTicketMultiImprimantes(intervention: InterventionCreateDTO): Observable<InterventionDTO> {
+    // Utilise le même endpoint qui détecte automatiquement les imprimanteIds
+    return this.http.post<InterventionDTO>(this.apiUrl, intervention);
+  }
+  
+  /**
+   * Créer plusieurs tickets de maintenance, un pour chaque imprimante
+   */
+  creerTicketsParImprimante(intervention: InterventionCreateDTO): Observable<InterventionDTO[]> {
+    return this.http.post<InterventionDTO[]>(`${this.apiUrl}/multi-printer`, intervention);
   }
 
   /**
@@ -261,6 +290,34 @@ export class InterventionService {
     }
     
     return this.http.put<InterventionDTO>(`${this.apiUrl}/${id}/cloturer`, null, { params });
+  }
+
+  /**
+   * Terminer un ticket (marquer comme terminé avec diagnostic et solution)
+   */
+  terminerTicket(
+    id: number, 
+    diagnostic: string, 
+    solution: string, 
+    observations?: string, 
+    coutReel?: number, 
+    technicienId?: number
+  ): Observable<InterventionDTO> {
+    let params = new HttpParams()
+      .set('diagnostic', diagnostic)
+      .set('solution', solution);
+    
+    if (observations) {
+      params = params.set('observations', observations);
+    }
+    if (coutReel) {
+      params = params.set('coutReel', coutReel.toString());
+    }
+    if (technicienId) {
+      params = params.set('technicienId', technicienId.toString());
+    }
+    
+    return this.http.put<InterventionDTO>(`${this.apiUrl}/${id}/terminer`, null, { params });
   }
 
   /**
@@ -428,5 +485,39 @@ export class InterventionService {
    */
   obtenirStatistiquesImprimante(imprimanteId: number): Observable<any> {
     return this.http.get<any>(`${this.apiUrl}/imprimante/${imprimanteId}/statistiques`);
+  }
+
+  /**
+   * Vérifier si un contrat a des interventions actives
+   * Cette méthode est utilisée pour déterminer si un contrat a des tickets de maintenance en cours
+   */
+  verifierInterventionsActivesPourContrat(contratId: number): Observable<boolean> {
+    return this.http.get<boolean>(`${this.apiUrl}/contrat/${contratId}/hasActiveInterventions`);
+  }
+  
+  /**
+   * Obtenir les interventions actives pour un contrat
+   */
+  obtenirInterventionsActivesPourContrat(contratId: number): Observable<InterventionDTO[]> {
+    const params = new HttpParams()
+      .set('contratId', contratId.toString())
+      .set('statut', [
+        StatutIntervention.EN_ATTENTE, 
+        StatutIntervention.PLANIFIEE, 
+        StatutIntervention.EN_COURS,
+        StatutIntervention.EN_PAUSE,
+        StatutIntervention.ATTENTE_PIECES,
+        StatutIntervention.ATTENTE_CLIENT
+      ].join(','));
+    
+    return this.http.get<InterventionDTO[]>(`${this.apiUrl}/contrat/${contratId}/active`);
+  }
+
+  /**
+   * Obtenir tous les IDs de contrats qui ont des interventions actives
+   * Cette méthode est beaucoup plus efficace que de vérifier chaque contrat individuellement
+   */
+  obtenirContratsAvecInterventionsActives(): Observable<number[]> {
+    return this.http.get<number[]>(`${this.apiUrl}/contrats-avec-interventions-actives`);
   }
 }

@@ -15,6 +15,25 @@ public interface IContratService {
     void verifierContratsProchesExpiration() ;
     Contrat renouvelerContrat(Long oldContratId, Contrat newContratData) ;
     List<Contrat> getContratsHistorie();
+    /**
+     * Récupère tous les contrats actifs (non historiques)
+     * @return Liste des contrats actifs
+     */
+    List<Contrat> getContratsActifs();
     byte[] exportContratToPdf(Long contratId) throws IOException;
     boolean checkNumeroContratExists(String numeroContrat);
-    }
+    
+    /**
+     * Vérifie si un contrat a des interventions actives
+     * @param contratId ID du contrat à vérifier
+     * @return true si le contrat a au moins une intervention active, false sinon
+     */
+    boolean hasActiveInterventions(Long contratId);
+    
+    /**
+     * Récupère la liste des interventions actives pour un contrat
+     * @param contratId ID du contrat
+     * @return Liste des interventions actives
+     */
+    List<?> getActiveInterventions(Long contratId);
+}

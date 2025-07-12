@@ -1,11 +1,13 @@
 import { Component, OnInit } from '@angular/core';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { FormBuilder, FormGroup, Validators, FormArray, FormControl } from '@angular/forms';
 import { Router } from '@angular/router';
 import { InterventionService, InterventionCreateDTO, TypeIntervention, PrioriteIntervention } from '../../service/intervention.service';
-import { ContratService } from '../../service/contrat.service';
+import { ContratService, Imprimante } from '../../service/contrat.service';
 import { ClientService } from '../../service/client.service';
 import { AuthService } from '../../service/auth.service';
+import { ImprimanteService, ImprimanteStatus } from '../../service/imprimante.service';
 import { forkJoin } from 'rxjs';
+import { finalize } from 'rxjs/operators';
 
 @Component({
   selector: 'app-ticket-creation',
@@ -17,20 +19,27 @@ export class TicketCreationComponent implements OnInit {
   isSubmitting = false;
   contrats: any[] = [];
   contratsFiltered: any[] = [];
-  imprimantes: any[] = [];
+  imprimantes: Imprimante[] = [];
+  selectedImprimantes: Imprimante[] = [];
   
   // Variables pour la recherche de contrats
   contratSearchTerm = '';
   showContratTable = false;
   selectedContrat: any = null;
   
+  // Mode de création de ticket
+  createSingleTicket = true; // true = un ticket pour toutes les imprimantes, false = un ticket par imprimante
+  
   typeOptions = [
     { value: TypeIntervention.CORRECTIVE, label: 'Corrective' },
     { value: TypeIntervention.PREVENTIVE, label: 'Préventive' },
     { value: TypeIntervention.URGENTE, label: 'Urgente' },
     { value: TypeIntervention.INSTALLATION, label: 'Installation' },
-    { value: TypeIntervention.MAINTENANCE, label: 'Maintenance' },
-    { value: TypeIntervention.FORMATION, label: 'Formation' }
+    { value: TypeIntervention.MISE_A_JOUR, label: 'Mise à jour' },
+    { value: TypeIntervention.DIAGNOSTIC, label: 'Diagnostic' },
+    { value: TypeIntervention.FORMATION, label: 'Formation' },
+    { value: TypeIntervention.NETTOYAGE, label: 'Nettoyage' },
+    { value: TypeIntervention.MAINTENANCE, label: 'Maintenance' }
   ];
   
   prioriteOptions = [
@@ -46,6 +55,7 @@ export class TicketCreationComponent implements OnInit {
     private contratService: ContratService,
     private clientService: ClientService,
     private authService: AuthService,
+    private imprimanteService: ImprimanteService,
     private router: Router
   ) {
     this.ticketForm = this.fb.group({
@@ -56,16 +66,21 @@ export class TicketCreationComponent implements OnInit {
       datePlanifiee: [''],
       contratId: ['', Validators.required],
       imprimanteId: [''],
+      imprimanteIds: this.fb.array([]),
       // Le demandeur sera automatiquement le client du contrat sélectionné
       demandeurId: [''],
       // Le technicien est l'utilisateur connecté qui crée le ticket
-      technicienId: [this.authService.getCurrentUserId(), Validators.required]
+      technicienId: [this.authService.getCurrentUserId(), Validators.required],
+      selectAllPrinters: [false]
     });
   }
 
   ngOnInit(): void {
     this.loadContrats();
-    this.setupContratChange();
+  }
+
+  get imprimanteIdsFormArray() {
+    return this.ticketForm.get('imprimanteIds') as FormArray;
   }
 
   private loadContrats(): void {
@@ -130,8 +145,14 @@ export class TicketCreationComponent implements OnInit {
     
     this.ticketForm.patchValue({
       contratId: contrat.id,
-      demandeurId: clientId
+      demandeurId: clientId,
+      imprimanteId: '',
+      selectAllPrinters: false
     });
+    
+    // Reset printer selections
+    this.imprimanteIdsFormArray.clear();
+    this.selectedImprimantes = [];
     
     this.showContratTable = false;
     this.loadImprimantesContrat(contrat.id);
@@ -152,32 +173,71 @@ export class TicketCreationComponent implements OnInit {
     this.ticketForm.patchValue({
       contratId: '',
       demandeurId: '',
-      imprimanteId: ''
+      imprimanteId: '',
+      selectAllPrinters: false
     });
     this.imprimantes = [];
-  }
-
-  private setupContratChange(): void {
-    // Plus besoin de cette méthode car la sélection se fait via selectContrat()
+    this.selectedImprimantes = [];
+    this.imprimanteIdsFormArray.clear();
   }
 
   private loadImprimantesContrat(contratId: number): void {
-    // Supposons qu'il y a une méthode pour obtenir les imprimantes d'un contrat
-    // this.contratService.getImprimantes(contratId).subscribe({
-    //   next: (imprimantes) => {
-    //     this.imprimantes = imprimantes;
-    //   },
-    //   error: (error) => {
-    //     console.error('Erreur lors du chargement des imprimantes:', error);
-    //   }
-    // });
+    // Charger les imprimantes du contrat
+    this.contratService.getImprimantesForContract(contratId).subscribe({
+      next: (imprimantes) => {
+        this.imprimantes = imprimantes;
+        console.log(`${imprimantes.length} imprimantes trouvées pour ce contrat`);
+      },
+      error: (error) => {
+        console.error('Erreur lors du chargement des imprimantes:', error);
+        this.imprimantes = [];
+      }
+    });
+  }
+  
+  // Gérer la sélection des imprimantes multiples
+  onImprimanteSelectionChange(event: any, imprimanteId: number): void {
+    if (event.target.checked) {
+      // Ajouter l'imprimante
+      this.imprimanteIdsFormArray.push(new FormControl(imprimanteId));
+      this.selectedImprimantes.push(this.imprimantes.find(imp => imp.id === imprimanteId)!);
+    } else {
+      // Retirer l'imprimante
+      const index = this.imprimanteIdsFormArray.controls.findIndex(x => x.value === imprimanteId);
+      if (index >= 0) {
+        this.imprimanteIdsFormArray.removeAt(index);
+        this.selectedImprimantes = this.selectedImprimantes.filter(imp => imp.id !== imprimanteId);
+      }
+      
+      // Si le "sélectionner tout" était coché, le décocher
+      if (this.ticketForm.get('selectAllPrinters')?.value) {
+        this.ticketForm.patchValue({ selectAllPrinters: false });
+      }
+    }
+  }
+  
+  // Sélectionner/désélectionner toutes les imprimantes
+  onSelectAllImprimantesChange(event: any): void {
+    const isChecked = event.target.checked;
     
-    // Pour l'instant, simulation
-    this.imprimantes = [
-      { id: 1, modele: 'HP LaserJet Pro 400' },
-      { id: 2, modele: 'Canon ImageRunner 2520' },
-      { id: 3, modele: 'Xerox WorkCentre 3335' }
-    ];
+    // Vider le FormArray existant
+    this.imprimanteIdsFormArray.clear();
+    
+    if (isChecked) {
+      // Ajouter toutes les imprimantes
+      this.imprimantes.forEach(imprimante => {
+        this.imprimanteIdsFormArray.push(new FormControl(imprimante.id));
+      });
+      this.selectedImprimantes = [...this.imprimantes];
+    } else {
+      // Vider les imprimantes sélectionnées
+      this.selectedImprimantes = [];
+    }
+  }
+  
+  // Changer le mode de création de ticket (unique vs. multiple)
+  toggleTicketCreationMode(): void {
+    this.createSingleTicket = !this.createSingleTicket;
   }
 
   onSubmit(): void {
@@ -185,31 +245,144 @@ export class TicketCreationComponent implements OnInit {
       this.isSubmitting = true;
       
       const formValue = this.ticketForm.value;
-      const intervention: InterventionCreateDTO = {
+      const selectedImprIds = this.imprimanteIdsFormArray.value;
+      
+      // Création du DTO de base
+      const baseIntervention: InterventionCreateDTO = {
         titre: formValue.titre,
         description: formValue.description,
         type: formValue.type,
         priorite: formValue.priorite,
         contratId: formValue.contratId,
-        demandeurId: formValue.demandeurId, // Client du contrat
-        technicienId: formValue.technicienId, // Utilisateur connecté
-        ...(formValue.datePlanifiee && { datePlanifiee: new Date(formValue.datePlanifiee) }),
-        ...(formValue.imprimanteId && { imprimanteId: formValue.imprimanteId })
+        demandeurId: formValue.demandeurId,
+        technicienId: formValue.technicienId,
+        ...(formValue.datePlanifiee && { datePlanifiee: new Date(formValue.datePlanifiee) })
       };
-
-      this.interventionService.creerTicket(intervention).subscribe({
-        next: (response) => {
-          console.log('Ticket créé avec succès:', response);
-          this.router.navigate(['/tickets', response.id]);
-        },
-        error: (error) => {
-          console.error('Erreur lors de la création du ticket:', error);
-          this.isSubmitting = false;
+      
+      // Cas 1: Sélection multiple d'imprimantes
+      if (selectedImprIds && selectedImprIds.length > 0) {
+        if (this.createSingleTicket) {
+          // Cas 1a: Un seul ticket pour toutes les imprimantes sélectionnées
+          const intervention = {
+            ...baseIntervention,
+            imprimanteIds: selectedImprIds
+          };
+          
+          this.interventionService.creerTicketMultiImprimantes(intervention).subscribe({
+            next: (response) => {
+              console.log('Ticket multi-imprimantes créé avec succès:', response);
+              
+              // Refresh printer statuses after creating tickets
+              if (selectedImprIds && selectedImprIds.length > 0) {
+                console.log('Refreshing status for selected printers:', selectedImprIds);
+                
+                // Wait 1 second to ensure backend has time to update statuses
+                setTimeout(() => {
+                  selectedImprIds.forEach((impId: number) => {
+                    this.imprimanteService.refreshPrinterStatus(impId).subscribe({
+                      next: (status) => console.log(`Refreshed status for printer ${impId}: ${status}`),
+                      error: (err) => console.error(`Error refreshing printer ${impId} status:`, err)
+                    });
+                  });
+                }, 1000);
+              }
+              
+              this.router.navigate(['/tickets', response.id]);
+            },
+            error: (error) => {
+              console.error('Erreur lors de la création du ticket multi-imprimantes:', error);
+              this.isSubmitting = false;
+            }
+          });
+        } else {
+          // Cas 1b: Un ticket par imprimante sélectionnée
+          const intervention = {
+            ...baseIntervention,
+            imprimanteIds: selectedImprIds
+          };
+          
+          this.interventionService.creerTicketsParImprimante(intervention).subscribe({
+            next: (responses) => {
+              console.log(`${responses.length} tickets créés avec succès:`, responses);
+              
+              // Refresh printer statuses after creating tickets
+              if (selectedImprIds && selectedImprIds.length > 0) {
+                console.log('Refreshing status for selected printers:', selectedImprIds);
+                
+                // Wait 1 second to ensure backend has time to update statuses
+                setTimeout(() => {
+                  selectedImprIds.forEach((impId: number) => {
+                    this.imprimanteService.refreshPrinterStatus(impId).subscribe({
+                      next: (status) => console.log(`Refreshed status for printer ${impId}: ${status}`),
+                      error: (err) => console.error(`Error refreshing printer ${impId} status:`, err)
+                    });
+                  });
+                }, 1000);
+              }
+              
+              // Rediriger vers la liste des tickets
+              this.router.navigate(['/tickets']);
+            },
+            error: (error) => {
+              console.error('Erreur lors de la création des tickets par imprimante:', error);
+              this.isSubmitting = false;
+            }
+          });
         }
-      });
+      } 
+      // Cas 2: Sélection d'une seule imprimante dans la liste déroulante
+      else if (formValue.imprimanteId) {
+        const intervention = {
+          ...baseIntervention,
+          imprimanteId: formValue.imprimanteId
+        };
+        
+        this.interventionService.creerTicket(intervention).subscribe({
+          next: (response) => {
+            console.log('Ticket créé avec succès:', response);
+            
+            // Refresh printer status after creating ticket
+            if (formValue.imprimanteId) {
+              console.log('Refreshing status for printer:', formValue.imprimanteId);
+              
+              // Wait 1 second to ensure backend has time to update status
+              setTimeout(() => {
+                this.imprimanteService.refreshPrinterStatus(formValue.imprimanteId).subscribe({
+                  next: (status) => console.log(`Refreshed status for printer ${formValue.imprimanteId}: ${status}`),
+                  error: (err) => console.error(`Error refreshing printer ${formValue.imprimanteId} status:`, err)
+                });
+              }, 1000);
+            }
+            
+            this.router.navigate(['/tickets', response.id]);
+          },
+          error: (error) => {
+            console.error('Erreur lors de la création du ticket:', error);
+            this.isSubmitting = false;
+          }
+        });
+      } 
+      // Cas 3: Aucune imprimante sélectionnée
+      else {
+        this.interventionService.creerTicket(baseIntervention).subscribe({
+          next: (response) => {
+            console.log('Ticket sans imprimante créé avec succès:', response);
+            this.router.navigate(['/tickets', response.id]);
+          },
+          error: (error) => {
+            console.error('Erreur lors de la création du ticket:', error);
+            this.isSubmitting = false;
+          }
+        });
+      }
     } else {
       this.markFormGroupTouched();
     }
+  }
+
+  // Vérifier si une imprimante est sélectionnée
+  isImprimanteSelected(imprimanteId: number): boolean {
+    return this.imprimanteIdsFormArray.controls.some(control => control.value === imprimanteId);
   }
 
   private markFormGroupTouched(): void {

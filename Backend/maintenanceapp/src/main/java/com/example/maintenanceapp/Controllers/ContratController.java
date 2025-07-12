@@ -74,6 +74,18 @@ public class ContratController {
                 .toList();
     }
 
+    /**
+     * Récupère tous les contrats actifs (non historiques)
+     * @return Liste des contrats actifs
+     */
+    @GetMapping("/getContratsActifs")
+    public List<ContratDTO> getContratsActifs() {
+        List<Contrat> contrats = contratService.getContratsActifs();
+        return contrats.stream()
+                .map(this::convertToDTO)
+                .toList();
+    }
+
     @GetMapping("/export/pdf/{id}")
     public ResponseEntity<byte[]> exportContratToPdf(@PathVariable Long id) {
         try {
@@ -102,6 +114,38 @@ public class ContratController {
             return ResponseEntity.ok(exists);
         } catch (Exception e) {
             log.error("Erreur lors de la vérification du numéro de contrat: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+    
+    /**
+     * Vérifie si un contrat a des interventions actives
+     * @param contratId ID du contrat à vérifier
+     * @return true si le contrat a au moins une intervention active, false sinon
+     */
+    @GetMapping("/interventions/active/{contratId}")
+    public ResponseEntity<Boolean> verifierInterventionsActivesPourContrat(@PathVariable Long contratId) {
+        try {
+            boolean hasActiveInterventions = contratService.hasActiveInterventions(contratId);
+            return ResponseEntity.ok(hasActiveInterventions);
+        } catch (Exception e) {
+            log.error("Erreur lors de la vérification des interventions actives pour le contrat {}: {}", contratId, e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+    
+    /**
+     * Récupère la liste des interventions actives pour un contrat
+     * @param contratId ID du contrat
+     * @return Liste des interventions actives
+     */
+    @GetMapping("/interventions/active/details/{contratId}")
+    public ResponseEntity<?> getActiveInterventionsForContract(@PathVariable Long contratId) {
+        try {
+            List<?> activeInterventions = contratService.getActiveInterventions(contratId);
+            return ResponseEntity.ok(activeInterventions);
+        } catch (Exception e) {
+            log.error("Erreur lors de la récupération des interventions actives pour le contrat {}: {}", contratId, e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }

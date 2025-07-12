@@ -1,6 +1,8 @@
 import { NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
+import { CommonModule } from '@angular/common';
+import { RouterModule } from '@angular/router';
 
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
@@ -33,7 +35,14 @@ import { ClientRequestsComponent } from './client-requests/client-requests.compo
 import { ClientNewRequestComponent } from './client-new-request/client-new-request.component';
 import { ClientEquipmentComponent } from './client-equipment/client-equipment.component';
 import { ClientHistoryComponent } from './client-history/client-history.component';
+import { ContratHistoryComponent } from './components/contrat-history/contrat-history.component';
+import { TechnicianCalendarComponent } from './components/technician-calendar/technician-calendar.component';
 
+// FullCalendar Modules
+import { FullCalendarModule } from '@fullcalendar/angular';
+
+// Chart.js
+import { NgChartsModule } from 'ng2-charts';
 
 @NgModule({
   declarations: [
@@ -63,17 +72,21 @@ import { ClientHistoryComponent } from './client-history/client-history.componen
     ClientNewRequestComponent,
     ClientEquipmentComponent,
     ClientHistoryComponent,
+    ContratHistoryComponent,
+    TechnicianCalendarComponent,
   ],
   imports: [
-    HttpClientModule,
-    BrowserAnimationsModule,
     BrowserModule,
+    BrowserAnimationsModule,
+    CommonModule,
+    RouterModule,
+    HttpClientModule,
     FormsModule,
     ReactiveFormsModule,
     AppRoutingModule,
-        AngularEditorModule,
-
-    
+    AngularEditorModule,
+    FullCalendarModule,
+    NgChartsModule
   ],
   providers: [
      {

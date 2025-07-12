@@ -2,7 +2,7 @@ import { Component, EventEmitter, Output, OnInit, HostListener, ViewChild, Eleme
 import { ContratService, Contrat, Utilisateur } from '../../service/contrat.service';
 import { NgForm } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
-import { Router } from '@angular/router';
+import { Router, ActivatedRoute } from '@angular/router';
 import { NotificationService } from '../../service/notification.service';
 
 @Component({
@@ -52,17 +52,34 @@ export class ContratFormComponent implements OnInit {
   // Message to display if contract number is not unique
   contractNumberError: string = '';
 
+  // Edit mode properties
+  isEditMode: boolean = false;
+  contractId: number | null = null;
+  originalContractNumber: string = '';
+
   constructor(
     private contratService: ContratService, 
     private http: HttpClient,
     private router: Router,
+    private route: ActivatedRoute,
     private renderer: Renderer2,
     private notificationService: NotificationService
   ) {}
 
   ngOnInit(): void {
     this.loadClients();
-    this.generateContractNumber();
+    
+    // Check if we're in edit mode
+    this.route.params.subscribe(params => {
+      if (params['id']) {
+        this.isEditMode = true;
+        this.contractId = +params['id'];
+        this.loadContractForEditing(this.contractId);
+      } else {
+        this.isEditMode = false;
+        this.generateContractNumber();
+      }
+    });
   }
 
   ngAfterViewInit(): void {
@@ -118,6 +135,29 @@ export class ContratFormComponent implements OnInit {
           this.showError('Erreur lors du chargement des clients');
         }
       });
+  }
+
+  loadContractForEditing(contractId: number) {
+    this.contratService.getById(contractId).subscribe({
+      next: (contract: Contrat) => {
+        this.contrat = { ...contract };
+        this.originalContractNumber = contract.numeroContrat || '';
+        
+        // Set client search term if client exists
+        if (contract.client) {
+          this.clientSearchTerm = contract.client.nom || '';
+        }
+        
+        // Mark contract number as unique since it's the current contract
+        this.contractNumberIsUnique = true;
+        this.contractNumberError = '';
+      },
+      error: (err: any) => {
+        console.error('Failed to load contract for editing', err);
+        this.showError('Erreur lors du chargement du contrat');
+        this.router.navigate(['/contrats']);
+      }
+    });
   }
 
   generateContractNumber(): void {
@@ -441,8 +481,15 @@ export class ContratFormComponent implements OnInit {
       return;
     }
     
-    // First check if the contract number is unique
+    // For contract number uniqueness check
     if (!isDraft && this.contrat.numeroContrat) {
+      // In edit mode, if the contract number hasn't changed, skip uniqueness check
+      if (this.isEditMode && this.contrat.numeroContrat === this.originalContractNumber) {
+        this.submitForm(form, isDraft);
+        return;
+      }
+      
+      // Otherwise, check for uniqueness
       this.checkingContractNumber = true;
       
       this.contratService.checkContractNumberExists(this.contrat.numeroContrat).subscribe({
@@ -476,56 +523,93 @@ export class ContratFormComponent implements OnInit {
   private submitForm(form: NgForm | null, isDraft: boolean): void {
     this.isSubmitting = true;
     const clientId = this.contrat.clientId!;
-    const payload = { ...this.contrat };
-    delete payload.clientId;
 
-    this.contratService.create(payload, clientId).subscribe({
-      next: (response) => {
-        this.isSubmitting = false;
-        const successMessage = isDraft ? 'Brouillon enregistré avec succès!' : 'Contrat créé avec succès!';
-        
-        // Show only a toast notification
-        this.notificationService.showSuccess(successMessage);
-        
-        this.contratCreated.emit();
-        
-        if (form) {
-          form.resetForm();
-        }
-        
-        // Reset using our private method
-        this.resetForm();
-        
-        // Redirect to contracts list after success
-        if (!isDraft) {
-          setTimeout(() => {
-            this.router.navigate(['/contrats']);
-          }, 2000);
-        }
-      },
-      error: (err) => {
-        this.isSubmitting = false;
-        console.error('Failed to create contract', err);
-        
-        // Handle specific error types
-        let errorMessage = 'Erreur lors de la création du contrat. Veuillez réessayer.';
-        
-        if (err.error?.message) {
-          if (err.error.message.includes('contrainte de vérification') || 
-              err.error.message.includes('constraint')) {
-            errorMessage = 'Erreur de validation : Une des valeurs saisies n\'est pas acceptée par le système. Veuillez vérifier le statut du contrat.';
-          } else if (err.error.message.includes('duplicate') || 
-                     err.error.message.includes('unique')) {
-            errorMessage = 'Ce numéro de contrat existe déjà. Veuillez générer un nouveau numéro.';
-          } else {
-            errorMessage = err.error.message;
+    if (this.isEditMode && this.contractId) {
+      // Update existing contract
+      // For updates, include clientId in the payload
+      const payload = { ...this.contrat, clientId };
+      
+      this.contratService.update(this.contractId, payload).subscribe({
+        next: (response) => {
+          this.isSubmitting = false;
+          const successMessage = isDraft ? 'Brouillon mis à jour avec succès!' : 'Contrat mis à jour avec succès!';
+          
+          // Show only a toast notification
+          this.notificationService.showSuccess(successMessage);
+          
+          this.contratCreated.emit();
+          
+          // Redirect to contracts list after success
+          if (!isDraft) {
+            setTimeout(() => {
+              this.router.navigate(['/contrats']);
+            }, 2000);
           }
+        },
+        error: (err) => {
+          this.isSubmitting = false;
+          console.error('Failed to update contract', err);
+          this.handleSubmissionError(err);
         }
-        
-        // Show only toast notifications for errors
-        this.notificationService.showError(errorMessage);
+      });
+    } else {
+      // Create new contract
+      const payload = { ...this.contrat };
+      delete payload.clientId;
+      
+      this.contratService.create(payload, clientId).subscribe({
+        next: (response) => {
+          this.isSubmitting = false;
+          const successMessage = isDraft ? 'Brouillon enregistré avec succès!' : 'Contrat créé avec succès!';
+          
+          // Show only a toast notification
+          this.notificationService.showSuccess(successMessage);
+          
+          this.contratCreated.emit();
+          
+          if (form) {
+            form.resetForm();
+          }
+          
+          // Reset using our private method
+          this.resetForm();
+          
+          // Redirect to contracts list after success
+          if (!isDraft) {
+            setTimeout(() => {
+              this.router.navigate(['/contrats']);
+            }, 2000);
+          }
+        },
+        error: (err) => {
+          this.isSubmitting = false;
+          console.error('Failed to create contract', err);
+          this.handleSubmissionError(err);
+        }
+      });
+    }
+  }
+
+  private handleSubmissionError(err: any): void {
+    // Handle specific error types
+    let errorMessage = this.isEditMode ? 
+      'Erreur lors de la modification du contrat. Veuillez réessayer.' :
+      'Erreur lors de la création du contrat. Veuillez réessayer.';
+    
+    if (err.error?.message) {
+      if (err.error.message.includes('contrainte de vérification') || 
+          err.error.message.includes('constraint')) {
+        errorMessage = 'Erreur de validation : Une des valeurs saisies n\'est pas acceptée par le système. Veuillez vérifier le statut du contrat.';
+      } else if (err.error.message.includes('duplicate') || 
+                 err.error.message.includes('unique')) {
+        errorMessage = 'Ce numéro de contrat existe déjà. Veuillez générer un nouveau numéro.';
+      } else {
+        errorMessage = err.error.message;
       }
-    });
+    }
+    
+    // Show only toast notifications for errors
+    this.notificationService.showError(errorMessage);
   }
 
   cancel(): void {
@@ -618,6 +702,14 @@ export class ContratFormComponent implements OnInit {
       return;
     }
     
+    // In edit mode, if the contract number hasn't changed, it's still unique
+    if (this.isEditMode && this.contrat.numeroContrat === this.originalContractNumber) {
+      this.contractNumberIsUnique = true;
+      this.checkingContractNumber = false;
+      this.contractNumberError = '';
+      return;
+    }
+    
     this.checkingContractNumber = true;
     this.contractNumberIsUnique = true; // Assume it's unique until proven otherwise
     
@@ -630,6 +722,8 @@ export class ContratFormComponent implements OnInit {
           this.contractNumberError = 'Ce numéro de contrat existe déjà. Veuillez en choisir un autre.';
           // Show a toast notification for duplicate contract numbers
           this.notificationService.showWarning(this.contractNumberError, 'Attention');
+        } else {
+          this.contractNumberError = '';
         }
       },
       error: (err) => {

@@ -5,11 +5,11 @@
     <div class="header-content">
       <div class="header-left">
         <div class="header-icon">
-          <i class="bi bi-file-earmark-plus"></i>
+          <i class="bi" [ngClass]="isEditMode ? 'bi-pencil-square' : 'bi-file-earmark-plus'"></i>
         </div>
         <div class="header-text">
-          <h1>Nouveau Contrat de Maintenance</h1>
-          <p>Créez un contrat professionnel en quelques étapes simples</p>
+          <h1>{{ isEditMode ? 'Modifier le Contrat' : 'Nouveau Contrat de Maintenance' }}</h1>
+          <p>{{ isEditMode ? 'Modifiez les informations du contrat' : 'Créez un contrat professionnel en quelques étapes simples' }}</p>
         </div>
       </div>
       <div class="header-right">
@@ -37,7 +37,7 @@
         </div>
         <p class="progress-help">
           <i class="bi bi-info-circle"></i>
-          Complétez tous les champs obligatoires pour créer le contrat
+          {{ isEditMode ? 'Modifiez les champs nécessaires et enregistrez' : 'Complétez tous les champs obligatoires pour créer le contrat' }}
         </p>
       </div>
 
@@ -486,12 +486,12 @@
           <div class="actions-right">
             <button type="button" class="form-btn secondary" (click)="saveDraft()" [disabled]="isSubmitting">
               <i class="bi bi-save"></i>
-              Sauvegarder brouillon
+              {{ isEditMode ? 'Sauvegarder les modifications' : 'Sauvegarder brouillon' }}
             </button>
             <button type="submit" class="form-btn primary" [disabled]="contratForm.invalid || isSubmitting">
               <div class="spinner small" *ngIf="isSubmitting"></div>
               <i class="bi bi-check-circle" *ngIf="!isSubmitting"></i>
-              {{ isSubmitting ? 'Création...' : 'Créer le contrat' }}
+              {{ isSubmitting ? (isEditMode ? 'Modification...' : 'Création...') : (isEditMode ? 'Modifier le contrat' : 'Créer le contrat') }}
             </button>
           </div>
         </div>

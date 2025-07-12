@@ -100,4 +100,14 @@ public interface InterventionRepositorie extends JpaRepository<Intervention, Lon
     
     // Recherche par priorité avec pagination
     Page<Intervention> findByPrioriteOrderByDateCreationDesc(PrioriteIntervention priorite, Pageable pageable);
+    
+    // Find interventions where a printer is associated (in imprimantesAssociees collection)
+    @Query("SELECT i FROM Intervention i JOIN i.imprimantesAssociees p WHERE p.id = :imprimanteId")
+    List<Intervention> findByImprimantesAssociees_Id(@Param("imprimanteId") Long imprimanteId);
+    
+    // Find interventions where a printer is associated with a specific status
+    @Query("SELECT i FROM Intervention i JOIN i.imprimantesAssociees p WHERE p.id = :imprimanteId AND i.statutIntervention = :statut")
+    List<Intervention> findByImprimantesAssociees_IdAndStatutIntervention(
+            @Param("imprimanteId") Long imprimanteId, 
+            @Param("statut") StatutIntervention statut);
 }

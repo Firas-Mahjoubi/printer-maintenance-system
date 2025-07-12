@@ -8,5 +8,6 @@ public enum TypeIntervention {
     MISE_A_JOUR,     // Mise à jour logicielle/firmware
     DIAGNOSTIC,      // Diagnostic technique
     FORMATION,       // Formation utilisateur
-    NETTOYAGE        // Nettoyage et entretien
+    NETTOYAGE,       // Nettoyage et entretien
+    MAINTENANCE      // Maintenance régulière
 }

@@ -185,4 +185,15 @@ export class TicketListComponent implements OnInit {
     
     return pages;
   }
+
+  resetFilters(): void {
+    this.filters = {
+      statut: '',
+      type: '',
+      priorite: '',
+      recherche: ''
+    };
+    this.currentPage = 0;
+    this.loadTickets();
+  }
 }

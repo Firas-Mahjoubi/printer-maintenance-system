@@ -22,11 +22,21 @@ export interface Contrat {
   conditions_contrat: string; // HTML content for contract conditions
 }
 
+export interface Imprimante {
+  id: number;
+  marque?: string;
+  modele: string;
+  numeroSerie?: string;
+  localisation?: string;
+  statut?: string;
+}
+
 @Injectable({
   providedIn: 'root'
 })
 export class ContratService {
   private baseUrl = 'http://localhost:8081/api/Contrat';
+  private imprimanteUrl = 'http://localhost:8081/api/Imprimante';
 
   constructor(private http: HttpClient) {}
 
@@ -75,5 +85,20 @@ export class ContratService {
   // Check if contract number already exists
   checkContractNumberExists(numeroContrat: string): Observable<boolean> {
     return this.http.get<boolean>(`${this.baseUrl}/checkNumeroContratExists/${numeroContrat}`);
+  }
+  
+  // Check if a contract has active interventions/tickets
+  getActiveInterventionsForContract(contratId: number): Observable<any[]> {
+    return this.http.get<any[]>(`${this.baseUrl}/interventions/active/${contratId}`);
+  }
+
+  // Get active contracts
+  getActiveContracts(): Observable<Contrat[]> {
+    return this.http.get<Contrat[]>(`${this.baseUrl}/getContratsActifs`);
+  }
+  
+  // Get all printers for a contract
+  getImprimantesForContract(contratId: number): Observable<Imprimante[]> {
+    return this.http.get<Imprimante[]>(`${this.imprimanteUrl}/getAllImprimante?contratId=${contratId}`);
   }
 }

@@ -15,13 +15,13 @@
       <!-- Error State -->
       <div *ngIf="error && !loading" class="alert alert-danger rounded-3 shadow-sm" role="alert">
         <div class="d-flex align-items-center">
-          <i class="fas fa-exclamation-triangle me-3 fs-4"></i>
+          <i class="bi bi-exclamation-triangle-fill me-3 fs-4"></i>
           <div class="flex-grow-1">
             <h6 class="mb-1">Erreur de chargement</h6>
             <p class="mb-0">{{ error }}</p>
           </div>
           <button type="button" class="btn btn-outline-danger" (click)="goBack()">
-            <i class="fas fa-arrow-left me-2"></i>Retour
+            <i class="bi bi-arrow-left me-2"></i>Retour
           </button>
         </div>
       </div>
@@ -41,9 +41,9 @@
                 </div>
                 <h3 class="mb-2 fw-bold text-dark">{{ ticket.titre }}</h3>
                 <p class="text-muted mb-0">
-                  <i class="far fa-clock me-2"></i>Créé le {{ formatDate(ticket.dateCreation) }}
+                  <i class="bi bi-clock me-2"></i>Créé le {{ formatDate(ticket.dateCreation) }}
                   <span class="ms-3" *ngIf="ticket.technicienNom">
-                    <i class="fas fa-user-cog me-2"></i>{{ ticket.technicienNom }}
+                    <i class="bi bi-person-gear me-2"></i>{{ ticket.technicienNom }}
                   </span>
                 </p>
               </div>
@@ -53,38 +53,38 @@
                           type="button" 
                           class="btn btn-success btn-action" 
                           (click)="startTicket()">
-                    <i class="fas fa-play me-2"></i>Démarrer
+                    <i class="bi bi-play-fill me-2"></i>Démarrer
                   </button>
                   
                   <button *ngIf="canPauseTicket() && canEdit" 
                           type="button" 
                           class="btn btn-warning btn-action" 
                           (click)="pauseTicket()">
-                    <i class="fas fa-pause me-2"></i>Pause
+                    <i class="bi bi-pause-fill me-2"></i>Pause
                   </button>
                   
                   <button *ngIf="canResumeTicket() && canEdit" 
                           type="button" 
                           class="btn btn-info btn-action" 
                           (click)="resumeTicket()">
-                    <i class="fas fa-play me-2"></i>Reprendre
+                    <i class="bi bi-play-fill me-2"></i>Reprendre
                   </button>
                   
                   <button *ngIf="canCompleteTicket() && canEdit" 
                           type="button" 
                           class="btn btn-primary btn-action" 
                           (click)="completeTicket()">
-                    <i class="fas fa-check me-2"></i>Terminer
+                    <i class="bi bi-check-lg me-2"></i>Terminer
                   </button>
                   
                   <div class="dropdown">
-                    <button class="btn btn-outline-secondary dropdown-toggle btn-action" type="button" data-bs-toggle="dropdown">
-                      <i class="fas fa-ellipsis-h"></i>
+                    <button class="btn btn-outline-secondary btn-action" type="button" data-bs-toggle="dropdown">
+                      <i class="bi bi-three-dots"></i>
                     </button>
                     <ul class="dropdown-menu shadow">
-                      <li><a class="dropdown-item" (click)="editTicket()"><i class="fas fa-edit me-2"></i>Modifier</a></li>
+                      <li><a class="dropdown-item" (click)="editTicket()"><i class="bi bi-pencil me-2"></i>Modifier</a></li>
                       <li><hr class="dropdown-divider"></li>
-                      <li><a class="dropdown-item" (click)="goBack()"><i class="fas fa-arrow-left me-2"></i>Retour à la liste</a></li>
+                      <li><a class="dropdown-item" (click)="goBack()"><i class="bi bi-arrow-left me-2"></i>Retour à la liste</a></li>
                     </ul>
                   </div>
                 </div>
@@ -98,9 +98,9 @@
           <div class="col-lg-8">
             
             <!-- Description -->
-            <div class="card border-0 shadow-sm mb-4">
+            <div class="card shadow-sm mb-4">
               <div class="card-header bg-transparent border-0 pb-0">
-                <h5 class="card-title mb-0"><i class="fas fa-file-alt me-2 text-primary"></i>Description</h5>
+                <h5 class="card-title mb-0"><i class="bi bi-file-text me-2 text-primary"></i>Description</h5>
               </div>
               <div class="card-body pt-3">
                 <p class="mb-0 lh-lg">{{ ticket.description }}</p>
@@ -112,7 +112,7 @@
               <div class="col-md-6 mb-4" *ngIf="ticket.diagnostic">
                 <div class="card border-0 shadow-sm h-100">
                   <div class="card-header bg-transparent border-0 pb-0">
-                    <h6 class="card-title mb-0"><i class="fas fa-search me-2 text-info"></i>Diagnostic</h6>
+                    <h6 class="card-title mb-0"><i class="bi bi-search me-2 text-info"></i>Diagnostic</h6>
                   </div>
                   <div class="card-body pt-3">
                     <p class="mb-0">{{ ticket.diagnostic }}</p>
@@ -123,7 +123,7 @@
               <div class="col-md-6 mb-4" *ngIf="ticket.solution">
                 <div class="card border-0 shadow-sm h-100">
                   <div class="card-header bg-transparent border-0 pb-0">
-                    <h6 class="card-title mb-0"><i class="fas fa-tools me-2 text-success"></i>Solution</h6>
+                    <h6 class="card-title mb-0"><i class="bi bi-tools me-2 text-success"></i>Solution</h6>
                   </div>
                   <div class="card-body pt-3">
                     <p class="mb-0">{{ ticket.solution }}</p>
@@ -135,7 +135,7 @@
             <!-- Commentaires internes -->
             <div class="card border-0 shadow-sm mb-4" *ngIf="ticket.commentaireInterne">
               <div class="card-header bg-transparent border-0 pb-0">
-                <h6 class="card-title mb-0"><i class="fas fa-comment-dots me-2 text-warning"></i>Commentaires internes</h6>
+                <h6 class="card-title mb-0"><i class="bi bi-chat-dots me-2 text-warning"></i>Commentaires internes</h6>
               </div>
               <div class="card-body pt-3">
                 <div class="comment-container rounded-3 p-3">
@@ -147,7 +147,7 @@
             <!-- Satisfaction client -->
             <div class="card border-0 shadow-sm mb-4" *ngIf="ticket.noteSatisfaction || ticket.commentaireSatisfaction">
               <div class="card-header bg-transparent border-0 pb-0">
-                <h6 class="card-title mb-0"><i class="fas fa-heart me-2 text-danger"></i>Satisfaction client</h6>
+                <h6 class="card-title mb-0"><i class="bi bi-heart me-2 text-danger"></i>Satisfaction client</h6>
               </div>
               <div class="card-body pt-3">
                 <div class="satisfaction-card p-4 rounded-3">
@@ -156,7 +156,7 @@
                       <span class="me-3 fw-bold">Note:</span>
                       <div class="satisfaction-stars">
                         <i *ngFor="let star of [1,2,3,4,5]" 
-                           class="fas fa-star" 
+                           class="bi bi-star-fill" 
                            [class.text-warning]="star <= (ticket.noteSatisfaction || 0)"
                            [class.text-muted]="star > (ticket.noteSatisfaction || 0)"></i>
                       </div>
@@ -173,7 +173,7 @@
             <!-- Timeline des actions -->
             <div class="card border-0 shadow-sm">
               <div class="card-header bg-transparent border-0 pb-0">
-                <h6 class="card-title mb-0"><i class="fas fa-history me-2 text-secondary"></i>Chronologie</h6>
+                <h6 class="card-title mb-0"><i class="bi bi-clock-history me-2 text-secondary"></i>Chronologie</h6>
               </div>
               <div class="card-body pt-3">
                 <div class="timeline">
@@ -185,11 +185,11 @@
                       <h6 class="mb-1">{{ event.action }}</h6>
                       <p class="text-muted mb-1">{{ formatDate(event.date) }}</p>
                       <small class="text-muted" *ngIf="event.user">
-                        <i class="fas fa-user me-1"></i>{{ event.user }}
+                        <i class="bi bi-person me-1"></i>{{ event.user }}
                       </small>
                       <div class="mt-2" *ngIf="event.comment">
                         <small class="text-muted fst-italic">
-                          <i class="fas fa-comment me-1"></i>{{ event.comment }}
+                          <i class="bi bi-chat me-1"></i>{{ event.comment }}
                         </small>
                       </div>
                     </div>
@@ -198,7 +198,7 @@
                   <!-- Indicateur de statut actuel si ticket en cours/pause -->
                   <div class="timeline-item timeline-item-current" *ngIf="ticket.statut === StatutIntervention.EN_PAUSE || isTicketPaused()">
                     <div class="timeline-icon bg-warning">
-                      <i class="fas fa-pause"></i>
+                      <i class="bi bi-pause"></i>
                     </div>
                     <div class="timeline-content">
                       <h6 class="mb-1 text-warning">Actuellement en pause</h6>
@@ -208,7 +208,7 @@
                   
                   <div class="timeline-item timeline-item-current" *ngIf="ticket.statut === StatutIntervention.EN_COURS">
                     <div class="timeline-icon bg-primary">
-                      <i class="fas fa-cog fa-spin"></i>
+                      <i class="bi bi-gear-fill"></i>
                     </div>
                     <div class="timeline-content">
                       <h6 class="mb-1 text-primary">Intervention en cours</h6>
@@ -227,7 +227,7 @@
             <!-- Informations du ticket -->
             <div class="card border-0 shadow-sm mb-4">
               <div class="card-header bg-primary text-white border-0">
-                <h6 class="mb-0"><i class="fas fa-info-circle me-2"></i>Informations</h6>
+                <h6 class="mb-0"><i class="bi bi-info-circle me-2"></i>Informations</h6>
               </div>
               <div class="card-body p-0">
                 <div class="info-item">
@@ -252,14 +252,14 @@
             <!-- Intervenants -->
             <div class="card border-0 shadow-sm mb-4">
               <div class="card-header bg-success text-white border-0">
-                <h6 class="mb-0"><i class="fas fa-users me-2"></i>Intervenants</h6>
+                <h6 class="mb-0"><i class="bi bi-people me-2"></i>Intervenants</h6>
               </div>
               <div class="card-body p-0">
                 <div class="info-item">
                   <span class="info-label">Demandeur</span>
                   <div class="d-flex align-items-center">
                     <div class="avatar-sm bg-primary rounded-circle me-2 d-flex align-items-center justify-content-center">
-                      <i class="fas fa-user text-white"></i>
+                      <i class="bi bi-person text-white"></i>
                     </div>
                     <span>{{ ticket.demandeurNom || 'Non défini' }}</span>
                   </div>
@@ -269,7 +269,7 @@
                   <span class="info-label">Technicien</span>
                   <div class="d-flex align-items-center">
                     <div class="avatar-sm bg-warning rounded-circle me-2 d-flex align-items-center justify-content-center">
-                      <i class="fas fa-tools text-white"></i>
+                      <i class="bi bi-tools text-white"></i>
                     </div>
                     <span>{{ ticket.technicienNom }}</span>
                   </div>
@@ -279,36 +279,35 @@
                   <span class="info-label">Modifié par</span>
                   <div class="d-flex align-items-center">
                     <div class="avatar-sm bg-info rounded-circle me-2 d-flex align-items-center justify-content-center">
-                      <i class="fas fa-edit text-white"></i>
+                      <i class="bi bi-pencil text-white"></i>
                     </div>
                     <span>{{ ticket.modificateurNom }}</span>
                   </div>
                 </div>
               </div>
-            </div>
-
-            <!-- Contrat et Équipement -->
+            </div>                <!-- Contrat et Équipement -->
             <div class="card border-0 shadow-sm">
               <div class="card-header bg-warning text-dark border-0">
-                <h6 class="mb-0"><i class="fas fa-file-contract me-2"></i>Contrat & Équipement</h6>
+                <h6 class="mb-0"><i class="bi bi-file-earmark-text me-2"></i>Contrat & Équipement</h6>
               </div>
               <div class="card-body p-0">
                 <div class="info-item" *ngIf="ticket.contratNumero">
                   <span class="info-label">Contrat</span>
                   <div class="d-flex align-items-center">
                     <div class="avatar-sm bg-success rounded-circle me-2 d-flex align-items-center justify-content-center">
-                      <i class="fas fa-file-contract text-white"></i>
+                      <i class="bi bi-file-earmark-text text-white"></i>
                     </div>
                     <span class="fw-bold">{{ ticket.contratNumero }}</span>
                   </div>
                 </div>
                 
-                <div class="info-item border-0" *ngIf="ticket.imprimanteModele; else noEquipment">
+                <!-- Affichage de l'imprimante principale (pour compatibilité) -->
+                <div class="info-item" *ngIf="ticket.imprimanteModele && (!ticket.imprimantesAssociees || ticket.imprimantesAssociees.length === 0)">
                   <span class="info-label">Équipement</span>
                   <div class="d-flex align-items-center justify-content-between">
                     <div class="d-flex align-items-center">
                       <div class="avatar-sm bg-secondary rounded-circle me-2 d-flex align-items-center justify-content-center">
-                        <i class="fas fa-print text-white"></i>
+                        <i class="bi bi-printer text-white"></i>
                       </div>
                       <span>{{ ticket.imprimanteModele }}</span>
                     </div>
@@ -317,8 +316,36 @@
                             class="btn btn-sm btn-outline-primary"
                             [routerLink]="['/printers', ticket.imprimanteId, 'history']"
                             title="Voir l'historique des interventions">
-                      <i class="fas fa-history me-1"></i>Historique
+                      <i class="bi bi-clock-history me-1"></i>Historique
                     </button>
+                  </div>
+                </div>
+                
+                <!-- Affichage de la liste des imprimantes associées -->
+                <div class="info-item border-0" *ngIf="ticket.imprimantesAssociees && ticket.imprimantesAssociees.length > 0">
+                  <span class="info-label">Imprimantes concernées ({{ ticket.imprimantesAssociees.length }})</span>
+                  <div class="printer-list mt-2">
+                    <div class="printer-item" *ngFor="let printer of ticket.imprimantesAssociees">
+                      <div class="d-flex align-items-center justify-content-between">
+                        <div class="d-flex align-items-center">
+                          <div class="avatar-sm bg-secondary rounded-circle me-2 d-flex align-items-center justify-content-center">
+                            <i class="bi bi-printer text-white"></i>
+                          </div>
+                          <div>
+                            <span class="fw-bold">{{ printer.modele }}</span>
+                            <small class="d-block text-muted" *ngIf="printer.numeroSerie">S/N: {{ printer.numeroSerie }}</small>
+                            <small class="d-block text-muted" *ngIf="printer.emplacement">Lieu: {{ printer.emplacement }}</small>
+                          </div>
+                        </div>
+                        <button 
+                          type="button" 
+                          class="btn btn-sm btn-outline-primary"
+                          [routerLink]="['/printers', printer.id, 'history']"
+                          title="Voir l'historique des interventions">
+                          <i class="bi bi-clock-history me-1"></i>
+                        </button>
+                      </div>
+                    </div>
                   </div>
                 </div>
                 

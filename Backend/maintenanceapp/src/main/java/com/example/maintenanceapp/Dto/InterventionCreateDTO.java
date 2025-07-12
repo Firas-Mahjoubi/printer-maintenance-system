@@ -5,6 +5,7 @@ import com.example.maintenanceapp.Entity.Enum.TypeIntervention;
 
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 public class InterventionCreateDTO {
     
@@ -21,6 +22,8 @@ public class InterventionCreateDTO {
     private Long contratId;
     
     private Long imprimanteId;
+    
+    private List<Long> imprimanteIds;
     
     private Long demandeurId;
     
@@ -84,6 +87,14 @@ public class InterventionCreateDTO {
 
     public void setImprimanteId(Long imprimanteId) {
         this.imprimanteId = imprimanteId;
+    }
+    
+    public List<Long> getImprimanteIds() {
+        return imprimanteIds;
+    }
+
+    public void setImprimanteIds(List<Long> imprimanteIds) {
+        this.imprimanteIds = imprimanteIds;
     }
 
     public Long getDemandeurId() {

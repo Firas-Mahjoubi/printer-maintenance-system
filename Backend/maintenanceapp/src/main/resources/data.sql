@@ -33,6 +33,19 @@ CHECK (statut_contrat IN (
     'BROUILLON'
 ));
 
+-- Fix the imprimante status constraint to include EN_PANNE
+-- Drop the existing constraint
+ALTER TABLE imprimante DROP CONSTRAINT IF EXISTS imprimante_status_check;
+
+-- Add the new constraint with all valid status values including EN_PANNE
+ALTER TABLE imprimante ADD CONSTRAINT imprimante_status_check 
+CHECK (status IN (
+    'ACTIF', 
+    'EN_PANNE',
+    'EN_MAINTENANCE', 
+    'HORS_SERVICE'
+));
+
 -- Fix the unique constraint on contrat_id in intervention table
 -- This constraint is preventing multiple interventions per contract
 -- which is incorrect business logic

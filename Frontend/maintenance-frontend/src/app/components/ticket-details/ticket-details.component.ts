@@ -181,20 +181,31 @@ export class TicketDetailsComponent implements OnInit {
   completeTicket(): void {
     if (this.ticket && this.ticket.id) {
       const currentUserId = this.authService.getCurrentUserId();
-      const solution = 'Intervention terminée';
+      const diagnostic = 'Diagnostic technique effectué';
+      const solution = 'Intervention terminée avec succès';
+      const observations = 'Ticket terminé via l\'interface';
+      
       if (currentUserId) {
         this.loading = true;
-        this.interventionService.cloturerTicket(this.ticket.id, currentUserId, solution).subscribe({
+        // Utilise terminerTicket pour s'assurer que le statut de l'imprimante est mis à jour à ACTIF
+        this.interventionService.terminerTicket(
+          this.ticket.id, 
+          diagnostic, 
+          solution, 
+          observations, 
+          undefined, // coutReel
+          currentUserId
+        ).subscribe({
           next: (updatedTicket: InterventionDTO) => {
             this.ticket = updatedTicket;
             // Recharger les détails complets après un petit délai pour avoir la chronologie mise à jour
             setTimeout(() => {
               this.loadTicketDetails(this.ticket!.id!);
             }, 500);
-            console.log('Ticket clôturé avec succès');
+            console.log('Ticket terminé avec succès - statut imprimante mis à jour');
           },
           error: (error: any) => {
-            console.error('Erreur lors de la clôture du ticket:', error);
+            console.error('Erreur lors de la finalisation du ticket:', error);
             this.loading = false;
           }
         });

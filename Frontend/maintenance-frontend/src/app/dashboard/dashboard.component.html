@@ -1,7 +1,367 @@
+<div class="dashboard-container">
+  <!-- Header Section -->
+  <div class="dashboard-header">
+    <div class="title-area">
+      <h1><i class="bi bi-speedometer2"></i> Tableau de bord</h1>
+      <p class="subtitle">Vue d'ensemble de l'activité de maintenance</p>
+    </div>
+    <div class="date-badge">
+      <span>{{ currentDate | date:'dd MMMM yyyy' }}</span>
+    </div>
+    <div class="header-actions">
+      <button class="btn btn-outline-primary" (click)="refreshData()">
+        <i class="bi bi-arrow-clockwise"></i> Actualiser
+      </button>
+      <button class="btn btn-outline-info ms-2">
+        <i class="bi bi-sliders"></i> Filtres
+      </button>
+      <button class="btn btn-outline-success ms-2">
+        <i class="bi bi-file-earmark-pdf"></i> Exporter
+      </button>
+    </div>
+  </div>
 
-<h2>Dashboard</h2>
-<div class="card-container">
-  <div class="card">Total Users: 120</div>
-  <div class="card">Total Revenue: $4,320</div>
-  <div class="card">Expiring Contracts: 3</div>
+  <!-- Loading State -->
+  <div *ngIf="loading" class="loading-container">
+    <div class="spinner-border text-primary" role="status">
+      <span class="visually-hidden">Chargement...</span>
+    </div>
+    <p>Chargement des données...</p>
+  </div>
+
+  <!-- Error State -->
+  <div *ngIf="error" class="alert alert-danger" role="alert">
+    <i class="bi bi-exclamation-triangle-fill"></i> {{ error }}
+  </div>
+
+  <!-- Main Content -->
+  <div *ngIf="!loading && !error" class="dashboard-content">
+    <!-- Metrics Cards Row -->
+    <div class="metrics-row">
+      <div *ngFor="let metric of metrics">
+        <div class="metric-card" [ngClass]="metric.color">
+          <div class="metric-icon">
+            <i class="bi bi-{{ metric.icon }}"></i>
+          </div>
+          <div class="metric-content">
+            <h2>{{ metric.value }}</h2>
+            <p>{{ metric.title }}</p>
+            <div class="metric-trend" *ngIf="metric.trend !== undefined">
+              <span [ngClass]="{'trend-up': metric.trendUp === true, 'trend-down': metric.trendUp === false}">
+                {{ metric.trend }}% <span class="trend-label">{{ metric.trendLabel }}</span>
+              </span>
+              <div class="progress mini-progress mt-2">
+                <div class="progress-bar" [ngStyle]="{width: metric.trend + '%'}" *ngIf="metric.title !== 'Total des interventions'"></div>
+                <div class="progress-bar" [ngStyle]="{width: '100%'}" *ngIf="metric.title === 'Total des interventions'"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Charts Row -->
+    <div class="row charts-row">
+      <!-- Interventions by Type -->
+      <div class="col-md-4 mb-4">
+        <div class="chart-card">
+          <div class="chart-header">
+            <h5><i class="bi bi-pie-chart"></i> Interventions par type</h5>
+          </div>
+          <div class="chart-body">
+            <canvas baseChart
+                [data]="interventionsByTypeData"
+                [type]="'doughnut'"
+                [options]="{
+                  responsive: true,
+                  maintainAspectRatio: false,
+                  plugins: {
+                    legend: {
+                      position: 'bottom',
+                      labels: {
+                        boxWidth: 12,
+                        color: '#334155',
+                        font: {
+                          size: 11
+                        },
+                        padding: 15
+                      }
+                    },
+                    tooltip: {
+                      backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                      titleColor: '#1e293b',
+                      bodyColor: '#334155',
+                      borderColor: 'rgba(226, 232, 240, 0.8)',
+                      borderWidth: 1,
+                      padding: 10,
+                      boxWidth: 10,
+                      usePointStyle: true,
+                      boxPadding: 5
+                    }
+                  }
+                }">
+            </canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- Interventions by Status -->
+      <div class="col-md-4 mb-4">
+        <div class="chart-card">
+          <div class="chart-header">
+            <h5><i class="bi bi-bar-chart"></i> Statut des interventions</h5>
+          </div>
+          <div class="chart-body">
+            <canvas baseChart
+                [data]="interventionsByStatusData"
+                [type]="'pie'"
+                [options]="{
+                  responsive: true,
+                  maintainAspectRatio: false,
+                  plugins: {
+                    legend: {
+                      position: 'bottom',
+                      labels: {
+                        boxWidth: 12,
+                        color: '#334155',
+                        font: {
+                          size: 11
+                        },
+                        padding: 15
+                      }
+                    },
+                    tooltip: {
+                      backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                      titleColor: '#1e293b',
+                      bodyColor: '#334155',
+                      borderColor: 'rgba(226, 232, 240, 0.8)',
+                      borderWidth: 1,
+                      padding: 10,
+                      boxWidth: 10,
+                      usePointStyle: true,
+                      boxPadding: 5
+                    }
+                  }
+                }">
+            </canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- Interventions Trend -->
+      <div class="col-md-4 mb-4">
+        <div class="chart-card">
+          <div class="chart-header">
+            <h5><i class="bi bi-graph-up"></i> Évolution des interventions</h5>
+          </div>
+          <div class="chart-body">
+            <canvas baseChart
+                [data]="interventionsTrendData"
+                [type]="'line'"
+                [options]="{
+                  responsive: true,
+                  maintainAspectRatio: false,
+                  plugins: {
+                    legend: {
+                      display: false
+                    },
+                    tooltip: {
+                      backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                      titleColor: '#1e293b',
+                      bodyColor: '#334155',
+                      borderColor: 'rgba(226, 232, 240, 0.8)',
+                      borderWidth: 1,
+                      padding: 10,
+                      usePointStyle: true
+                    }
+                  },
+                  scales: {
+                    y: {
+                      beginAtZero: true,
+                      ticks: {
+                        precision: 0,
+                        color: '#64748b',
+                        font: {
+                          size: 10
+                        }
+                      },
+                      grid: {
+                        color: 'rgba(226, 232, 240, 0.8)'
+                      }
+                    },
+                    x: {
+                      ticks: {
+                        color: '#64748b',
+                        font: {
+                          size: 10
+                        }
+                      },
+                      grid: {
+                        display: false
+                      }
+                    }
+                  }
+                }">
+            </canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Recent Activities and Alerts Row -->
+    <div class="row activities-row">
+      <!-- Recent Interventions -->
+      <div class="col-md-6 mb-4">
+        <div class="activity-card">
+          <div class="activity-header">
+            <h5><i class="bi bi-clock-history"></i> Interventions récentes</h5>
+            <a href="javascript:void(0)" class="view-all-link">Voir tout</a>
+          </div>
+          <div class="activity-body">
+            <div class="table-responsive">
+              <table class="table table-hover">
+                <thead>
+                  <tr>
+                    <th>ID</th>
+                    <th>Titre</th>
+                    <th>Date</th>
+                    <th>Statut</th>
+                    <th>Priorité</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let intervention of recentInterventions">
+                    <td><strong>#{{ intervention.id }}</strong></td>
+                    <td>{{ intervention.titre }}</td>
+                    <td>{{ formatDate(intervention.dateCreation) }}</td>
+                    <td><span [class]="getStatusBadgeClass(intervention.statut)">{{ formatStatus(intervention.statut || '') }}</span></td>
+                    <td><span [class]="getPriorityBadgeClass(intervention.priorite)">{{ intervention.priorite }}</span></td>
+                  </tr>
+                  <tr *ngIf="recentInterventions.length === 0">
+                    <td colspan="5" class="text-center">Aucune intervention récente</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Expiring Contracts -->
+      <div class="col-md-6 mb-4">
+        <div class="activity-card alert-card">
+          <div class="activity-header">
+            <h5><i class="bi bi-exclamation-diamond"></i> Contrats expirant bientôt</h5>
+            <a href="javascript:void(0)" class="view-all-link">Voir tout</a>
+          </div>
+          <div class="activity-body">
+            <div class="alert-list">
+              <div class="alert-item" *ngFor="let contract of expiringContracts">
+                <div class="alert-icon">
+                  <i class="bi bi-calendar-x"></i>
+                </div>
+                <div class="alert-content">
+                  <h6>{{ contract.numeroContrat }}</h6>
+                  <p>
+                    <span class="client-name">{{ contract.client?.prenom }} {{ contract.client?.nom }}</span>
+                    <span class="expiry-date">Expire le {{ formatDate(contract.dateFin) }}</span>
+                  </p>
+                </div>
+                <div class="alert-action">
+                  <button class="btn btn-sm btn-outline-warning">Renouveler</button>
+                </div>
+              </div>
+              <div class="alert-empty" *ngIf="expiringContracts.length === 0">
+                <i class="bi bi-check-circle"></i>
+                <p>Aucun contrat n'expire dans les 30 prochains jours</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Top Clients and Printer Status Row -->
+    <div class="row bottom-row">
+      <!-- Top Clients -->
+      <div class="col-md-6 mb-4">
+        <div class="activity-card">
+          <div class="activity-header">
+            <h5><i class="bi bi-people"></i> Clients les plus actifs</h5>
+          </div>
+          <div class="activity-body">
+            <div class="client-list">
+              <div class="client-item" *ngFor="let client of topClients; let i = index">
+                <div class="client-rank">{{ i + 1 }}</div>
+                <div class="client-avatar">
+                  <i class="bi bi-person-circle"></i>
+                </div>
+                <div class="client-info">
+                  <h6>{{ client.nom }}</h6>
+                  <p>{{ client.email }}</p>
+                </div>
+                <div class="client-stats">
+                  <span class="badge bg-primary">{{ client.count }} interventions</span>
+                </div>
+              </div>
+              <div class="alert-empty" *ngIf="topClients.length === 0">
+                <p>Aucune donnée disponible</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Printer Status Summary -->
+      <div class="col-md-6 mb-4">
+        <div class="activity-card">
+          <div class="activity-header">
+            <h5><i class="bi bi-printer"></i> État du parc d'imprimantes</h5>
+            <a href="javascript:void(0)" class="view-all-link">Voir tout</a>
+          </div>
+          <div class="activity-body">
+            <div class="printer-stats">
+              <div class="stat-box">
+                <div class="stat-circle">
+                  <span>{{ activePrinters.length }}</span>
+                </div>
+                <p>Imprimantes actives</p>
+              </div>
+              <div class="stat-box">
+                <div class="stat-circle bg-warning">
+                  <span>{{ getMaintPrintersCount() }}</span>
+                </div>
+                <p>En maintenance</p>
+              </div>
+              <div class="stat-box">
+                <div class="stat-circle bg-danger">
+                  <span>{{ getErrorPrintersCount() }}</span>
+                </div>
+                <p>En erreur</p>
+              </div>
+              <div class="stat-box">
+                <div class="stat-circle bg-success">
+                  <span>{{ getHealthyPrintersCount() }}</span>
+                </div>
+                <p>En bon état</p>
+              </div>
+            </div>
+
+            <div class="printer-models mt-4">
+              <h6>Top Modèles</h6>
+              <div class="model-list">
+                <div class="model-item" *ngFor="let model of getTopPrinterModels(); let i = index">
+                  <span class="model-name">{{ model.model }}</span>
+                  <div class="progress">
+                    <div class="progress-bar" [ngStyle]="{width: (model.count / activePrinters.length * 100) + '%'}"></div>
+                  </div>
+                  <span class="model-count">{{ model.count }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>

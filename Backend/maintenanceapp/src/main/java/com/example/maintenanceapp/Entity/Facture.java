@@ -1,6 +1,8 @@
 package com.example.maintenanceapp.Entity;
 
 import com.example.maintenanceapp.Entity.Enum.StatutFacture;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
@@ -26,5 +28,6 @@ public class Facture {
     StatutFacture statutFacture;
 
     @OneToOne
+        @JsonIgnore
     private Contrat contrat;
 }

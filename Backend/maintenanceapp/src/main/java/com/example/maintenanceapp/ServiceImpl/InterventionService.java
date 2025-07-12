@@ -9,6 +9,7 @@ import com.example.maintenanceapp.Entity.InterventionHistorique;
 import com.example.maintenanceapp.Entity.Contrat;
 import com.example.maintenanceapp.Entity.Imprimante;
 import com.example.maintenanceapp.Entity.Utilisateur;
+import com.example.maintenanceapp.Entity.Enum.ImprimanteStatus;
 import com.example.maintenanceapp.Entity.Enum.StatutIntervention;
 import com.example.maintenanceapp.Entity.Enum.TypeIntervention;
 import com.example.maintenanceapp.Entity.Enum.PrioriteIntervention;
@@ -121,9 +122,17 @@ public class InterventionService implements IInterventionService {
         }
         
         // Associer l'imprimante
+        Imprimante imprimante = null;
         if (imprimanteId != null) {
-            Imprimante imprimante = imprimanteRepositorie.findById(imprimanteId).orElse(null);
+            imprimante = imprimanteRepositorie.findById(imprimanteId).orElse(null);
             intervention.setImprimante(imprimante);
+            
+            // Update printer status to EN_MAINTENANCE
+            if (imprimante != null) {
+                imprimante.setStatus(ImprimanteStatus.EN_MAINTENANCE);
+                imprimanteRepositorie.save(imprimante);
+                log.info("Printer status updated to EN_MAINTENANCE for printer ID: {}", imprimanteId);
+            }
         }
         
         // Initialiser les valeurs par défaut
@@ -174,12 +183,144 @@ public class InterventionService implements IInterventionService {
         Utilisateur utilisateur = utilisateurRepositorie.findById(utilisateurId).orElse(null);
         intervention.setModifiePar(utilisateur);
         
+        // Update printer status based on intervention status
+        updatePrinterStatus(intervention, nouveauStatut);
+        
         Intervention saved = interventionRepositorie.save(intervention);
         envoyerNotificationChangementStatut(saved);
         
         log.info("Statut du ticket {} changé de {} à {}", 
                 saved.getNumeroTicket(), ancienStatut, nouveauStatut);
         return saved;
+    }
+    
+    /**
+     * Updates the printer status based on the intervention status
+     */
+    private void updatePrinterStatus(Intervention intervention, StatutIntervention statutIntervention) {
+        log.info("Beginning printer status update for intervention ID: {}, status: {}", intervention.getId(), statutIntervention);
+        
+        Imprimante imprimante = intervention.getImprimante();
+        if (imprimante == null) {
+            log.warn("No primary printer associated with intervention ID: {}. Checking for associated printers.", intervention.getId());
+            
+            // Try to update associated printers even if primary is null
+            if (intervention.getImprimantesAssociees() != null && !intervention.getImprimantesAssociees().isEmpty()) {
+                log.info("Found {} associated printers for intervention ID: {}", 
+                        intervention.getImprimantesAssociees().size(), intervention.getId());
+                updateAssociatedPrintersStatus(intervention, statutIntervention);
+                return;
+            } else {
+                log.warn("No printers (primary or associated) found for intervention ID: {}", intervention.getId());
+                return;
+            }
+        }
+        
+        ImprimanteStatus oldStatus = imprimante.getStatus();
+        ImprimanteStatus newStatus;
+        
+        switch (statutIntervention) {
+            case TERMINEE:
+            case ANNULEE:
+                // Reset printer to active status when intervention is complete or cancelled
+                newStatus = ImprimanteStatus.ACTIF;
+                log.info("Printer {} status changing from {} to {} due to intervention {} status change to {}", 
+                        imprimante.getId(), oldStatus, newStatus, intervention.getId(), statutIntervention);
+                break;
+                
+            case REJETEE:
+                // Mark printer as out of service when intervention is rejected
+                newStatus = ImprimanteStatus.HORS_SERVICE;
+                log.info("Printer {} status changing from {} to {} due to intervention {} status change to REJETEE", 
+                        imprimante.getId(), oldStatus, newStatus, intervention.getId());
+                break;
+                
+            case EN_COURS:
+                // Mark printer as in maintenance when technician starts working on it
+                newStatus = ImprimanteStatus.EN_MAINTENANCE;
+                log.info("Printer {} status changing from {} to {} due to intervention {} status change to EN_COURS", 
+                        imprimante.getId(), oldStatus, newStatus, intervention.getId());
+                break;
+                
+            case EN_ATTENTE:
+            case PLANIFIEE:
+                // Mark printer as in trouble but not yet in maintenance
+                newStatus = ImprimanteStatus.EN_PANNE;
+                log.info("Printer {} status changing from {} to {} due to intervention {} waiting status", 
+                        imprimante.getId(), oldStatus, newStatus, intervention.getId());
+                break;
+                
+            case ATTENTE_PIECES:
+            case ATTENTE_CLIENT:
+            case EN_PAUSE:
+                // These statuses mean intervention has started but is paused, keep in maintenance
+                newStatus = ImprimanteStatus.EN_MAINTENANCE;
+                log.info("Printer {} status changing from {} to {} due to intervention {} paused status", 
+                        imprimante.getId(), oldStatus, newStatus, intervention.getId());
+                break;
+                
+            default:
+                // No status change for other intervention statuses
+                log.info("No status change needed for intervention status: {}", statutIntervention);
+                return;
+        }
+        
+        // Save the updated printer status
+        imprimante.setStatus(newStatus);
+        imprimanteRepositorie.save(imprimante);
+        log.info("Primary printer {} status updated from {} to {}", imprimante.getId(), oldStatus, newStatus);
+        
+        // Also update associated printers if any
+        updateAssociatedPrintersStatus(intervention, statutIntervention);
+    }
+    
+    /**
+     * Updates the status of all printers associated with an intervention
+     */
+    private void updateAssociatedPrintersStatus(Intervention intervention, StatutIntervention statutIntervention) {
+        if (intervention.getImprimantesAssociees() == null || intervention.getImprimantesAssociees().isEmpty()) {
+            log.debug("No associated printers to update for intervention ID: {}", intervention.getId());
+            return;
+        }
+        
+        log.info("Updating status for {} associated printers for intervention ID: {}", 
+                intervention.getImprimantesAssociees().size(), intervention.getId());
+        
+        for (Imprimante associatedPrinter : intervention.getImprimantesAssociees()) {
+            ImprimanteStatus oldStatus = associatedPrinter.getStatus();
+            ImprimanteStatus newStatus;
+            
+            switch (statutIntervention) {
+                case TERMINEE:
+                case ANNULEE:
+                    newStatus = ImprimanteStatus.ACTIF;
+                    break;
+                case REJETEE:
+                    newStatus = ImprimanteStatus.HORS_SERVICE;
+                    break;
+                case EN_COURS:
+                    newStatus = ImprimanteStatus.EN_MAINTENANCE;
+                    break;
+                case EN_ATTENTE:
+                case PLANIFIEE:
+                    newStatus = ImprimanteStatus.EN_PANNE;
+                    break;
+                case ATTENTE_PIECES:
+                case ATTENTE_CLIENT:
+                case EN_PAUSE:
+                    newStatus = ImprimanteStatus.EN_MAINTENANCE;
+                    break;
+                default:
+                    // Skip update for other statuses
+                    log.info("No status change for associated printer {} with intervention status {}", 
+                            associatedPrinter.getId(), statutIntervention);
+                    continue;
+            }
+            
+            associatedPrinter.setStatus(newStatus);
+            imprimanteRepositorie.save(associatedPrinter);
+            log.info("Associated printer {} status updated from {} to {}", associatedPrinter.getId(), oldStatus, newStatus);
+        }
     }
 
     @Override
@@ -213,6 +354,9 @@ public class InterventionService implements IInterventionService {
             intervention.setTechnicien(technicien);
         }
         
+        // Update printer status to EN_MAINTENANCE
+        updatePrinterStatus(intervention, StatutIntervention.EN_COURS);
+        
         return interventionRepositorie.save(intervention);
     }
 
@@ -231,6 +375,9 @@ public class InterventionService implements IInterventionService {
         intervention.setCoutReel(coutReel);
         intervention.setDerniereModification(LocalDateTime.now());
         
+        // Update printer status to ACTIF (fixed)
+        updatePrinterStatus(intervention, StatutIntervention.TERMINEE);
+        
         return interventionRepositorie.save(intervention);
     }
 
@@ -246,6 +393,9 @@ public class InterventionService implements IInterventionService {
         
         Utilisateur utilisateur = utilisateurRepositorie.findById(utilisateurId).orElse(null);
         intervention.setModifiePar(utilisateur);
+        
+        // Update printer status to ACTIF
+        updatePrinterStatus(intervention, StatutIntervention.ANNULEE);
         
         return interventionRepositorie.save(intervention);
     }
@@ -443,6 +593,13 @@ public class InterventionService implements IInterventionService {
             intervention.setDateCreation(LocalDateTime.now());
             intervention.setNumeroTicket(genererNumeroTicket());
             
+            // Update printer status to EN_PANNE
+            if (imprimante != null) {
+                imprimante.setStatus(ImprimanteStatus.EN_PANNE);
+                imprimanteRepositorie.save(imprimante);
+                log.info("Printer status updated to EN_PANNE for printer ID: {}", imprimante.getId());
+            }
+            
             Intervention saved = interventionRepositorie.save(intervention);
             
             // Notification
@@ -502,7 +659,21 @@ public class InterventionService implements IInterventionService {
     
     @Override
     public void supprimerIntervention(Long id) {
-        interventionRepositorie.deleteById(id);
+        try {
+            // First, delete any historical records linked to this intervention
+            List<InterventionHistorique> historiques = interventionHistoriqueRepositorie.findByInterventionIdOrderByDateActionAsc(id);
+            if (historiques != null && !historiques.isEmpty()) {
+                interventionHistoriqueRepositorie.deleteAll(historiques);
+            }
+            
+            // Now it's safe to delete the intervention itself
+            interventionRepositorie.deleteById(id);
+            
+            log.info("Intervention avec ID {} et ses historiques supprimés avec succès", id);
+        } catch (Exception e) {
+            log.error("Erreur lors de la suppression de l'intervention ID {}: {}", id, e.getMessage());
+            throw new RuntimeException("Erreur lors de la suppression de l'intervention", e);
+        }
     }
     
     @Override
@@ -624,11 +795,17 @@ public class InterventionService implements IInterventionService {
                 
                 intervention = interventionRepositorie.save(intervention);
                 
+                // Update printer status to EN_MAINTENANCE when intervention starts
+                updatePrinterStatus(intervention, StatutIntervention.EN_COURS);
+                
                 // Enregistrer l'action dans l'historique
                 enregistrerActionHistorique(intervention, ancienStatut, StatutIntervention.EN_COURS, 
                                           "Démarrage de l'intervention", null, technicien);
             } else {
                 intervention = interventionRepositorie.save(intervention);
+                
+                // Update printer status even if no technician is assigned
+                updatePrinterStatus(intervention, StatutIntervention.EN_COURS);
             }
             
             return interventionMapper.toDTO(intervention);
@@ -726,6 +903,9 @@ public class InterventionService implements IInterventionService {
             intervention.setModifiePar(technicien);
             
             intervention = interventionRepositorie.save(intervention);
+            
+            // Update printer status to ACTIF when intervention is completed
+            updatePrinterStatus(intervention, StatutIntervention.TERMINEE);
             
             // Enregistrer l'action dans l'historique
             enregistrerActionHistorique(intervention, ancienStatut, StatutIntervention.TERMINEE, 
@@ -908,5 +1088,188 @@ public class InterventionService implements IInterventionService {
         stats.put("interventionsParMois", interventionsParMois);
         
         return stats;
+    }
+
+    @Override
+    public List<Long> obtenirContratIdsAvecInterventionsActives() {
+        // Liste des statuts considérés comme "actifs"
+        List<StatutIntervention> statutsActifs = List.of(
+            StatutIntervention.EN_ATTENTE,
+            StatutIntervention.PLANIFIEE,
+            StatutIntervention.EN_COURS,
+            StatutIntervention.EN_PAUSE,
+            StatutIntervention.ATTENTE_PIECES,
+            StatutIntervention.ATTENTE_CLIENT
+        );
+        
+        // Requête pour obtenir toutes les interventions avec un statut actif
+        List<Intervention> interventionsActives = interventionRepositorie.findAll().stream()
+            .filter(intervention -> statutsActifs.contains(intervention.getStatutIntervention()))
+            .filter(intervention -> intervention.getContrat() != null)
+            .collect(Collectors.toList());
+        
+        // Extraire uniquement les IDs des contrats, en éliminant les doublons
+        return interventionsActives.stream()
+            .map(intervention -> intervention.getContrat().getId())
+            .distinct()
+            .collect(Collectors.toList());
+    }
+    
+    @Override
+    public boolean hasActiveInterventionsForContract(Long contratId) {
+        // Liste des statuts considérés comme "actifs"
+        List<StatutIntervention> statutsActifs = List.of(
+            StatutIntervention.EN_ATTENTE,
+            StatutIntervention.PLANIFIEE,
+            StatutIntervention.EN_COURS,
+            StatutIntervention.EN_PAUSE,
+            StatutIntervention.ATTENTE_PIECES,
+            StatutIntervention.ATTENTE_CLIENT
+        );
+        
+        // Requête pour vérifier si le contrat a des interventions avec un statut actif
+        List<Intervention> interventions = interventionRepositorie.findByContrat_IdOrderByDateCreationDesc(contratId);
+        
+        return interventions.stream()
+            .anyMatch(intervention -> statutsActifs.contains(intervention.getStatutIntervention()));
+    }
+    
+    @Override
+    public List<InterventionDTO> obtenirInterventionsActivesPourContrat(Long contratId) {
+        // Liste des statuts considérés comme "actifs"
+        List<StatutIntervention> statutsActifs = List.of(
+            StatutIntervention.EN_ATTENTE,
+            StatutIntervention.PLANIFIEE,
+            StatutIntervention.EN_COURS,
+            StatutIntervention.EN_PAUSE,
+            StatutIntervention.ATTENTE_PIECES,
+            StatutIntervention.ATTENTE_CLIENT
+        );
+        
+        // Récupérer toutes les interventions pour ce contrat
+        List<Intervention> interventions = interventionRepositorie.findByContrat_IdOrderByDateCreationDesc(contratId);
+        
+        // Filtrer les interventions actives et les convertir en DTO
+        return interventions.stream()
+            .filter(intervention -> statutsActifs.contains(intervention.getStatutIntervention()))
+            .map(interventionMapper::toDTO)
+            .collect(Collectors.toList());
+    }
+
+    @Override
+    public InterventionDTO creerInterventionMultipleImprimantes(InterventionCreateDTO createDTO) {
+        try {
+            Intervention intervention = interventionMapper.toEntity(createDTO);
+            
+            // Récupération des entités liées
+            Utilisateur demandeur = utilisateurRepositorie.findById(createDTO.getDemandeurId()).orElse(null);
+            Contrat contrat = contratRepositorie.findById(createDTO.getContratId()).orElse(null);
+            Utilisateur technicien = createDTO.getTechnicienId() != null ?
+                utilisateurRepositorie.findById(createDTO.getTechnicienId()).orElse(null) : null;
+            
+            if (demandeur == null || contrat == null) {
+                throw new RuntimeException("Demandeur ou contrat non trouvé");
+            }
+            
+            // Configuration de l'intervention
+            intervention.setDemandeur(demandeur);
+            intervention.setContrat(contrat);
+            intervention.setTechnicien(technicien);
+            intervention.setStatutIntervention(StatutIntervention.EN_ATTENTE);
+            intervention.setDateCreation(LocalDateTime.now());
+            intervention.setNumeroTicket(genererNumeroTicket());
+            
+            // Pour une intervention avec plusieurs imprimantes, nous utilisons maintenant
+            // la relation many-to-many pour les associer
+            if (createDTO.getImprimanteIds() != null && !createDTO.getImprimanteIds().isEmpty()) {
+                List<Imprimante> imprimantes = imprimanteRepositorie.findAllById(createDTO.getImprimanteIds());
+                
+                // Associer les imprimantes à l'intervention via la nouvelle relation
+                intervention.getImprimantesAssociees().addAll(imprimantes);
+                
+                // On lie la première imprimante à l'intervention pour le référencement legacy
+                if (!imprimantes.isEmpty()) {
+                    intervention.setImprimante(imprimantes.get(0));
+                }
+                
+                // Update all printers' status to EN_PANNE
+                for (Imprimante imp : imprimantes) {
+                    imp.setStatus(ImprimanteStatus.EN_PANNE);
+                    imprimanteRepositorie.save(imp);
+                    log.info("Printer status updated to EN_PANNE for printer ID: {}", imp.getId());
+                }
+            }
+            
+            Intervention saved = interventionRepositorie.save(intervention);
+            
+            // Notification
+            envoyerNotificationNouveauTicket(saved);
+            
+            return interventionMapper.toDTO(saved);
+        } catch (Exception e) {
+            log.error("Erreur lors de la création de l'intervention multi-imprimantes: {}", e.getMessage());
+            throw new RuntimeException("Erreur lors de la création de l'intervention", e);
+        }
+    }
+    
+    @Override
+    public List<InterventionDTO> creerInterventionsParImprimante(InterventionCreateDTO createDTO) {
+        try {
+            if (createDTO.getImprimanteIds() == null || createDTO.getImprimanteIds().isEmpty()) {
+                throw new RuntimeException("Aucune imprimante sélectionnée pour la création multiple de tickets");
+            }
+            
+            // Récupération des entités liées communes
+            Utilisateur demandeur = utilisateurRepositorie.findById(createDTO.getDemandeurId()).orElse(null);
+            Contrat contrat = contratRepositorie.findById(createDTO.getContratId()).orElse(null);
+            Utilisateur technicien = createDTO.getTechnicienId() != null ?
+                utilisateurRepositorie.findById(createDTO.getTechnicienId()).orElse(null) : null;
+            
+            if (demandeur == null || contrat == null) {
+                throw new RuntimeException("Demandeur ou contrat non trouvé");
+            }
+            
+            List<Imprimante> imprimantes = imprimanteRepositorie.findAllById(createDTO.getImprimanteIds());
+            
+            // Créer une intervention pour chaque imprimante
+            return imprimantes.stream()
+                .map(imprimante -> {
+                    // Création de l'intervention pour cette imprimante
+                    Intervention intervention = interventionMapper.toEntity(createDTO);
+                    
+                    // Configuration
+                    intervention.setDemandeur(demandeur);
+                    intervention.setContrat(contrat);
+                    intervention.setTechnicien(technicien);
+                    intervention.setImprimante(imprimante);
+                    intervention.setStatutIntervention(StatutIntervention.EN_ATTENTE);
+                    intervention.setDateCreation(LocalDateTime.now());
+                    intervention.setNumeroTicket(genererNumeroTicket());
+                    
+                    // Personnalisation du titre
+                    intervention.setTitre(String.format("%s - %s", intervention.getTitre(), imprimante.getModele()));
+                    
+                    // Ajouter à la relation many-to-many
+                    intervention.getImprimantesAssociees().add(imprimante);
+                    
+                    // Update printer status to EN_PANNE
+                    imprimante.setStatus(ImprimanteStatus.EN_PANNE);
+                    imprimanteRepositorie.save(imprimante);
+                    log.info("Printer status updated to EN_PANNE for printer ID: {}", imprimante.getId());
+                    
+                    // Sauvegarde
+                    Intervention saved = interventionRepositorie.save(intervention);
+                    
+                    // Notification
+                    envoyerNotificationNouveauTicket(saved);
+                    
+                    return interventionMapper.toDTO(saved);
+                })
+                .collect(Collectors.toList());
+                
+        } catch (Exception e) {
+            log.error("Erreur lors de la création des interventions par imprimante: {}", e.getMessage());
+            throw new RuntimeException("Erreur lors de la création des interventions", e);
+        }
     }
 }

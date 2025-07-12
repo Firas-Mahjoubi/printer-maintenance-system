@@ -1,0 +1,541 @@
+<div class="technician-calendar-container">
+  <!-- Header Section -->
+  <div class="header-section">
+    <div class="title-area">
+      <h1><i class="bi bi-calendar-week"></i> Calendrier des Techniciens</h1>
+      <p class="subtitle">Gestion et planification des interventions</p>
+    </div>
+    <div class="header-actions">
+      <button class="btn btn-outline-primary me-2" (click)="refreshCalendar()">
+        <i class="bi bi-arrow-clockwise"></i> Actualiser
+      </button>
+      <button class="btn btn-outline-success me-2" (click)="exportCalendar()">
+        <i class="bi bi-file-earmark-excel"></i> Exporter
+      </button>
+      <button class="btn btn-outline-dark" (click)="printCalendar()">
+        <i class="bi bi-printer"></i> Imprimer
+      </button>
+    </div>
+  </div>
+
+  <!-- Statistics Cards -->
+  <div class="stats-container">
+    <div class="row">
+      <div class="col-md-3 col-sm-6 mb-4">
+        <div class="stat-card blue">
+          <div class="stat-icon">
+            <i class="bi bi-file-earmark-text"></i>
+          </div>
+          <div class="stat-content">
+            <h2>{{totalInterventions}}</h2>
+            <p>Interventions totales</p>
+          </div>
+          <div class="stat-trend">
+            <div class="progress mini-progress">
+              <div class="progress-bar" style="width: 100%"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-3 col-sm-6 mb-4">
+        <div class="stat-card amber">
+          <div class="stat-icon">
+            <i class="bi bi-hourglass-split"></i>
+          </div>
+          <div class="stat-content">
+            <h2>{{pendingInterventions}}</h2>
+            <p>En attente</p>
+          </div>
+          <div class="stat-trend">
+            <div class="progress mini-progress">
+              <div class="progress-bar" [style.width.%]="(pendingInterventions / (totalInterventions || 1)) * 100"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-3 col-sm-6 mb-4">
+        <div class="stat-card green">
+          <div class="stat-icon">
+            <i class="bi bi-calendar-check"></i>
+          </div>
+          <div class="stat-content">
+            <h2>{{scheduledInterventions}}</h2>
+            <p>Planifiées</p>
+          </div>
+          <div class="stat-trend">
+            <div class="progress mini-progress">
+              <div class="progress-bar" [style.width.%]="(scheduledInterventions / (totalInterventions || 1)) * 100"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-3 col-sm-6 mb-4">
+        <div class="stat-card purple">
+          <div class="stat-icon">
+            <i class="bi bi-check-circle"></i>
+          </div>
+          <div class="stat-content">
+            <h2>{{completedInterventions}}</h2>
+            <p>Terminées</p>
+          </div>
+          <div class="stat-trend">
+            <div class="progress mini-progress">
+              <div class="progress-bar" [style.width.%]="(completedInterventions / (totalInterventions || 1)) * 100"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filter Panel -->
+  <div class="filter-panel card mb-4">
+    <div class="card-header d-flex justify-content-between align-items-center">
+      <h5 class="mb-0"><i class="bi bi-funnel"></i> Filtres avancés</h5>
+      <button class="btn btn-sm btn-link" type="button" data-bs-toggle="collapse" data-bs-target="#filterCollapse" aria-expanded="false">
+        <i class="bi bi-chevron-down"></i>
+      </button>
+    </div>
+    <div class="collapse show" id="filterCollapse">
+      <div class="card-body">
+        <form [formGroup]="filterForm" class="row g-3">
+          <div class="col-md-4 col-sm-6">
+            <label for="technicianFilter" class="form-label">
+              <i class="bi bi-person-badge me-1"></i>Technicien
+            </label>
+            <select id="technicianFilter" class="form-select" formControlName="technicienId">
+              <option [ngValue]="null">Tous les techniciens</option>
+              <option *ngFor="let tech of technicians" [ngValue]="tech.id">
+                {{tech.prenom}} {{tech.nom}} - {{tech.specialite}}
+              </option>
+            </select>
+          </div>
+          <div class="col-md-4 col-sm-6">
+            <label for="statusFilter" class="form-label">
+              <i class="bi bi-flag me-1"></i>Statut
+            </label>
+            <select id="statusFilter" class="form-select" formControlName="statut">
+              <option [ngValue]="null">Tous les statuts</option>
+              <option *ngFor="let status of statusMapping | keyvalue" [ngValue]="status.key">
+                {{status.value}}
+              </option>
+            </select>
+          </div>
+          <div class="col-md-4 col-sm-6">
+            <label for="typeFilter" class="form-label">
+              <i class="bi bi-tag me-1"></i>Type
+            </label>
+            <select id="typeFilter" class="form-select" formControlName="type">
+              <option [ngValue]="null">Tous les types</option>
+              <option *ngFor="let type of typeMapping | keyvalue" [ngValue]="type.key">
+                {{type.value}}
+              </option>
+            </select>
+          </div>
+          <div class="col-md-4 col-sm-6">
+            <label for="priorityFilter" class="form-label">
+              <i class="bi bi-exclamation-triangle me-1"></i>Priorité
+            </label>
+            <select id="priorityFilter" class="form-select" formControlName="priorite">
+              <option [ngValue]="null">Toutes les priorités</option>
+              <option *ngFor="let priority of priorityMapping | keyvalue" [ngValue]="priority.key">
+                {{priority.value}}
+              </option>
+            </select>
+          </div>
+          <div class="col-md-4 col-sm-6">
+            <label for="startDateFilter" class="form-label">
+              <i class="bi bi-calendar-date me-1"></i>Date début
+            </label>
+            <input type="date" class="form-control" id="startDateFilter" formControlName="dateDebut">
+          </div>
+          <div class="col-md-4 col-sm-6">
+            <label for="endDateFilter" class="form-label">
+              <i class="bi bi-calendar-date me-1"></i>Date fin
+            </label>
+            <input type="date" class="form-control" id="endDateFilter" formControlName="dateFin">
+          </div>
+          <div class="col-12 d-flex justify-content-end mt-3">
+            <button type="button" class="btn btn-outline-secondary me-2" (click)="filterForm.reset()">
+              <i class="bi bi-x-circle me-1"></i> Réinitialiser
+            </button>
+            <button type="button" class="btn btn-primary" (click)="applyFilters()">
+              <i class="bi bi-check-circle me-1"></i> Appliquer
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Calendar -->
+  <div class="main-calendar card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+      <h5 class="mb-0"><i class="bi bi-calendar2-week"></i> Calendrier des interventions</h5>
+      <div class="calendar-actions">
+        <div class="btn-group me-2" role="group" aria-label="Calendar view">
+          <button type="button" class="btn btn-outline-primary btn-sm" (click)="changeCalendarView('dayGridMonth')">
+            <i class="bi bi-calendar-month"></i> Mois
+          </button>
+          <button type="button" class="btn btn-outline-primary btn-sm" (click)="changeCalendarView('timeGridWeek')">
+            <i class="bi bi-calendar-week"></i> Semaine
+          </button>
+          <button type="button" class="btn btn-outline-primary btn-sm" (click)="changeCalendarView('timeGridDay')">
+            <i class="bi bi-calendar-day"></i> Jour
+          </button>
+          <button type="button" class="btn btn-outline-primary btn-sm" (click)="changeCalendarView('listWeek')">
+            <i class="bi bi-list-ul"></i> Liste
+          </button>
+        </div>
+        <button class="btn btn-primary" (click)="showEventForm = true">
+          <i class="bi bi-plus-circle"></i> Nouvelle intervention
+        </button>
+      </div>
+    </div>
+    <div class="card-body calendar-container">
+      <div class="calendar-top-info d-flex justify-content-between align-items-center mb-3">
+        <div class="current-view-info">
+          <span class="current-date">{{ currentDate | date:'MMMM yyyy' }}</span>
+        </div>
+        <div class="calendar-legend">
+          <div class="legend-item">
+            <span class="color-box priority-critique"></span>
+            <span>Critique</span>
+          </div>
+          <div class="legend-item">
+            <span class="color-box priority-haute"></span>
+            <span>Haute</span>
+          </div>
+          <div class="legend-item">
+            <span class="color-box priority-normale"></span>
+            <span>Normale</span>
+          </div>
+          <div class="legend-item">
+            <span class="color-box priority-basse"></span>
+            <span>Basse</span>
+          </div>
+          <div class="legend-item">
+            <span class="color-box contract-expiration"></span>
+            <span>Expiration de contrat</span>
+          </div>
+        </div>
+      </div>
+      <full-calendar #calendar [options]="calendarOptions" class="professional-calendar"></full-calendar>
+    </div>
+  </div>
+
+  <!-- Technician Section -->
+  <div class="row mt-4">
+    <div class="col-lg-6 mb-4">
+      <div class="card h-100">
+        <div class="card-header">
+          <h5 class="mb-0"><i class="bi bi-people"></i> Techniciens disponibles</h5>
+        </div>
+        <div class="card-body">
+          <div class="technician-list">
+            <div class="technician-card" *ngFor="let tech of getAvailableTechnicians()" 
+                 [class.active]="selectedTechnicianId === tech.id"
+                 (click)="handleTechnicianChange(tech.id)">
+              <div class="technician-avatar">
+                <i class="bi bi-person-circle"></i>
+              </div>
+              <div class="technician-info">
+                <h5>{{tech.prenom}} {{tech.nom}}</h5>
+                <p><i class="bi bi-tools"></i> {{tech.specialite}}</p>
+                <p class="availability"><i class="bi bi-check-circle-fill"></i> Disponible</p>
+              </div>
+              <div class="technician-actions">
+                <button class="btn btn-sm btn-outline-primary">
+                  <i class="bi bi-calendar-plus"></i>
+                </button>
+                <button class="btn btn-sm btn-outline-info">
+                  <i class="bi bi-info-circle"></i>
+                </button>
+              </div>
+            </div>
+            
+            <div class="no-technicians" *ngIf="getAvailableTechnicians().length === 0">
+              <i class="bi bi-exclamation-circle"></i>
+              <p>Aucun technicien disponible</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="col-lg-6 mb-4">
+      <div class="card h-100">
+        <div class="card-header">
+          <h5 class="mb-0"><i class="bi bi-graph-up"></i> Répartition des interventions</h5>
+        </div>
+        <div class="card-body">
+          <div class="intervention-types mb-4">
+            <h6>Par type</h6>
+            <div class="progress-container">
+              <div class="type-label">Corrective</div>
+              <div class="progress">
+                <div class="progress-bar bg-primary" 
+                     [style.width]="(getInterventionCountByType('CORRECTIVE') / (totalInterventions || 1)) * 100 + '%'">
+                  {{getInterventionCountByType('CORRECTIVE')}}
+                </div>
+              </div>
+            </div>
+            <div class="progress-container">
+              <div class="type-label">Préventive</div>
+              <div class="progress">
+                <div class="progress-bar bg-success" 
+                     [style.width]="(getInterventionCountByType('PREVENTIVE') / (totalInterventions || 1)) * 100 + '%'">
+                  {{getInterventionCountByType('PREVENTIVE')}}
+                </div>
+              </div>
+            </div>
+            <div class="progress-container">
+              <div class="type-label">Installation</div>
+              <div class="progress">
+                <div class="progress-bar bg-info" 
+                     [style.width]="(getInterventionCountByType('INSTALLATION') / (totalInterventions || 1)) * 100 + '%'">
+                  {{getInterventionCountByType('INSTALLATION')}}
+                </div>
+              </div>
+            </div>
+            <div class="progress-container">
+              <div class="type-label">Urgente</div>
+              <div class="progress">
+                <div class="progress-bar bg-danger" 
+                     [style.width]="(getInterventionCountByType('URGENTE') / (totalInterventions || 1)) * 100 + '%'">
+                  {{getInterventionCountByType('URGENTE')}}
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <div class="intervention-status">
+            <h6>Par statut</h6>
+            <div class="status-container">
+              <div class="status-item">
+                <div class="status-circle en-attente">
+                  <span>{{getInterventionCountByStatus('EN_ATTENTE')}}</span>
+                </div>
+                <div class="status-label">En attente</div>
+              </div>
+              <div class="status-item">
+                <div class="status-circle planifiee">
+                  <span>{{getInterventionCountByStatus('PLANIFIEE')}}</span>
+                </div>
+                <div class="status-label">Planifiée</div>
+              </div>
+              <div class="status-item">
+                <div class="status-circle en-cours">
+                  <span>{{getInterventionCountByStatus('EN_COURS')}}</span>
+                </div>
+                <div class="status-label">En cours</div>
+              </div>
+              <div class="status-item">
+                <div class="status-circle terminee">
+                  <span>{{getInterventionCountByStatus('TERMINEE')}}</span>
+                </div>
+                <div class="status-label">Terminée</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Event Form Modal -->
+  <div class="modal" [class.show]="showEventForm" [style.display]="showEventForm ? 'block' : 'none'">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+        <div class="modal-header" [ngClass]="getEventHeaderClass()">
+          <h5 class="modal-title">{{ isEditMode ? 'Détails de l\'intervention' : 'Nouvelle intervention' }}</h5>
+          <button type="button" class="btn-close" (click)="cancelEvent()"></button>
+        </div>
+        <div class="modal-body">
+          <div class="row mb-3" *ngIf="isEditMode">
+            <div class="col-md-6">
+              <div class="event-info-box">
+                <div class="info-header">
+                  <i class="bi bi-info-circle"></i>
+                  <span>Informations générales</span>
+                </div>
+                <div class="info-detail">
+                  <span class="label">Numéro:</span>
+                  <span class="value">{{selectedEvent?.numero || 'N/A'}}</span>
+                </div>
+                <div class="info-detail">
+                  <span class="label">Statut:</span>
+                  <span class="value status-badge" [ngClass]="'status-' + (selectedEvent?.statut || 'EN_ATTENTE').toLowerCase()">
+                    {{formatStatus(selectedEvent?.statut || 'EN_ATTENTE')}}
+                  </span>
+                </div>
+                <div class="info-detail">
+                  <span class="label">Créée le:</span>
+                  <span class="value">{{selectedEvent?.dateCreation | date:'dd/MM/yyyy HH:mm'}}</span>
+                </div>
+                <div class="info-detail" *ngIf="selectedEvent?.dateModification">
+                  <span class="label">Modifiée le:</span>
+                  <span class="value">{{selectedEvent?.dateModification | date:'dd/MM/yyyy HH:mm'}}</span>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="event-info-box">
+                <div class="info-header">
+                  <i class="bi bi-printer"></i>
+                  <span>Équipement</span>
+                </div>
+                <div class="info-detail" *ngIf="selectedEvent?.imprimanteModele">
+                  <span class="label">Modèle:</span>
+                  <span class="value">{{selectedEvent?.imprimanteModele}}</span>
+                </div>
+                <div class="info-detail" *ngIf="selectedEvent?.contratNumero">
+                  <span class="label">Contrat:</span>
+                  <span class="value">{{selectedEvent?.contratNumero}}</span>
+                </div>
+                <div class="info-detail" *ngIf="selectedEvent?.demandeurNom">
+                  <span class="label">Demandeur:</span>
+                  <span class="value">{{selectedEvent?.demandeurNom}}</span>
+                </div>
+                <div class="info-detail" *ngIf="selectedEvent?.technicienNom">
+                  <span class="label">Technicien:</span>
+                  <span class="value">{{selectedEvent?.technicienNom}}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <form [formGroup]="eventForm">
+            <div class="row mb-3">
+              <div class="col-md-8">
+                <label for="eventTitle" class="form-label">Titre*</label>
+                <input type="text" class="form-control" id="eventTitle" formControlName="titre" required [readOnly]="viewOnly">
+                <div class="invalid-feedback" *ngIf="eventForm.get('titre')?.invalid && eventForm.get('titre')?.touched">
+                  Le titre est obligatoire
+                </div>
+              </div>
+              <div class="col-md-4">
+                <label for="eventType" class="form-label">Type d'intervention*</label>
+                <select class="form-select" id="eventType" formControlName="type" required [disabled]="viewOnly">
+                  <option *ngFor="let type of typeMapping | keyvalue" [value]="type.key">
+                    {{type.value}}
+                  </option>
+                </select>
+              </div>
+            </div>
+            
+            <div class="row mb-3">
+              <div class="col-md-4">
+                <label for="eventDate" class="form-label">Date*</label>
+                <input type="date" class="form-control" id="eventDate" formControlName="datePlanifiee" required [readOnly]="viewOnly">
+              </div>
+              <div class="col-md-4">
+                <label for="eventTime" class="form-label">Heure*</label>
+                <input type="time" class="form-control" id="eventTime" formControlName="heurePlanifiee" required [readOnly]="viewOnly">
+              </div>
+              <div class="col-md-4">
+                <label for="eventDuration" class="form-label">Durée (heures)*</label>
+                <input type="number" class="form-control" id="eventDuration" formControlName="duree" min="0.5" max="8" step="0.5" required [readOnly]="viewOnly">
+              </div>
+            </div>
+            
+            <div class="row mb-3">
+              <div class="col-md-6">
+                <label for="eventTechnician" class="form-label">Technicien</label>
+                <select class="form-select" id="eventTechnician" formControlName="technicienId" [disabled]="viewOnly">
+                  <option [ngValue]="null">Sélectionner un technicien</option>
+                  <option *ngFor="let tech of technicians" [ngValue]="tech.id">
+                    {{tech.prenom}} {{tech.nom}} - {{tech.specialite}}
+                  </option>
+                </select>
+              </div>
+              <div class="col-md-6">
+                <label for="eventPriority" class="form-label">Priorité*</label>
+                <select class="form-select" id="eventPriority" formControlName="priorite" required [disabled]="viewOnly">
+                  <option *ngFor="let priority of priorityMapping | keyvalue" [value]="priority.key">
+                    {{priority.value}}
+                  </option>
+                </select>
+              </div>
+            </div>
+            
+            <div class="row mb-3">
+              <div class="col-md-6">
+                <label for="eventContract" class="form-label">Contrat*</label>
+                <select class="form-select" id="eventContract" formControlName="contratId" required [disabled]="viewOnly">
+                  <option [ngValue]="null">Sélectionner un contrat</option>
+                  <option value="1">Contrat #C-2023-001 - ABC Corp</option>
+                  <option value="2">Contrat #C-2023-002 - XYZ Inc</option>
+                  <option value="3">Contrat #C-2023-003 - LMN Services</option>
+                </select>
+              </div>
+              <div class="col-md-6">
+                <label for="eventPrinter" class="form-label">Imprimante</label>
+                <select class="form-select" id="eventPrinter" formControlName="imprimanteId" [disabled]="viewOnly">
+                  <option [ngValue]="null">Sélectionner une imprimante</option>
+                  <option value="1">HP LaserJet Pro MFP M428fdw</option>
+                  <option value="2">Epson WorkForce Pro WF-3820</option>
+                  <option value="3">Brother MFC-L8900CDW</option>
+                  <option value="4">Canon imageRUNNER 1643if</option>
+                </select>
+              </div>
+            </div>
+            
+            <div class="mb-3">
+              <label for="eventDescription" class="form-label">Description*</label>
+              <textarea class="form-control" id="eventDescription" rows="3" formControlName="description" required [readOnly]="viewOnly"></textarea>
+              <div class="invalid-feedback" *ngIf="eventForm.get('description')?.invalid && eventForm.get('description')?.touched">
+                La description est obligatoire
+              </div>
+            </div>
+
+            <!-- Additional fields for view mode -->
+            <div *ngIf="isEditMode && selectedEvent?.diagnostic">
+              <div class="mb-3">
+                <label for="diagnostic" class="form-label">Diagnostic</label>
+                <textarea class="form-control" id="diagnostic" rows="2" [value]="selectedEvent?.diagnostic" readOnly></textarea>
+              </div>
+            </div>
+
+            <div *ngIf="isEditMode && selectedEvent?.solution">
+              <div class="mb-3">
+                <label for="solution" class="form-label">Solution</label>
+                <textarea class="form-control" id="solution" rows="2" [value]="selectedEvent?.solution" readOnly></textarea>
+              </div>
+            </div>
+
+            <div *ngIf="isEditMode && selectedEvent?.commentaireInterne">
+              <div class="mb-3">
+                <label for="comments" class="form-label">Commentaires internes</label>
+                <textarea class="form-control" id="comments" rows="2" [value]="selectedEvent?.commentaireInterne" readOnly></textarea>
+              </div>
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" (click)="cancelEvent()">Fermer</button>
+          <button *ngIf="!viewOnly" type="button" class="btn btn-primary" [disabled]="eventForm.invalid" (click)="saveEvent()">
+            {{ isEditMode ? 'Mettre à jour' : 'Enregistrer' }}
+          </button>
+          <button *ngIf="isEditMode && viewOnly" type="button" class="btn btn-warning" (click)="enableEdit()">
+            Modifier
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Loading Overlay -->
+  <div class="loading-overlay" *ngIf="loading">
+    <div class="spinner-border text-primary" role="status">
+      <span class="visually-hidden">Chargement...</span>
+    </div>
+    <p>Chargement du calendrier...</p>
+  </div>
+  
+  <!-- Error Alert -->
+  <div class="alert alert-danger alert-dismissible fade show" *ngIf="error">
+    <i class="bi bi-exclamation-triangle-fill"></i> {{ error }}
+    <button type="button" class="btn-close" (click)="error = null"></button>
+  </div>
+</div>

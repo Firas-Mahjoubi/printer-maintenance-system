@@ -46,9 +46,35 @@ public class InterventionController {
     @PostMapping
     public ResponseEntity<InterventionDTO> creerTicket(@RequestBody InterventionCreateDTO createDTO) {
         try {
-            InterventionDTO intervention = interventionService.creerIntervention(createDTO);
-            return ResponseEntity.status(HttpStatus.CREATED).body(intervention);
+            // If we have multiple printer IDs, create interventions for each one
+            if (createDTO.getImprimanteIds() != null && !createDTO.getImprimanteIds().isEmpty()) {
+                InterventionDTO intervention = interventionService.creerInterventionMultipleImprimantes(createDTO);
+                return ResponseEntity.status(HttpStatus.CREATED).body(intervention);
+            } else {
+                // Traditional single-printer ticket creation
+                InterventionDTO intervention = interventionService.creerIntervention(createDTO);
+                return ResponseEntity.status(HttpStatus.CREATED).body(intervention);
+            }
         } catch (Exception e) {
+            log.error("Erreur lors de la création du ticket: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        }
+    }
+
+    /**
+     * Créer plusieurs tickets de maintenance, un pour chaque imprimante
+     */
+    @PostMapping("/multi-printer")
+    public ResponseEntity<List<InterventionDTO>> creerTicketsMultiImprimantes(@RequestBody InterventionCreateDTO createDTO) {
+        try {
+            if (createDTO.getImprimanteIds() == null || createDTO.getImprimanteIds().isEmpty()) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+            }
+            
+            List<InterventionDTO> interventions = interventionService.creerInterventionsParImprimante(createDTO);
+            return ResponseEntity.status(HttpStatus.CREATED).body(interventions);
+        } catch (Exception e) {
+            log.error("Erreur lors de la création des tickets multi-imprimantes: {}", e.getMessage());
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         }
     }
@@ -244,6 +270,27 @@ public class InterventionController {
     }
 
     /**
+     * Terminer un ticket (marquer comme terminé avec diagnostic et solution)
+     */
+    @PutMapping("/{id}/terminer")
+    public ResponseEntity<InterventionDTO> terminerTicket(
+            @PathVariable Long id,
+            @RequestParam String diagnostic,
+            @RequestParam String solution,
+            @RequestParam(required = false) String observations,
+            @RequestParam(required = false) Double coutReel,
+            @RequestParam Long technicienId) {
+        try {
+            Intervention intervention = interventionService.terminerIntervention(id, diagnostic, solution, observations, coutReel, technicienId);
+            InterventionDTO interventionDTO = interventionMapper.toDTO(intervention);
+            return ResponseEntity.ok(interventionDTO);
+        } catch (Exception e) {
+            log.error("Erreur lors de la finalisation du ticket: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        }
+    }
+
+    /**
      * Rouvrir un ticket clôturé
      */
     @PutMapping("/{id}/rouvrir")
@@ -382,4 +429,46 @@ public class InterventionController {
      * Endpoint simple pour lister toutes les interventions
      */
 
+    /**
+     * Obtenir tous les IDs de contrats qui ont des interventions actives
+     * Méthode optimisée pour éviter de vérifier chaque contrat individuellement
+     */
+    @GetMapping("/contrats-avec-interventions-actives")
+    public ResponseEntity<List<Long>> obtenirContratsAvecInterventionsActives() {
+        try {
+            List<Long> contractIds = interventionService.obtenirContratIdsAvecInterventionsActives();
+            return ResponseEntity.ok(contractIds);
+        } catch (Exception e) {
+            log.error("Erreur lors de la récupération des contrats avec interventions actives", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    /**
+     * Vérifier si un contrat a des interventions actives
+     */
+    @GetMapping("/contrat/{contratId}/hasActiveInterventions")
+    public ResponseEntity<Boolean> verifierInterventionsActivesPourContrat(@PathVariable Long contratId) {
+        try {
+            boolean hasActive = interventionService.hasActiveInterventionsForContract(contratId);
+            return ResponseEntity.ok(hasActive);
+        } catch (Exception e) {
+            log.error("Erreur lors de la vérification des interventions actives pour le contrat " + contratId, e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    /**
+     * Obtenir les interventions actives pour un contrat
+     */
+    @GetMapping("/contrat/{contratId}/active")
+    public ResponseEntity<List<InterventionDTO>> obtenirInterventionsActivesPourContrat(@PathVariable Long contratId) {
+        try {
+            List<InterventionDTO> interventions = interventionService.obtenirInterventionsActivesPourContrat(contratId);
+            return ResponseEntity.ok(interventions);
+        } catch (Exception e) {
+            log.error("Erreur lors de la récupération des interventions actives pour le contrat " + contratId, e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
 }

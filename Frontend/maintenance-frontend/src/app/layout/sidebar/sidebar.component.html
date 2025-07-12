@@ -42,6 +42,14 @@
         </li>
         <li>
           <a class="nav-link"
+             routerLink="/contrats/historique"
+             routerLinkActive="active"
+             [routerLinkActiveOptions]="{ exact: true }">
+            <span>Historique des Contrats</span>
+          </a>
+        </li>
+        <li>
+          <a class="nav-link"
              routerLink="/contrats/add"
              routerLinkActive="active"
              [routerLinkActiveOptions]="{ exact: true }">
@@ -104,6 +112,14 @@
              routerLinkActive="active"
              [routerLinkActiveOptions]="{ exact: true }">
             <span>Créer un Ticket</span>
+          </a>
+        </li>
+        <li>
+          <a class="nav-link"
+             routerLink="/technician-calendar"
+             routerLinkActive="active"
+             [routerLinkActiveOptions]="{ exact: true }">
+            <span>Calendrier des Techniciens</span>
           </a>
         </li>
       </ul>
