@@ -13,7 +13,7 @@ import { AddClientComponent } from './clients/add-client/add-client.component';
 import { NotificationsComponent } from './components/notifications/notifications.component';
 import { TicketCreationComponent } from './components/ticket-creation/ticket-creation.component';
 import { TicketListComponent } from './components/ticket-list/ticket-list.component';
-import { TicketDetailsComponent } from './components/ticket-details/ticket-details.component';
+import { TicketDetailsComponent } from './components/ticket_details/ticket-details.component';
 import { PrinterHistoryComponent } from './components/printer-history/printer-history.component';
 import { PrinterListComponent } from './components/printer-list/printer-list.component';
 import { PrinterHistorySelectorComponent } from './components/printer-history-selector/printer-history-selector.component';
@@ -24,6 +24,10 @@ import { ClientNewRequestComponent } from './client-new-request/client-new-reque
 import { ClientEquipmentComponent } from './client-equipment/client-equipment.component';
 import { ClientHistoryComponent } from './client-history/client-history.component';
 import { TechnicianCalendarComponent } from './components/technician-calendar/technician-calendar.component';
+import { MaintenanceSchedulerComponent } from './components/maintenance-scheduler/maintenance-scheduler.component';
+import { DiagnosticTechniqueComponent } from './components/diagnostic-technique/diagnostic-technique.component';
+import { SolutionTechniqueComponent } from './components/solution-technique/solution-technique.component';
+import { SatisfactionClientComponent } from './components/satisfaction-client/satisfaction-client.component';
 
 const routes: Routes = [
   { path: '', component: ClientLandingComponent },
@@ -54,7 +58,11 @@ const routes: Routes = [
   { path: 'tickets', component: TicketListComponent, canActivate: [AuthGuard] },
   { path: 'tickets/create', component: TicketCreationComponent, canActivate: [AuthGuard] },
   { path: 'tickets/:id', component: TicketDetailsComponent, canActivate: [AuthGuard] },
+  { path: 'tickets/:id/diagnostic', component: DiagnosticTechniqueComponent, canActivate: [AuthGuard] },
+  { path: 'tickets/:id/solution', component: SolutionTechniqueComponent, canActivate: [AuthGuard] },
+  { path: 'tickets/:id/satisfaction', component: SatisfactionClientComponent, canActivate: [AuthGuard] },
   { path: 'technician-calendar', component: TechnicianCalendarComponent, canActivate: [AuthGuard] },
+  { path: 'maintenance-scheduler', component: MaintenanceSchedulerComponent, canActivate: [AuthGuard] },
   { path: 'printers', component: PrinterListComponent, canActivate: [AuthGuard] },
   { path: 'printers/history', component: PrinterHistorySelectorComponent, canActivate: [AuthGuard] },
   { path: 'printers/:id/history', component: PrinterHistoryComponent, canActivate: [AuthGuard] },

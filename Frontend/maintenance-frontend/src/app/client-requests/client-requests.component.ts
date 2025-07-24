@@ -139,4 +139,10 @@ export class ClientRequestsComponent implements OnInit {
       // Cancel request logic
     }
   }
+
+  giveFeedback(requestId: string): void {
+    console.log('Giving feedback for request:', requestId);
+    // Navigate to the satisfaction form
+    this.router.navigate(['/tickets', requestId, 'satisfaction']);
+  }
 }

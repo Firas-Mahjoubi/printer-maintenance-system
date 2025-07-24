@@ -28,3 +28,17 @@ body.no-layout .main {
   margin-left: 0 !important;
   width: 100% !important;
 }
+
+/* Global button overrides for testing */
+.btn {
+  display: inline-block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+/* Button debugger - adds outline to all buttons */
+button, .btn {
+  border: 2px solid blue !important;
+  position: relative !important;
+  min-height: 44px !important;
+}

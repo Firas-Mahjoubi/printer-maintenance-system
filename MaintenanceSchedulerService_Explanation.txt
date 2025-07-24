@@ -1,0 +1,185 @@
+# PLANIFICATION DES MAINTENANCES PRÉVENTIVES
+# Explication détaillée du fonctionnement
+
+## 1. INTRODUCTION
+
+Le système de planification des maintenances préventives permet de créer automatiquement des interventions de maintenance tous les 6 mois à partir de la date de début des contrats. Cette fonctionnalité est gérée par la classe MaintenanceSchedulerService.
+
+## 2. PROCESSUS DE PLANIFICATION
+
+### 2.1. Déclenchement
+
+La planification s'exécute de deux façons :
+- **Automatiquement** : chaque jour à 1h00 du matin via l'annotation `@Scheduled(cron = "0 0 1 * * ?")` 
+- **Manuellement** : via l'endpoint API `/api/interventions/planifier-maintenances-preventives` accessible aux administrateurs
+
+### 2.2. Étapes du processus
+
+1. **Récupération des contrats actifs** :
+   ```java
+   List<Contrat> contratsActifs = contratRepository.findByStatutContrat(StatutContrat.ACTIF);
+   ```
+
+2. **Pour chaque contrat actif** :
+   - Vérification des imprimantes associées
+   - Si le contrat n'a pas d'imprimantes, il est ignoré
+   
+3. **Vérification de la nécessité d'une maintenance** :
+   ```java
+   if (shouldCreatePreventiveMaintenance(contrat)) {
+       createPreventiveMaintenance(contrat, imprimantes);
+   }
+   ```
+
+## 3. LOGIQUE DE DÉCISION (shouldCreatePreventiveMaintenance)
+
+### 3.1. Calcul de la prochaine date de maintenance
+
+La date de la prochaine maintenance est calculée par la méthode `calculateNextMaintenanceDate()` :
+
+1. **Récupération de la date de début du contrat** :
+   - Si la date est nulle, utilise la date actuelle + 6 mois
+   - Si la date est dans le futur, planifie 6 mois après cette date
+
+2. **Calcul basé sur la date de début** :
+   ```
+   Étapes de calcul :
+   1. Convertir la date de début en LocalDateTime (début de journée)
+   2. Calculer le nombre de mois écoulés depuis la date de début
+   3. Diviser par 6 pour obtenir le nombre de périodes de 6 mois écoulées
+   4. La prochaine date = date de début + (périodes + 1) * 6 mois
+   ```
+
+### 3.2. Logique de décision
+
+La méthode vérifie si une nouvelle maintenance doit être planifiée :
+
+1. **Si aucune maintenance n'existe** :
+   - Planifier une première maintenance
+
+2. **Si une maintenance future existe déjà** :
+   - Vérifier si elle correspond à la période attendue (tolérance de 14 jours)
+   - Si oui : ne rien faire
+   - Si non : planifier une maintenance correctement
+
+3. **Si la dernière maintenance est passée** :
+   - Vérifier si elle correspond à la période actuelle ou précédente (moins de 6 mois d'écart)
+   - Si oui : ne rien faire
+   - Si non : planifier une nouvelle maintenance
+
+## 4. CRÉATION DE L'INTERVENTION (createPreventiveMaintenance)
+
+Lors de la création d'une maintenance préventive :
+
+1. **Calcul de la date planifiée** en utilisant `calculateNextMaintenanceDate()`
+
+2. **Vérifications préalables** :
+   - Le contrat doit avoir un client associé
+   - Un technicien disponible doit être trouvé
+
+3. **Création du DTO pour l'intervention** :
+   ```java
+   InterventionCreateDTO createDTO = new InterventionCreateDTO();
+   createDTO.setTitre("Maintenance préventive - " + contrat.getNumeroContrat());
+   createDTO.setDescription("Maintenance préventive semestrielle programmée automatiquement.");
+   createDTO.setType(TypeIntervention.PREVENTIVE);
+   createDTO.setPriorite(PrioriteIntervention.NORMALE);
+   createDTO.setContratId(contrat.getId());
+   createDTO.setTechnicienId(technicien.getId());
+   createDTO.setDemandeurId(contrat.getClient().getId());
+   createDTO.setDatePlanifiee(datePlanifiee);
+   ```
+
+4. **Ajout des imprimantes** associées au contrat
+
+5. **Création de l'intervention** via `interventionService.creerInterventionMultipleImprimantes(createDTO)`
+
+6. **Programmation d'une notification** pour 1 mois avant la date planifiée
+
+## 5. ASSIGNATION DES TECHNICIENS (findAvailableTechnician)
+
+Actuellement, la méthode utilise une implémentation simple :
+- Récupère tous les utilisateurs avec le rôle TECHNICIAN
+- Sélectionne le premier technicien trouvé
+
+Cette logique pourrait être améliorée pour prendre en compte :
+- La charge de travail des techniciens
+- Leur disponibilité
+- Leurs compétences spécifiques
+
+## 6. SYSTÈME DE NOTIFICATIONS
+
+### 6.1. Programmation des notifications
+
+Les notifications sont programmées lors de la création des maintenances :
+```java
+private void scheduleNotification(Contrat contrat, List<Imprimante> imprimantes, LocalDateTime datePlanifiee) {
+    // Calculer la date de notification (1 mois avant la date planifiée)
+    LocalDateTime notificationDate = datePlanifiee.minusMonths(1);
+    // [...]
+}
+```
+
+### 6.2. Envoi des notifications
+
+Les notifications sont envoyées de deux façons :
+- **Automatiquement** : chaque jour à 9h00 du matin via l'annotation `@Scheduled(cron = "0 0 9 * * ?")`
+- **Manuellement** : via l'endpoint API `/api/interventions/envoyer-notifications-maintenance`
+
+Le processus d'envoi :
+1. Vérifie la validité de la configuration email
+2. Récupère les interventions préventives planifiées pour le mois suivant
+3. Pour chaque intervention, envoie un email de notification au client
+
+## 7. FORMULES DE CALCUL DÉTAILLÉES
+
+### 7.1. Calcul de la prochaine date de maintenance
+
+```
+dateProchaineIntervention = dateDebutContrat + (périodes + 1) * 6 mois
+
+Où :
+- dateDebutContrat = date à laquelle le contrat a débuté
+- périodes = nombreDeMoisDepuisDebutContrat / 6 (division entière)
+```
+
+### 7.2. Exemple
+
+Pour un contrat débuté le 15 janvier 2023, calcul effectué le 17 juillet 2025 :
+- Mois écoulés : 30 mois
+- Périodes de 6 mois : 30 / 6 = 5 périodes complètes
+- Prochaine maintenance : 15 janvier 2023 + (5 + 1) * 6 mois = 15 janvier 2023 + 36 mois = 15 janvier 2026
+
+## 8. LOGS ET SUIVI
+
+Le système génère des logs détaillés à chaque étape pour faciliter le suivi et le débogage :
+- Lors du démarrage de la planification
+- Pour chaque contrat évalué
+- Lors de la création des interventions
+- Pour chaque notification envoyée
+
+## 9. SCHÉMA TEMPOREL
+
+```
+|--- Début contrat ---|--- 6 mois ---|--- 6 mois ---|--- 6 mois ---|--- 6 mois ---|
+      01/01/2023        01/07/2023     01/01/2024     01/07/2024     01/01/2025
+         |                  |              |              |              |
+         |                  |              |              |              |
+    Création          Maintenance 1    Maintenance 2  Maintenance 3  Maintenance 4
+     contrat
+```
+
+## 10. DÉTAILS TECHNIQUES SUPPLÉMENTAIRES
+
+- L'intervalle de 6 mois est codé en dur dans l'application
+- Les interventions sont créées avec le statut "PLANIFIÉE"
+- Les notifications sont envoyées 1 mois avant la date planifiée
+- Une tolérance de 14 jours est appliquée pour éviter les doublons de planification
+- Le système utilise des emails HTML pour les notifications (meilleur rendu visuel)
+
+## 11. NOTES IMPORTANTES
+
+- La date de début du contrat est cruciale pour la planification correcte
+- Tous les contrats actifs sont évalués chaque jour
+- Le système est robuste face aux contrats sans date de début
+- Le statut des interventions est automatiquement défini comme PLANIFIÉE pour les maintenances préventives

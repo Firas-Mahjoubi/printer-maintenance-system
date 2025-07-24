@@ -379,7 +379,7 @@ export class ContratDetailsComponent implements OnInit {
   
   viewInterventionDetails(interventionId: number | undefined | null): void {
     if (interventionId) {
-      this.router.navigate(['/tickets/details', interventionId]);
+      this.router.navigate(['/tickets', interventionId]);
     }
   }
 

@@ -313,6 +313,27 @@
   background: rgba(239, 68, 68, 0.3);
 }
 
+.btn-feedback {
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.btn-feedback:hover {
+  background: linear-gradient(135deg, #d97706, #b45309);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 6px rgba(247, 214, 97, 0.2);
+}
+
 /* Empty State */
 .empty-state {
   text-align: center;

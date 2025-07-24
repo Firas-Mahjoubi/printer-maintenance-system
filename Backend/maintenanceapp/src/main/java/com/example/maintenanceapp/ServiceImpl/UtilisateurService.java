@@ -3,16 +3,13 @@ package com.example.maintenanceapp.ServiceImpl;
 import com.example.maintenanceapp.Entity.Enum.Role;
 import com.example.maintenanceapp.Entity.Utilisateur;
 import com.example.maintenanceapp.Repositories.UtilisateurRepositorie;
+import com.example.maintenanceapp.Service.EmailService;
 import com.example.maintenanceapp.ServiceInterface.IUtilisateurService;
 import lombok.AllArgsConstructor;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 

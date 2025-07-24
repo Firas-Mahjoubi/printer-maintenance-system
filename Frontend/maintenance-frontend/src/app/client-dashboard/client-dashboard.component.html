@@ -115,36 +115,90 @@
       <section class="recent-tickets">
         <div class="section-header">
           <h3>Demandes récentes</h3>
-          <button class="view-all-btn" (click)="viewTickets()">Voir tout</button>
+          <button class="view-all-btn" (click)="viewTickets()">
+            <i class="fas fa-arrow-right"></i>
+            Voir tout
+          </button>
         </div>
-        <div class="tickets-list">
-          <div class="ticket-card" *ngFor="let ticket of recentTickets">
-            <div class="ticket-status" [class]="ticket.status.toLowerCase()">
-              {{ ticket.statusLabel }}
-            </div>
-            <div class="ticket-content">
-              <h4>{{ ticket.title }}</h4>
-              <p>{{ ticket.description }}</p>
-              <div class="ticket-meta">
-                <span class="ticket-date">{{ ticket.date | date:'dd/MM/yyyy' }}</span>
-                <span class="ticket-priority" [class]="ticket.priority.toLowerCase()">
-                  {{ ticket.priorityLabel }}
-                </span>
-              </div>
-            </div>
-            <div class="ticket-actions">
-              <button class="btn-details" (click)="viewTicketDetails(ticket.id)">
-                <i class="fas fa-eye"></i>
-              </button>
-            </div>
+        
+        <!-- Tickets List -->
+        <div class="tickets-container">
+          <!-- Loading Tickets -->
+          <div class="tickets-loading" *ngIf="loadingTickets">
+            <div class="pulse-loader"></div>
+            <p>Chargement des tickets...</p>
           </div>
           
-          <div class="no-tickets" *ngIf="recentTickets.length === 0">
-            <i class="fas fa-inbox"></i>
-            <p>Aucune demande récente</p>
-            <button class="create-ticket-btn" (click)="createTicket()">
-              Créer une demande
-            </button>
+          <div class="tickets-content" *ngIf="!loadingTickets">
+            <!-- Ticket Cards Grid -->
+            <div class="tickets-grid">
+              <div class="ticket-card" *ngFor="let ticket of recentTickets" 
+                  [ngClass]="{'high-priority': ticket.priority === 'CRITIQUE'}">
+                <div class="ticket-header">
+                  <div class="ticket-icon" [ngClass]="'status-' + ticket.status.toLowerCase()">
+                    <i [ngClass]="getStatusIcon(ticket.status)"></i>
+                  </div>
+                  <div class="ticket-status-badge" [ngClass]="'status-' + ticket.status.toLowerCase()">
+                    {{ ticket.statusLabel }}
+                  </div>
+                </div>
+                <div class="ticket-info">
+                  <h4 class="ticket-title">
+                    {{ ticket.title }}
+                    <span class="ticket-id">{{ ticket.id }}</span>
+                  </h4>
+                  <p class="ticket-description">{{ ticket.description | slice:0:100 }}{{ ticket.description.length > 100 ? '...' : '' }}</p>
+                  <div class="ticket-details">
+                    <div class="detail-item">
+                      <i class="fas fa-calendar-alt"></i>
+                      <span>{{ ticket.date | date:'dd/MM/yyyy HH:mm' }}</span>
+                    </div>
+                    <div class="detail-item">
+                      <i class="fas fa-flag" [ngClass]="getPriorityIcon(ticket.priority)"></i>
+                      <span class="ticket-priority" [ngClass]="'priority-' + ticket.priority.toLowerCase()">
+                        {{ ticket.priorityLabel }}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+                <div class="ticket-actions">
+                  <button class="btn-details" (click)="viewTicketDetails(ticket.id)" title="Voir les détails">
+                    <i class="fas fa-eye"></i>
+                  </button>
+                </div>
+              </div>
+              
+              <!-- No Tickets Message -->
+              <div class="no-tickets" *ngIf="filteredTickets.length === 0">
+                <i class="fas fa-inbox"></i>
+                <p>Aucune demande récente</p>
+                <button class="create-ticket-btn" (click)="createTicket()">
+                  <i class="fas fa-plus-circle"></i>
+                  Créer une demande
+                </button>
+              </div>
+            </div>
+            
+            <!-- Ticket Pagination -->
+            <div class="pagination" *ngIf="filteredTickets.length > ticketPageSize">
+              <button 
+                class="pagination-button" 
+                [disabled]="ticketCurrentPage === 0"
+                (click)="changePage(ticketCurrentPage - 1, 'ticket')">
+                <i class="fas fa-chevron-left"></i>
+              </button>
+              
+              <div class="page-indicator">
+                Page {{ ticketCurrentPage + 1 }} sur {{ totalTicketPages }}
+              </div>
+              
+              <button 
+                class="pagination-button" 
+                [disabled]="ticketCurrentPage >= totalTicketPages - 1"
+                (click)="changePage(ticketCurrentPage + 1, 'ticket')">
+                <i class="fas fa-chevron-right"></i>
+              </button>
+            </div>
           </div>
         </div>
       </section>
@@ -153,42 +207,102 @@
       <section class="equipment-status">
         <div class="section-header">
           <h3>État des équipements</h3>
-          <button class="view-all-btn" (click)="viewEquipment()">Voir tout</button>
+          <button class="view-all-btn" (click)="viewEquipment()">
+            <i class="fas fa-arrow-right"></i>
+            Voir tout
+          </button>
         </div>
+        
+        <!-- Equipment Filter & Pagination -->
+        <div class="equipment-controls" *ngIf="equipmentList.length > 0">
+          <div class="filter-controls">
+            <div class="search-box">
+              <i class="fas fa-search"></i>
+              <input type="text" placeholder="Rechercher..." [(ngModel)]="equipmentSearch" (input)="filterEquipment()">
+              <i class="fas fa-times-circle clear-search" *ngIf="equipmentSearch" (click)="clearEquipmentSearch()"></i>
+            </div>
+            <div class="status-filter">
+              <select [(ngModel)]="equipmentStatusFilter" (change)="filterEquipment()">
+                <option value="">Tous les statuts</option>
+                <option value="operational">Opérationnel</option>
+                <option value="en_panne">En panne</option>
+                <option value="en_maintenance">En maintenance</option>
+                <option value="hors_service">Hors service</option>
+              </select>
+            </div>
+          </div>
+        </div>
+        
         <div class="equipment-grid">
-          <div class="equipment-card" *ngFor="let equipment of equipmentList">
+          <!-- Loading Equipment -->
+          <div class="equipment-loading" *ngIf="loadingEquipment">
+            <div class="pulse-loader"></div>
+            <p>Chargement des équipements...</p>
+          </div>
+          
+          <!-- Equipment Cards -->
+          <div class="equipment-card" *ngFor="let equipment of displayedEquipment">
             <div class="equipment-header">
-              <div class="equipment-icon">
+              <div class="equipment-icon" [ngClass]="'status-' + equipment.status">
                 <i class="fas fa-print"></i>
               </div>
-              <div class="equipment-status-badge" [class]="equipment.status.toLowerCase()">
+              <div class="equipment-status-badge" [ngClass]="'status-' + equipment.status">
                 {{ equipment.statusLabel }}
               </div>
             </div>
             <div class="equipment-info">
-              <h4>{{ equipment.name }}</h4>
-              <p>{{ equipment.model }}</p>
+              <h4 class="equipment-title">{{ equipment.name }}</h4>
+              <p class="equipment-model">{{ equipment.model }}</p>
               <div class="equipment-details">
-                <span>Série: {{ equipment.serialNumber }}</span>
-                <span>Localisation: {{ equipment.location }}</span>
+                <div class="detail-item">
+                  <i class="fas fa-barcode"></i>
+                  <span>{{ equipment.serialNumber }}</span>
+                </div>
+                <div class="detail-item">
+                  <i class="fas fa-map-marker-alt"></i>
+                  <span>{{ equipment.location }}</span>
+                </div>
               </div>
             </div>
             <div class="equipment-metrics">
               <div class="metric">
-                <span class="metric-label">Pages imprimées</span>
-                <span class="metric-value">{{ equipment.pageCount | number }}</span>
-              </div>
-              <div class="metric">
+                <i class="fas fa-tools"></i>
                 <span class="metric-label">Dernière maintenance</span>
                 <span class="metric-value">{{ equipment.lastMaintenance | date:'dd/MM/yyyy' }}</span>
               </div>
             </div>
           </div>
           
-          <div class="no-equipment" *ngIf="equipmentList.length === 0">
+          <!-- No Equipment Message -->
+          <div class="no-equipment" *ngIf="filteredEquipment.length === 0 && !loadingEquipment">
             <i class="fas fa-print"></i>
-            <p>Aucun équipement enregistré</p>
+            <p>{{ equipmentSearch || equipmentStatusFilter ? 'Aucun équipement ne correspond à votre recherche' : 'Aucun équipement enregistré' }}</p>
+            <button *ngIf="equipmentSearch || equipmentStatusFilter" class="reset-filter-btn" (click)="resetEquipmentFilters()">
+              <i class="fas fa-redo"></i>
+              Réinitialiser les filtres
+            </button>
           </div>
+        </div>
+        
+        <!-- Equipment Pagination -->
+        <div class="pagination" *ngIf="filteredEquipment.length > equipmentPageSize">
+          <button 
+            class="pagination-button" 
+            [disabled]="equipmentCurrentPage === 0"
+            (click)="changePage(equipmentCurrentPage - 1, 'equipment')">
+            <i class="fas fa-chevron-left"></i>
+          </button>
+          
+          <div class="page-indicator">
+            Page {{ equipmentCurrentPage + 1 }} sur {{ totalEquipmentPages }}
+          </div>
+          
+          <button 
+            class="pagination-button" 
+            [disabled]="equipmentCurrentPage >= totalEquipmentPages - 1"
+            (click)="changePage(equipmentCurrentPage + 1, 'equipment')">
+            <i class="fas fa-chevron-right"></i>
+          </button>
         </div>
       </section>
 

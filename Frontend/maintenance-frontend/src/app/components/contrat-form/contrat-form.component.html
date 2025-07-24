@@ -481,13 +481,8 @@
               <i class="bi bi-x-circle"></i>
               Annuler
             </button>
-          </div>
-          
-          <div class="actions-right">
-            <button type="button" class="form-btn secondary" (click)="saveDraft()" [disabled]="isSubmitting">
-              <i class="bi bi-save"></i>
-              {{ isEditMode ? 'Sauvegarder les modifications' : 'Sauvegarder brouillon' }}
-            </button>
+         
+            
             <button type="submit" class="form-btn primary" [disabled]="contratForm.invalid || isSubmitting">
               <div class="spinner small" *ngIf="isSubmitting"></div>
               <i class="bi bi-check-circle" *ngIf="!isSubmitting"></i>

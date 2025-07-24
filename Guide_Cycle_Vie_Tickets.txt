@@ -1,0 +1,158 @@
+# Guide de gestion des tickets d'intervention
+
+## Cycle de vie complet d'un ticket
+
+### 1. Création
+- **Acteurs**: Client ou Technicien
+- **Statut**: EN_ATTENTE
+- **Données requises**:
+  * Titre
+  * Description
+  * Imprimante(s) concernée(s)
+  * Priorité
+- **Résultat**: Génération d'un numéro de ticket et notification au client
+- **API**: `POST /api/interventions`
+
+### 2. Assignation
+- **Acteurs**: Gestionnaire/Administrateur
+- **Statut**: EN_ATTENTE → PLANIFIÉE
+- **Données requises**:
+  * ID du technicien
+  * Date planifiée
+  * Coût estimé (optionnel)
+- **Résultat**: Notification au technicien et au client
+- **API**: `PUT /api/interventions/{id}/assigner` et `PUT /api/interventions/{id}/planifier`
+
+### 3. Démarrage
+- **Acteurs**: Technicien
+- **Statut**: PLANIFIÉE → EN_COURS
+- **Données requises**:
+  * ID du technicien
+- **Résultat**: Enregistrement de la date de début
+- **API**: `PUT /api/interventions/{id}/demarrer`
+
+### 4. Diagnostic
+- **Acteurs**: Technicien
+- **Statut**: Reste EN_COURS
+- **Données requises**:
+  * Diagnostic technique
+  * Symptômes détaillés
+- **Résultat**: Notification au client du diagnostic
+- **API**: `PUT /api/interventions/{id}/diagnostic`
+
+### 5. Résolution
+- **Acteurs**: Technicien
+- **Statut**: EN_COURS → TERMINÉE
+- **Données requises**:
+  * Diagnostic final
+  * Solution appliquée
+  * Pièces utilisées (optionnel)
+  * Coût réel (optionnel)
+  * Observations (optionnel)
+- **Résultat**: Notification au client et enregistrement de la date de fin
+- **API**: `PUT /api/interventions/{id}/terminer`
+
+### 6. Évaluation
+- **Acteurs**: Client
+- **Statut**: TERMINÉE → CLÔTURÉE
+- **Données requises**:
+  * Note de satisfaction (1-5)
+  * Commentaire (optionnel)
+- **Résultat**: Clôture définitive du ticket
+- **API**: `PUT /api/interventions/{id}/satisfaction`
+
+## États optionnels
+
+### Mise en pause
+- **Acteurs**: Technicien
+- **Statut**: EN_COURS → EN_PAUSE
+- **Données requises**:
+  * Raison de la pause
+- **API**: `PUT /api/interventions/{id}/pause`
+
+### Reprise
+- **Acteurs**: Technicien
+- **Statut**: EN_PAUSE → EN_COURS
+- **API**: `PUT /api/interventions/{id}/reprendre`
+
+### Annulation
+- **Acteurs**: Client ou Gestionnaire
+- **Statut**: Tout état → ANNULÉE
+- **Données requises**:
+  * Raison de l'annulation
+- **API**: `PUT /api/interventions/{id}/annuler`
+
+### Réouverture
+- **Acteurs**: Client ou Gestionnaire
+- **Statut**: TERMINÉE/CLÔTURÉE → EN_ATTENTE
+- **Données requises**:
+  * Raison de la réouverture
+- **API**: `PUT /api/interventions/{id}/rouvrir`
+
+## Diagramme d'états
+```
+                      ┌───────────┐
+                      │ CRÉATION  │
+                      └─────┬─────┘
+                            ▼
+                     ┌─────────────┐
+                     │ EN_ATTENTE  │
+                     └──────┬──────┘
+                            │
+                  ┌─────────┴────────┐
+                  ▼                   ▼
+          ┌───────────────┐    ┌──────────┐
+          │   PLANIFIÉE   │    │ ANNULÉE  │
+          └───────┬───────┘    └──────────┘
+                  │
+                  ▼
+          ┌───────────────┐
+          │   EN_COURS    │◄────┐
+          └───────┬───────┘     │
+                  │             │
+          ┌───────┴───────┐     │
+          ▼               ▼     │
+    ┌──────────┐   ┌────────────┴──┐
+    │ TERMINÉE │   │   EN_PAUSE    │
+    └────┬─────┘   └───────────────┘
+         │
+         ▼
+   ┌───────────┐
+   │ CLÔTURÉE  │
+   └───────────┘
+```
+
+## Validation des données par étape
+
+### Création
+- Validation que le titre et la description ne sont pas vides
+- Vérification de l'existence de l'imprimante et/ou du contrat
+- Génération automatique du numéro de ticket
+
+### Assignation
+- Vérification que le technicien existe et est disponible
+- Validation que la date planifiée est dans le futur
+
+### Diagnostic
+- Validation que l'intervention est bien en cours
+- Vérification que le technicien est bien celui assigné
+
+### Terminer intervention
+- Vérification de la présence du diagnostic et de la solution
+- Validation que le technicien est bien celui assigné
+- Vérification de la cohérence du coût réel
+
+## Notifications
+
+Le système envoie des notifications automatiques:
+1. À la création du ticket
+2. Lors de l'assignation d'un technicien
+3. Quand la date planifiée est fixée
+4. Quand le technicien commence l'intervention
+5. Après l'enregistrement du diagnostic
+6. Quand l'intervention est terminée
+7. En cas d'annulation ou réouverture
+
+## Historique des actions
+
+Chaque changement d'état ou modification significative du ticket génère une entrée dans l'historique, permettant de tracer toutes les actions effectuées sur le ticket.

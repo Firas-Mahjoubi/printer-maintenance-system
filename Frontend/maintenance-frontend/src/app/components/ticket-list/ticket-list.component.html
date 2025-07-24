@@ -105,96 +105,109 @@
           
           <!-- Table -->
           <div *ngIf="!isLoading" class="table-responsive">
-            <table class="table table-hover align-middle mb-0">
-              <thead>
+            <table class="table table-hover align-middle mb-0 custom-table">
+              <thead class="table-header">
                 <tr>
-                  <th>Numéro</th>
-                  <th>Titre</th>
-                  <th>Type</th>
-                  <th>Priorité</th>
-                  <th>Statut</th>
-                  <th>Demandeur</th>
-                  <th>Technicien</th>
-                  <th>Date création</th>
-                  <th class="text-center">Actions</th>
+                  <th class="ps-4 text-nowrap">Numéro</th>
+                  <th class="text-nowrap">Titre</th>
+                  <th class="text-nowrap">Type</th>
+                  <th class="text-nowrap">Priorité</th>
+                  <th class="text-nowrap">Statut</th>
+                  <th class="text-nowrap">Demandeur</th>
+                  <th class="text-nowrap">Technicien</th>
+                  <th class="text-nowrap">Date création</th>
+                  <th class="text-center text-nowrap pe-4">Actions</th>
                 </tr>
               </thead>
               <tbody>
-                <tr *ngFor="let ticket of filteredTickets" 
-                    [class.high-priority-row]="ticket.priorite === 'CRITIQUE'">
-                  <td>
-                    <a [routerLink]="['/tickets', ticket.id]" class="ticket-number">
-                      <span class="badge bg-primary">{{ ticket.numero }}</span>
+                <tr *ngFor="let ticket of filteredTickets; let i = index" 
+                    [class.high-priority-row]="ticket.priorite === 'CRITIQUE'"
+                    [class.even-row]="i % 2 === 0"
+                    class="ticket-row">
+                  <td class="ps-4">
+                    <a [routerLink]="['/tickets', ticket.id]" class="ticket-number d-inline-block">
+                      <div class="ticket-badge">
+                        <span>{{ ticket.numero }}</span>
+                      </div>
                     </a>
                   </td>
                   <td>
                     <div class="d-flex flex-column ticket-info">
-                      <a [routerLink]="['/tickets', ticket.id]" class="ticket-title mb-1">
+                      <a [routerLink]="['/tickets', ticket.id]" class="ticket-title mb-1 fw-medium">
                         {{ ticket.titre }}
                       </a>
                       <small class="text-muted description-text">
                         {{ ticket.description }}
                       </small>
                       <div *ngIf="ticket.imprimantesAssociees && ticket.imprimantesAssociees.length > 0" class="mt-1">
-                        <span class="badge bg-light text-dark border">
+                        <span class="printer-count-badge">
                           <i class="bi bi-printer me-1"></i>{{ ticket.imprimantesAssociees.length }} imprimante(s)
                         </span>
                       </div>
                     </div>
                   </td>
                   <td>
-                    <span class="badge bg-info">{{ getTypeLabel(ticket.type) }}</span>
+                    <span class="type-badge" [class]="'type-' + ticket.type.toLowerCase()">
+                      <i class="bi bi-tag-fill me-1"></i>
+                      {{ getTypeLabel(ticket.type) }}
+                    </span>
                   </td>
                   <td>
-                    <span class="badge bg-{{ getPrioriteClass(ticket.priorite) }}">
+                    <span class="priority-badge" [class]="'priority-' + ticket.priorite.toLowerCase()">
+                      <i class="bi" [ngClass]="getPriorityIcon(ticket.priorite)"></i>
                       {{ getPrioriteLabel(ticket.priorite) }}
                     </span>
                   </td>
                   <td>
-                    <span class="badge bg-{{ getStatutClass(ticket.statut!) }} status-badge">
-                      {{ getStatutLabel(ticket.statut!) }}
+                    <span class="status-badge" [class]="'status-' + (ticket.statut ? ticket.statut.toLowerCase() : 'unknown')">
+                      <i class="bi" [ngClass]="ticket.statut ? getStatusIcon(ticket.statut) : 'bi-question-circle'"></i>
+                      {{ ticket.statut ? getStatutLabel(ticket.statut) : 'Inconnu' }}
                     </span>
                   </td>
                   <td>
                     <div class="d-flex align-items-center">
-                      <div class="avatar">
-                        <i class="bi bi-person"></i>
+                      <div class="user-avatar">
+                        <i class="bi bi-person-fill"></i>
                       </div>
-                      <span class="ms-2">{{ ticket.demandeurNom || 'Non assigné' }}</span>
+                      <span class="ms-2 user-name">{{ ticket.demandeurNom || 'Non assigné' }}</span>
                     </div>
                   </td>
                   <td>
                     <div class="d-flex align-items-center" *ngIf="ticket.technicienNom; else noTechnicien">
-                      <div class="avatar tech-avatar">
+                      <div class="tech-avatar">
                         <i class="bi bi-tools"></i>
                       </div>
-                      <span class="ms-2">{{ ticket.technicienNom }}</span>
+                      <span class="ms-2 tech-name">{{ ticket.technicienNom }}</span>
                     </div>
                     <ng-template #noTechnicien>
-                      <span class="text-muted">
+                      <div class="unassigned-tech">
                         <i class="bi bi-clock me-2"></i>
-                        Non assigné
-                      </span>
+                        <span>Non assigné</span>
+                      </div>
                     </ng-template>
                   </td>
                   <td>
-                    <div class="d-flex flex-column">
-                      <span class="date-text">{{ formatDate(ticket.dateCreation) }}</span>
-                      <small class="text-muted" *ngIf="ticket.dateModification">
-                        Modifié: {{ formatDate(ticket.dateModification) }}
-                      </small>
+                    <div class="date-container">
+                      <div class="date-info">
+                        <i class="bi bi-calendar-event me-1"></i>
+                        <span class="date-text">{{ formatDate(ticket.dateCreation) }}</span>
+                      </div>
+                      <div class="date-modified" *ngIf="ticket.dateModification">
+                        <i class="bi bi-pencil-square me-1"></i>
+                        <span>{{ formatDate(ticket.dateModification) }}</span>
+                      </div>
                     </div>
                   </td>
-                  <td>
+                  <td class="pe-4">
                     <div class="actions-container">
-                      <button class="btn btn-sm btn-icon btn-primary" [routerLink]="['/tickets', ticket.id]" title="Voir">
-                        <i class="bi bi-eye"></i>
+                      <button class="action-btn view-btn" [routerLink]="['/tickets', ticket.id]" title="Voir détails">
+                        <i class="bi bi-eye-fill"></i>
                       </button>
-                      <button class="btn btn-sm btn-icon btn-info" (click)="editTicket(ticket)" title="Modifier">
-                        <i class="bi bi-pencil"></i>
+                      <button class="action-btn edit-btn" (click)="editTicket(ticket)" title="Modifier ticket">
+                        <i class="bi bi-pencil-fill"></i>
                       </button>
-                      <button class="btn btn-sm btn-icon btn-danger" (click)="deleteTicket(ticket)" title="Supprimer">
-                        <i class="bi bi-trash"></i>
+                      <button class="action-btn delete-btn" (click)="deleteTicket(ticket)" title="Supprimer ticket">
+                        <i class="bi bi-trash-fill"></i>
                       </button>
                     </div>
                   </td>
@@ -217,37 +230,40 @@
           
           <!-- Pagination -->
           <nav *ngIf="!isLoading && totalPages > 1" aria-label="Navigation des pages" class="pagination-container">
-            <ul class="pagination justify-content-center mb-2">
-              <li class="page-item" [class.disabled]="currentPage === 0">
-                <a class="page-link" (click)="onPageChange(0)" aria-label="Première">
-                  <i class="bi bi-chevron-double-left"></i>
-                </a>
-              </li>
-              <li class="page-item" [class.disabled]="currentPage === 0">
-                <a class="page-link" (click)="onPageChange(currentPage - 1)" aria-label="Précédente">
-                  <i class="bi bi-chevron-left"></i>
-                </a>
-              </li>
+            <div class="d-flex justify-content-between align-items-center flex-wrap">
+              <div class="pagination-summary">
+                Affichage de <span class="fw-medium">{{ currentPage * pageSize + 1 }}</span> à 
+                <span class="fw-medium">{{ Math.min((currentPage + 1) * pageSize, totalElements) }}</span> sur 
+                <span class="fw-medium">{{ totalElements }}</span> tickets
+              </div>
               
-              <li *ngFor="let page of getPageNumbers()" class="page-item" [class.active]="page === currentPage">
-                <a class="page-link" (click)="onPageChange(page)">{{ page + 1 }}</a>
-              </li>
-              
-              <li class="page-item" [class.disabled]="currentPage === totalPages - 1">
-                <a class="page-link" (click)="onPageChange(currentPage + 1)" aria-label="Suivante">
-                  <i class="bi bi-chevron-right"></i>
-                </a>
-              </li>
-              <li class="page-item" [class.disabled]="currentPage === totalPages - 1">
-                <a class="page-link" (click)="onPageChange(totalPages - 1)" aria-label="Dernière">
-                  <i class="bi bi-chevron-double-right"></i>
-                </a>
-              </li>
-            </ul>
-            
-            <div class="text-center text-muted pagination-info">
-              Page <span class="fw-bold">{{ currentPage + 1 }}</span> sur <span class="fw-bold">{{ totalPages }}</span> 
-              ({{ totalElements }} ticket{{ totalElements > 1 ? 's' : '' }} au total)
+              <ul class="pagination mb-0">
+                <li class="page-item" [class.disabled]="currentPage === 0">
+                  <a class="page-link" (click)="onPageChange(0)" aria-label="Première" title="Première page">
+                    <i class="bi bi-chevron-double-left"></i>
+                  </a>
+                </li>
+                <li class="page-item" [class.disabled]="currentPage === 0">
+                  <a class="page-link" (click)="onPageChange(currentPage - 1)" aria-label="Précédente" title="Page précédente">
+                    <i class="bi bi-chevron-left"></i>
+                  </a>
+                </li>
+                
+                <li *ngFor="let page of getPageNumbers()" class="page-item" [class.active]="page === currentPage">
+                  <a class="page-link" (click)="onPageChange(page)">{{ page + 1 }}</a>
+                </li>
+                
+                <li class="page-item" [class.disabled]="currentPage === totalPages - 1">
+                  <a class="page-link" (click)="onPageChange(currentPage + 1)" aria-label="Suivante" title="Page suivante">
+                    <i class="bi bi-chevron-right"></i>
+                  </a>
+                </li>
+                <li class="page-item" [class.disabled]="currentPage === totalPages - 1">
+                  <a class="page-link" (click)="onPageChange(totalPages - 1)" aria-label="Dernière" title="Dernière page">
+                    <i class="bi bi-chevron-double-right"></i>
+                  </a>
+                </li>
+              </ul>
             </div>
           </nav>
         </div>

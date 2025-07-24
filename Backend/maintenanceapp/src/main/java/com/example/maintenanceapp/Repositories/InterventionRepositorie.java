@@ -30,6 +30,10 @@ public interface InterventionRepositorie extends JpaRepository<Intervention, Lon
     // Recherche par priorité
     List<Intervention> findByPrioriteOrderByDateCreationDesc(PrioriteIntervention priorite);
     
+    // Recherche par type et statut d'intervention
+    Page<Intervention> findByTypeInterventionAndStatutInterventionOrderByDatePlanifieeDesc(
+        TypeIntervention type, StatutIntervention statut, Pageable pageable);
+    
     // Recherche par technicien assigné
     List<Intervention> findByTechnicien_IdOrderByDateCreationDesc(Long technicienId);
     
@@ -110,4 +114,20 @@ public interface InterventionRepositorie extends JpaRepository<Intervention, Lon
     List<Intervention> findByImprimantesAssociees_IdAndStatutIntervention(
             @Param("imprimanteId") Long imprimanteId, 
             @Param("statut") StatutIntervention statut);
+    
+    // Trouver la dernière intervention de type préventive pour un contrat
+    Intervention findTopByContratIdAndTypeInterventionOrderByDatePlanifieeDesc(
+        Long contratId, TypeIntervention typeIntervention);
+    
+    // Trouver les interventions préventives planifiées pour une date donnée
+    @Query("SELECT i.id, c.numeroContrat, i.datePlanifiee, u.email, u.nom " +
+           "FROM Intervention i " +
+           "JOIN i.contrat c " +
+           "JOIN c.client u " +
+           "WHERE i.typeIntervention = 'PREVENTIVE' " +
+           "AND i.statutIntervention = 'PLANIFIEE' " +
+           "AND i.datePlanifiee BETWEEN :startDate AND :endDate")
+    List<Object[]> findUpcomingPreventiveMaintenances(
+        @Param("startDate") LocalDateTime startDate, 
+        @Param("endDate") LocalDateTime endDate);
 }

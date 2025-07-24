@@ -278,19 +278,9 @@
                     <i class="bi bi-three-dots"></i>
                   </button>
                   <ul class="dropdown-menu">
-                    <li><a class="dropdown-item" (click)="duplicateContrat(contrat)">
-                      <i class="bi bi-files me-2"></i>Dupliquer</a></li>
                     <li><a class="dropdown-item" (click)="exportToPdf(contrat)">
                       <i class="bi bi-download me-2"></i>Exporter PDF</a></li>
-                    <li><a class="dropdown-item" (click)="archiveContrat(contrat)" 
-                           *ngIf="isStatusMatch(contrat.statutContrat, 'actif')">
-                      <i class="bi bi-archive me-2"></i>Archiver</a></li>
-                    <li><a class="dropdown-item" (click)="setMaintenanceMode(contrat)" 
-                           *ngIf="isStatusMatch(contrat.statutContrat, 'actif')">
-                      <i class="bi bi-tools me-2"></i>Mettre en Maintenance</a></li>
-                    <li><a class="dropdown-item" (click)="removeFromMaintenance(contrat)" 
-                           *ngIf="isStatusMatch(contrat.statutContrat, 'maintenance')">
-                      <i class="bi bi-check-circle me-2"></i>Sortir de Maintenance</a></li>
+                   
                     <li><hr class="dropdown-divider"></li>
                     <li><a class="dropdown-item text-danger" (click)="deleteContrat(contrat.id)">
                       <i class="bi bi-trash me-2"></i>Supprimer</a></li>

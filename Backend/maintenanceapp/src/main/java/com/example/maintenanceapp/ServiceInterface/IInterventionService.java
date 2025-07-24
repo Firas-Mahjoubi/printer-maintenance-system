@@ -47,6 +47,7 @@ public interface IInterventionService {
     InterventionDTO rouvrirIntervention(Long interventionId, Long utilisateurId, String raison);
     InterventionDTO annulerIntervention(Long interventionId, Long utilisateurId, String raisonAnnulation);
     InterventionDTO enregistrerSatisfactionClient(Long interventionId, Integer noteSatisfaction, String commentaireSatisfaction);
+    InterventionDTO enregistrerDiagnostic(Long interventionId, Long technicienId, String diagnosticTechnique, String symptomesDetailles);
     
     // Historique des actions
     List<InterventionHistoriqueDTO> obtenirHistoriqueIntervention(Long interventionId);

@@ -114,13 +114,21 @@
             <span>Créer un Ticket</span>
           </a>
         </li>
-        <li>
+       <!-- <li>
           <a class="nav-link"
              routerLink="/technician-calendar"
              routerLinkActive="active"
              [routerLinkActiveOptions]="{ exact: true }">
             <span>Calendrier des Techniciens</span>
           </a>
+        </li> -->
+        <li>
+          <a class="nav-link"
+         routerLink="/maintenance-scheduler"
+         routerLinkActive="active"
+         [routerLinkActiveOptions]="{ exact: true }">
+        <span>Maintenance Préventive</span>
+      </a>
         </li>
       </ul>
     </li>
@@ -143,18 +151,12 @@
             <span>Liste des Imprimantes</span>
           </a>
         </li>
-        <li>
-          <a class="nav-link"
-             routerLink="/printers/history"
-             routerLinkActive="active"
-             [routerLinkActiveOptions]="{ exact: true }">
-            <span>Historique par Imprimante</span>
-          </a>
-        </li>
       </ul>
     </li>
 
     <div class="nav-divider"></div>
+
+    
 
     <!-- Notifications Section -->
     <li class="nav-item">

@@ -1,0 +1,547 @@
+<div class="ticket-details-container">
+  <!-- Loading spinner -->
+  <div *ngIf="isLoading" class="loading-container">
+    <div class="spinner-border text-primary" role="status">
+      <span class="visually-hidden">Chargement...</span>
+    </div>
+    <p>Chargement des détails du ticket...</p>
+  </div>
+
+  <!-- Error message -->
+  <div *ngIf="errorMessage" class="alert alert-danger">
+    {{ errorMessage }}
+  </div>
+
+  <!-- Ticket details content -->
+  <div *ngIf="!isLoading && !errorMessage && ticket" class="ticket-content">
+    <!-- Header with back button and ticket ID -->
+    <div class="ticket-header">
+      <div class="d-flex align-items-center">
+        <button class="btn btn-outline-light btn-sm me-3" (click)="goBack()">
+          <i class="bi bi-arrow-left"></i> Retour
+        </button>
+        <h2 class="ticket-title mb-0">
+          Ticket #{{ ticket.numero || ticket.id }}
+        </h2>
+      </div>
+      
+      <!-- Actions dropdown inside the header -->
+      <div class="ticket-actions">
+        <div ngbDropdown placement="bottom-end" container="body">
+        <button class="btn btn-light btn-action" id="actionDropdown" ngbDropdownToggle>
+          <i class="bi bi-gear-fill me-1"></i> Actions
+        </button>
+        <div ngbDropdownMenu aria-labelledby="actionDropdown" class="shadow dropdown-menu-end">
+          <button *ngIf="canStart" ngbDropdownItem (click)="startTicket()">
+            <i class="bi bi-play-circle"></i> Démarrer l'intervention
+          </button>
+          <button *ngIf="canPause" ngbDropdownItem (click)="openModal(pauseModal)">
+            <i class="bi bi-pause-circle"></i> Mettre en pause
+          </button>
+          <button *ngIf="canResume" ngbDropdownItem (click)="resumeTicket()">
+            <i class="bi bi-play-circle"></i> Reprendre l'intervention
+          </button>
+          <button *ngIf="canComplete" ngbDropdownItem (click)="completeTicket()">
+            <i class="bi bi-check-circle"></i> Terminer l'intervention
+          </button>
+          <button *ngIf="canDiagnose" ngbDropdownItem (click)="openModal(diagnosticModal)">
+            <i class="bi bi-stethoscope"></i> Ajouter diagnostic
+          </button>
+          <button *ngIf="canAddSolution" ngbDropdownItem (click)="openModal(solutionModal)">
+            <i class="bi bi-wrench"></i> Enregistrer solution
+          </button>
+          <button *ngIf="canCancel" ngbDropdownItem class="text-danger" (click)="openModal(cancelModal)">
+            <i class="bi bi-x-circle"></i> Annuler l'intervention
+          </button>
+        </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Main information section with professional design -->
+    <div class="ticket-main-content">
+      <!-- Ticket status visualization with professional design -->
+      <div class="ticket-visual-container">
+        <div class="ticket-status-card shadow-sm" [style.--status-color]="statusColors[ticket.statut || '']">
+          <div class="ticket-status-header">
+            <h3 class="ticket-number fw-bold">Ticket #{{ ticket.numero || ticket.id }}</h3>
+            <span class="status-badge {{ getStatusClass(ticket.statut) }}">
+              <i [ngClass]="getStatusIcon(ticket.statut)"></i>
+              <span>{{ getStatusLabel(ticket.statut) }}</span>
+            </span>
+          </div>
+          
+          <div class="ticket-details-grid mt-3">
+            <div class="detail-item p-2">
+              <span class="detail-label fw-bold text-muted">Créé le</span>
+              <span class="detail-value mt-1">{{ getFormattedDate(ticket.dateCreation) }}</span>
+            </div>
+            <div class="detail-item p-2">
+              <span class="detail-label fw-bold text-muted">Type</span>
+              <span class="detail-value mt-1">{{ ticket.type }}</span>
+            </div>
+            <div class="detail-item p-2">
+              <span class="detail-label fw-bold text-muted">Priorité</span>
+              <span class="detail-value priority-badge mt-1" [ngClass]="'priority-' + (ticket.priorite ? ticket.priorite.toLowerCase() : '')">
+                {{ ticket.priorite }}
+              </span>
+            </div>
+            <div class="detail-item p-2">
+              <span class="detail-label fw-bold text-muted">Dernière mise à jour</span>
+              <span class="detail-value mt-1">{{ getFormattedDate(ticket.dateModification) }}</span>
+            </div>
+          </div>
+          
+          <div class="ticket-progress mt-4">
+            <h5 class="fw-bold mb-3"><i class="bi bi-diagram-3"></i> Progression du ticket</h5>
+            <div class="progress-steps">
+              <div class="progress-step" [ngClass]="{'active': ticket.dateCreation, 'completed': ticket.statut !== 'EN_ATTENTE'}">
+                <div class="step-indicator"><i class="bi bi-1-circle-fill"></i></div>
+                <div class="step-label">Créé</div>
+              </div>
+              <div class="progress-connector" [ngClass]="{'active': ticket.statut !== 'EN_ATTENTE'}"></div>
+              <div class="progress-step" [ngClass]="{'active': ticket.statut === 'PLANIFIEE' || ticket.statut === 'EN_COURS' || ticket.statut === 'TERMINEE', 'completed': ticket.statut === 'EN_COURS' || ticket.statut === 'TERMINEE'}">
+                <div class="step-indicator"><i class="bi bi-2-circle-fill"></i></div>
+                <div class="step-label">Planifié</div>
+              </div>
+              <div class="progress-connector" [ngClass]="{'active': ticket.statut === 'EN_COURS' || ticket.statut === 'TERMINEE'}"></div>
+              <div class="progress-step" [ngClass]="{'active': ticket.statut === 'EN_COURS' || ticket.statut === 'TERMINEE', 'completed': ticket.statut === 'TERMINEE'}">
+                <div class="step-indicator"><i class="bi bi-3-circle-fill"></i></div>
+                <div class="step-label">En cours</div>
+              </div>
+              <div class="progress-connector" [ngClass]="{'active': ticket.statut === 'TERMINEE'}"></div>
+              <div class="progress-step" [ngClass]="{'active': ticket.statut === 'TERMINEE'}">
+                <div class="step-indicator"><i class="bi bi-4-circle-fill"></i></div>
+                <div class="step-label">Terminé</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Ticket information -->
+      <div class="ticket-info">
+        <div class="card shadow-sm">
+          <div class="card-header bg-primary text-white py-3">
+            <h5 class="mb-0 d-flex align-items-center">
+              <i class="bi bi-info-circle me-2"></i> Informations générales
+            </h5>
+          </div>
+          <div class="card-body py-3">
+            <div class="ticket-info-grid">
+              <div class="info-group">
+                <label class="fw-bold text-muted">Titre:</label>
+                <div class="info-value">{{ ticket.titre }}</div>
+              </div>
+              <div class="info-group">
+                <label>Type:</label>
+                <div class="info-value">{{ interventionService.getTypeLabel(ticket.type) }}</div>
+              </div>
+              <div class="info-group">
+                <label>Priorité:</label>
+                <div class="info-value">
+                  <span class="badge bg-{{ interventionService.getPrioriteClass(ticket.priorite) }}">
+                    {{ interventionService.getPrioriteLabel(ticket.priorite) }}
+                  </span>
+                </div>
+              </div>
+              <div class="info-group">
+                <label>Date de création:</label>
+                <div class="info-value">{{ getFormattedDate(ticket.dateCreation) }}</div>
+              </div>
+              <div class="info-group">
+                <label>Date planifiée:</label>
+                <div class="info-value">{{ getFormattedDate(ticket.datePlanifiee) }}</div>
+              </div>
+              <div class="info-group">
+                <label>Demandeur:</label>
+                <div class="info-value">{{ ticket.demandeurNom }}</div>
+              </div>
+              <div class="info-group">
+                <label>Technicien:</label>
+                <div class="info-value">{{ ticket.technicienNom || 'Non assigné' }}</div>
+              </div>
+              <div class="info-group">
+                <label>Contrat:</label>
+                <div class="info-value">{{ ticket.contratNumero || ticket.contratId }}</div>
+              </div>
+              
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Workflow visualization -->
+    <div class="workflow-section">
+      <app-ticket-workflow 
+        [status]="ticket.statut || ''" 
+        [diagnostic]="ticket.diagnostic || null" 
+        [solution]="ticket.solution || null"
+        [note]="ticket.noteSatisfaction || null">
+      </app-ticket-workflow>
+    </div>
+
+    <!-- Description and details -->
+    <div class="details-section mt-4">
+      <h4 class="mb-3 fw-bold text-muted">Détails du ticket</h4>
+      <div class="row g-3">
+        <div class="col-md-6">
+          <div class="card mb-4 shadow-sm h-100">
+            <div class="card-header bg-info text-white py-3">
+              <h5 class="mb-0 d-flex align-items-center">
+                <i class="bi bi-file-text me-2"></i> Description
+              </h5>
+            </div>
+            <div class="card-body p-3">
+              <p class="description-text">{{ ticket.description }}</p>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="card mb-4 shadow-sm h-100">
+            <div class="card-header text-white py-3" [ngClass]="ticket.diagnostic ? 'bg-success' : 'bg-secondary'">
+              <h5 class="mb-0 d-flex align-items-center">
+                <i class="bi bi-stethoscope me-2"></i> Diagnostic
+              </h5>
+            </div>
+            <div class="card-body p-3">
+              <p *ngIf="ticket.diagnostic" class="diagnostic-text">{{ ticket.diagnostic }}</p>
+              <p *ngIf="!ticket.diagnostic" class="text-muted">Aucun diagnostic enregistré</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="row g-3">
+        <div class="col-md-6">
+          <div class="card mb-4 shadow-sm h-100">
+            <div class="card-header text-white py-3" [ngClass]="ticket.solution ? 'bg-success' : 'bg-secondary'">
+              <h5 class="mb-0 d-flex align-items-center">
+                <i class="bi bi-wrench me-2"></i> Solution technique
+              </h5>
+            </div>
+            <div class="card-body p-3">
+              <p *ngIf="ticket.solution" class="solution-text">{{ ticket.solution }}</p>
+              <p *ngIf="!ticket.solution" class="text-muted">Aucune solution enregistrée</p>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="card mb-4 shadow-sm h-100">
+            <div class="card-header bg-dark text-white py-3">
+              <h5 class="mb-0 d-flex align-items-center">
+                <i class="bi bi-chat-left-text me-2"></i> Commentaires internes
+              </h5>
+            </div>
+            <div class="card-body p-3">
+              <p *ngIf="ticket.commentaireInterne" class="comment-text">{{ ticket.commentaireInterne }}</p>
+              <p *ngIf="!ticket.commentaireInterne" class="text-muted">Aucun commentaire interne</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Printer details section -->
+    <div class="printer-section mt-4" *ngIf="ticket.contratId">
+      <h4 class="mb-3 fw-bold text-muted">
+        <i class="bi bi-printer-fill me-2"></i>Liste des imprimantes
+      </h4>
+      <div class="card shadow-lg border-0 rounded-3 overflow-hidden">
+        <div class="card-header bg-gradient-primary text-white py-3 d-flex justify-content-between align-items-center">
+          <h5 class="mb-0 d-flex align-items-center">
+            <i class="bi bi-printer me-2"></i> Imprimantes associées au contrat
+          </h5>
+          <div class="d-flex align-items-center">
+            <span class="badge bg-white text-primary px-3 py-2 rounded-pill shadow-sm">
+              <i class="bi bi-printer-fill me-1"></i> {{ imprimantes.length }} imprimante(s)
+            </span>
+          </div>
+        </div>
+        <div class="card-body p-0">
+          <!-- Loading state -->
+          <div *ngIf="loadingImprimantes" class="p-5 text-center">
+            <div class="spinner-grow text-primary" role="status" style="width: 3rem; height: 3rem;">
+              <span class="visually-hidden">Chargement des imprimantes...</span>
+            </div>
+            <p class="mt-3 text-primary fw-bold">Chargement des imprimantes...</p>
+          </div>
+          
+          <!-- Error state -->
+          <div *ngIf="!loadingImprimantes && imprimantes.length === 0" class="p-4">
+            <div class="alert alert-warning d-flex align-items-center mb-0 border-0 shadow-sm">
+              <i class="bi bi-exclamation-triangle-fill fs-3 me-3"></i>
+              <div>
+                <h6 class="fw-bold mb-1">Aucune imprimante trouvée</h6>
+                <p class="mb-0">Aucune imprimante n'est associée à ce contrat.</p>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Printers table when loaded -->
+          <div *ngIf="!loadingImprimantes && imprimantes.length > 0" class="printer-list-container">
+            <div class="table-responsive">
+              <table class="table table-hover align-middle mb-0 custom-table">
+                <thead>
+                  <tr class="table-header">
+                    <th scope="col" class="ps-4 fw-semibold text-nowrap">ID</th>
+                    <th scope="col" class="fw-semibold text-nowrap">Marque</th>
+                    <th scope="col" class="fw-semibold text-nowrap">Modèle</th>
+                    <th scope="col" class="fw-semibold text-nowrap">Numéro de série</th>
+                    <th scope="col" class="fw-semibold text-nowrap">Emplacement</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let printer of imprimantes; let i = index" 
+                      [ngClass]="{'table-active': ticket.imprimanteId === printer.id, 'even-row': i % 2 === 0}" 
+                      class="printer-row">
+                    <td class="ps-4 fw-bold text-primary">{{ printer.id }}</td>
+                    <td>
+                      <div class="d-flex align-items-center">
+                        <div class="brand-icon me-2">
+                          <i class="bi bi-printer-fill"></i>
+                        </div>
+                        <span class="fw-medium text-capitalize">{{ printer.marque }}</span>
+                      </div>
+                    </td>
+                    <td class="fw-medium">{{ printer.modele }}</td>
+                    <td class="font-monospace">{{ printer.numeroSerie }}</td>
+                    <td>
+                      <span class="d-flex align-items-center">
+                        <i class="bi bi-geo-alt-fill text-secondary me-2"></i>
+                        {{ printer.emplacement }}
+                      </span>
+                    </td>
+                    
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            
+            <!-- Current printer info -->
+            
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Ticket history timeline -->
+    <div class="history-section mt-4">
+      <h4 class="mb-3 fw-bold text-muted">Suivi du ticket</h4>
+      <div class="card shadow-sm">
+        <div class="card-header bg-primary text-white py-3">
+          <h5 class="mb-0 d-flex align-items-center">
+            <i class="bi bi-clock-history me-2"></i> Historique du ticket
+          </h5>
+        </div>
+        <div class="card-body p-4">
+          <div class="timeline">
+            <div *ngFor="let event of ticketHistory" class="timeline-item">
+              <div class="timeline-marker" [ngClass]="'bg-' + getStatusClass(event.nouveauStatut)"></div>
+              <div class="timeline-content">
+                <h6 class="timeline-title fw-bold d-flex align-items-center">
+                  {{ event.action }}
+                  <span class="badge rounded-pill ms-2 bg-{{ getStatusClass(event.nouveauStatut) }}">
+                    {{ getStatusLabel(event.nouveauStatut) }}
+                  </span>
+                </h6>
+                <p class="timeline-date">
+                  {{ getFormattedDate(event.dateAction) }} 
+                  <span *ngIf="event.utilisateurNom">par {{ event.utilisateurNom }}</span>
+                </p>
+                <p *ngIf="event.commentaire" class="timeline-comment">
+                  « {{ event.commentaire }} »
+                </p>
+              </div>
+            </div>
+            
+            <!-- Initial creation event if history is empty -->
+            <div *ngIf="ticketHistory.length === 0" class="timeline-item">
+              <div class="timeline-marker bg-primary"></div>
+              <div class="timeline-content">
+                <h6 class="timeline-title">Création du ticket</h6>
+                <p class="timeline-date">{{ getFormattedDate(ticket.dateCreation) }}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modals -->
+<!-- Diagnostic Modal -->
+<ng-template #diagnosticModal let-modal>
+  <div class="modal-header">
+    <h5 class="modal-title">Enregistrer le diagnostic</h5>
+    <button type="button" class="btn-close" aria-label="Close" (click)="modal.dismiss()"></button>
+  </div>
+  <div class="modal-body">
+    <form [formGroup]="diagnosticForm">
+      <div class="mb-3">
+        <label for="diagnosticTechnique" class="form-label">Diagnostic technique</label>
+        <textarea 
+          id="diagnosticTechnique" 
+          formControlName="diagnosticTechnique" 
+          class="form-control" 
+          rows="4"
+          placeholder="Détaillez le problème technique identifié..."></textarea>
+        <div *ngIf="diagnosticForm.get('diagnosticTechnique')?.invalid && diagnosticForm.get('diagnosticTechnique')?.touched" class="text-danger">
+          Le diagnostic technique est requis
+        </div>
+      </div>
+      <div class="mb-3">
+        <label for="symptomesDetailles" class="form-label">Symptômes détaillés</label>
+        <textarea 
+          id="symptomesDetailles" 
+          formControlName="symptomesDetailles" 
+          class="form-control" 
+          rows="4"
+          placeholder="Décrivez les symptômes observés..."></textarea>
+        <div *ngIf="diagnosticForm.get('symptomesDetailles')?.invalid && diagnosticForm.get('symptomesDetailles')?.touched" class="text-danger">
+          Les symptômes détaillés sont requis
+        </div>
+      </div>
+    </form>
+  </div>
+  <div class="modal-footer">
+    <button type="button" class="btn btn-secondary" (click)="modal.dismiss()">Annuler</button>
+    <button 
+      type="button" 
+      class="btn btn-primary" 
+      [disabled]="diagnosticForm.invalid"
+      (click)="submitDiagnostic()">
+      Enregistrer
+    </button>
+  </div>
+</ng-template>
+
+<!-- Solution Modal -->
+<ng-template #solutionModal let-modal>
+  <div class="modal-header">
+    <h5 class="modal-title">Enregistrer la solution</h5>
+    <button type="button" class="btn-close" aria-label="Close" (click)="modal.dismiss()"></button>
+  </div>
+  <div class="modal-body">
+    <form [formGroup]="solutionForm">
+      <div class="mb-3">
+        <label for="solutionTechnique" class="form-label">Solution technique</label>
+        <textarea 
+          id="solutionTechnique" 
+          formControlName="solutionTechnique" 
+          class="form-control" 
+          rows="4"
+          placeholder="Détaillez la solution appliquée..."></textarea>
+        <div *ngIf="solutionForm.get('solutionTechnique')?.invalid && solutionForm.get('solutionTechnique')?.touched" class="text-danger">
+          La solution technique est requise
+        </div>
+      </div>
+      <div class="mb-3">
+        <label for="coutIntervention" class="form-label">Coût de l'intervention (€)</label>
+        <input 
+          type="number" 
+          id="coutIntervention" 
+          formControlName="coutIntervention" 
+          class="form-control"
+          min="0"
+          placeholder="0.00">
+        <div *ngIf="solutionForm.get('coutIntervention')?.invalid && solutionForm.get('coutIntervention')?.touched" class="text-danger">
+          Le coût doit être un nombre positif
+        </div>
+      </div>
+      <div class="mb-3">
+        <label for="commentaireInterne" class="form-label">Commentaire interne (optionnel)</label>
+        <textarea 
+          id="commentaireInterne" 
+          formControlName="commentaireInterne" 
+          class="form-control" 
+          rows="3"
+          placeholder="Notes internes pour l'équipe..."></textarea>
+      </div>
+    </form>
+  </div>
+  <div class="modal-footer">
+    <button type="button" class="btn btn-secondary" (click)="modal.dismiss()">Annuler</button>
+    <button 
+      type="button" 
+      class="btn btn-primary" 
+      [disabled]="solutionForm.invalid"
+      (click)="submitSolution()">
+      Enregistrer
+    </button>
+  </div>
+</ng-template>
+
+<!-- Pause Modal -->
+<ng-template #pauseModal let-modal>
+  <div class="modal-header">
+    <h5 class="modal-title">Mettre en pause l'intervention</h5>
+    <button type="button" class="btn-close" aria-label="Close" (click)="modal.dismiss()"></button>
+  </div>
+  <div class="modal-body">
+    <form [formGroup]="pauseForm">
+      <div class="mb-3">
+        <label for="raison" class="form-label">Raison de la mise en pause</label>
+        <textarea 
+          id="raison" 
+          formControlName="raison" 
+          class="form-control" 
+          rows="3"
+          placeholder="Veuillez indiquer la raison de la mise en pause..."></textarea>
+        <div *ngIf="pauseForm.get('raison')?.invalid && pauseForm.get('raison')?.touched" class="text-danger">
+          La raison est requise
+        </div>
+      </div>
+    </form>
+  </div>
+  <div class="modal-footer">
+    <button type="button" class="btn btn-secondary" (click)="modal.dismiss()">Annuler</button>
+    <button 
+      type="button" 
+      class="btn btn-warning" 
+      [disabled]="pauseForm.invalid"
+      (click)="pauseTicket()">
+      Mettre en pause
+    </button>
+  </div>
+</ng-template>
+
+<!-- Cancel Modal -->
+<ng-template #cancelModal let-modal>
+  <div class="modal-header">
+    <h5 class="modal-title">Annuler l'intervention</h5>
+    <button type="button" class="btn-close" aria-label="Close" (click)="modal.dismiss()"></button>
+  </div>
+  <div class="modal-body">
+    <div class="alert alert-warning">
+      <i class="bi bi-exclamation-triangle"></i> 
+      Attention : Cette action est définitive. L'intervention sera marquée comme annulée.
+    </div>
+    <form [formGroup]="cancelForm">
+      <div class="mb-3">
+        <label for="raison" class="form-label">Raison de l'annulation</label>
+        <textarea 
+          id="raison" 
+          formControlName="raison" 
+          class="form-control" 
+          rows="3"
+          placeholder="Veuillez indiquer la raison de l'annulation..."></textarea>
+        <div *ngIf="cancelForm.get('raison')?.invalid && cancelForm.get('raison')?.touched" class="text-danger">
+          La raison est requise
+        </div>
+      </div>
+    </form>
+  </div>
+  <div class="modal-footer">
+    <button type="button" class="btn btn-secondary" (click)="modal.dismiss()">Annuler</button>
+    <button 
+      type="button" 
+      class="btn btn-danger" 
+      [disabled]="cancelForm.invalid"
+      (click)="cancelTicket()">
+      Confirmer l'annulation
+    </button>
+  </div>
+</ng-template>

@@ -11,6 +11,7 @@ export class TicketListComponent implements OnInit {
   tickets: InterventionDTO[] = [];
   filteredTickets: InterventionDTO[] = [];
   isLoading = true;
+  Math = Math; // Make Math available in template
   
   // Pagination
   currentPage = 0;
@@ -172,6 +173,40 @@ export class TicketListComponent implements OnInit {
       hour: '2-digit',
       minute: '2-digit'
     });
+  }
+  
+  getPriorityIcon(priorite: PrioriteIntervention): string {
+    switch(priorite) {
+      case PrioriteIntervention.BASSE:
+        return 'bi-arrow-down-circle-fill';
+      case PrioriteIntervention.NORMALE:
+        return 'bi-dash-circle-fill';
+      case PrioriteIntervention.HAUTE:
+        return 'bi-arrow-up-circle-fill';
+      case PrioriteIntervention.CRITIQUE:
+        return 'bi-exclamation-triangle-fill';
+      default:
+        return 'bi-dash-circle';
+    }
+  }
+
+  getStatusIcon(statut: StatutIntervention): string {
+    switch(statut) {
+      case StatutIntervention.EN_ATTENTE:
+        return 'bi-hourglass';
+      case StatutIntervention.PLANIFIEE:
+        return 'bi-calendar-check';
+      case StatutIntervention.EN_COURS:
+        return 'bi-play-circle-fill';
+      case StatutIntervention.EN_PAUSE:
+        return 'bi-pause-circle-fill';
+      case StatutIntervention.TERMINEE:
+        return 'bi-check-circle-fill';
+      case StatutIntervention.ANNULEE:
+        return 'bi-x-circle-fill';
+      default:
+        return 'bi-question-circle';
+    }
   }
 
   getPageNumbers(): number[] {

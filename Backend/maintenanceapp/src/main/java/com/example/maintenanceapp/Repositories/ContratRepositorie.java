@@ -15,5 +15,6 @@ public interface ContratRepositorie extends JpaRepository<Contrat, Long> {
     List<Contrat> findByStatutContratNot(StatutContrat statut);
     List<Contrat> findByStatutContrat(StatutContrat statut);
     boolean existsByNumeroContrat(String numeroContrat);
+    List<Contrat> findByNumeroContrat(String numeroContrat);
 
 }

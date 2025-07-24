@@ -1,0 +1,124 @@
+<div class="diagnostic-container">
+    <div class="diagnostic-header">
+        <h2><i class="bi bi-stethoscope"></i> Diagnostic technique</h2>
+        <p class="subtitle">Intervention #{{intervention?.numero}}</p>
+    </div>
+
+    <div class="alert alert-info" role="alert">
+        <i class="bi bi-info-circle-fill me-2"></i>
+        Le diagnostic technique permettra de documenter précisément le problème identifié et les symptômes observés.
+    </div>
+
+    <div *ngIf="loading" class="loading-spinner">
+        <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Chargement...</span>
+        </div>
+    </div>
+
+    <div *ngIf="!loading" class="diagnostic-content">
+        <div class="intervention-info">
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="info-card">
+                        <h4>Informations de l'intervention</h4>
+                        <p><strong>Titre:</strong> {{intervention?.titre}}</p>
+                        <p><strong>Description initiale:</strong> {{intervention?.description}}</p>
+                        <p><strong>Date de création:</strong> {{intervention?.dateCreation | date:'dd/MM/yyyy HH:mm'}}</p>
+                        <p><strong>Statut:</strong> <span class="badge bg-primary">{{intervention?.statut}}</span></p>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="info-card">
+                        <h4>Informations de l'imprimante</h4>
+                        <p><strong>Modèle:</strong> {{intervention?.imprimante?.modele}}</p>
+                        <p><strong>Numéro de série:</strong> {{intervention?.imprimante?.numeroSerie}}</p>
+                        <p><strong>Localisation:</strong> {{intervention?.imprimante?.localisation}}</p>
+                        <p><strong>Client:</strong> {{intervention?.imprimante?.client?.nomEntreprise}}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <form [formGroup]="diagnosticForm" (ngSubmit)="onSubmit()" class="diagnostic-form">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5><i class="bi bi-clipboard-pulse"></i> Symptômes observés</h5>
+                </div>
+                <div class="card-body">
+                    <div class="form-group">
+                        <label for="symptomesDetailles">Symptômes détaillés</label>
+                        <textarea 
+                            id="symptomesDetailles" 
+                            class="form-control" 
+                            rows="6" 
+                            formControlName="symptomesDetailles"
+                            placeholder="Décrivez tous les symptômes observés de manière détaillée..."
+                        ></textarea>
+                        <div *ngIf="diagnosticForm.get('symptomesDetailles')?.invalid && diagnosticForm.get('symptomesDetailles')?.touched" class="text-danger mt-1">
+                            <small *ngIf="diagnosticForm.get('symptomesDetailles')?.errors?.['required']">Les symptômes sont requis.</small>
+                            <small *ngIf="diagnosticForm.get('symptomesDetailles')?.errors?.['minlength']">La description des symptômes doit contenir au moins 10 caractères.</small>
+                        </div>
+                    </div>
+                    
+                    <div class="symptoms-suggestions mt-3">
+                        <h6>Symptômes fréquents</h6>
+                        <div class="suggestions-container">
+                            <button 
+                                type="button" 
+                                class="btn btn-outline-secondary suggestion-btn" 
+                                *ngFor="let symptome of symptomesFrequents"
+                                (click)="addSymptome(symptome)">
+                                {{symptome}}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5><i class="bi bi-eyedropper"></i> Diagnostic technique</h5>
+                </div>
+                <div class="card-body">
+                    <div class="form-group">
+                        <label for="diagnosticTechnique">Diagnostic</label>
+                        <textarea 
+                            id="diagnosticTechnique" 
+                            class="form-control" 
+                            rows="6" 
+                            formControlName="diagnosticTechnique"
+                            placeholder="Décrivez votre diagnostic technique (cause du problème)..."
+                        ></textarea>
+                        <div *ngIf="diagnosticForm.get('diagnosticTechnique')?.invalid && diagnosticForm.get('diagnosticTechnique')?.touched" class="text-danger mt-1">
+                            <small *ngIf="diagnosticForm.get('diagnosticTechnique')?.errors?.['required']">Le diagnostic est requis.</small>
+                            <small *ngIf="diagnosticForm.get('diagnosticTechnique')?.errors?.['minlength']">Le diagnostic doit contenir au moins 10 caractères.</small>
+                        </div>
+                    </div>
+                    
+                    <div class="diagnostic-suggestions mt-3">
+                        <h6>Diagnostics fréquents</h6>
+                        <div class="suggestions-container">
+                            <button 
+                                type="button" 
+                                class="btn btn-outline-secondary suggestion-btn" 
+                                *ngFor="let diagnostic of diagnosticsFrequents"
+                                (click)="addDiagnostic(diagnostic)">
+                                {{diagnostic}}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="action-buttons">
+                <button type="button" class="btn btn-outline-secondary" [routerLink]="['/tickets', interventionId]">
+                    <i class="bi bi-arrow-left"></i> Retour
+                </button>
+                <button type="submit" class="btn btn-primary" [disabled]="diagnosticForm.invalid || submitting">
+                    <i class="bi" [ngClass]="submitting ? 'bi-hourglass-split' : 'bi-save'"></i>
+                    {{submitting ? 'Enregistrement...' : 'Enregistrer le diagnostic'}}
+                </button>
+            </div>
+        </form>
+    </div>
+</div>

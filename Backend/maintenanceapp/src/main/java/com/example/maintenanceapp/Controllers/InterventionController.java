@@ -9,6 +9,7 @@ import com.example.maintenanceapp.Entity.Enum.PrioriteIntervention;
 import com.example.maintenanceapp.Entity.Enum.StatutIntervention;
 import com.example.maintenanceapp.Entity.Enum.TypeIntervention;
 import com.example.maintenanceapp.Mapper.InterventionMapper;
+import com.example.maintenanceapp.Service.MaintenanceSchedulerService;
 import com.example.maintenanceapp.ServiceInterface.IInterventionService;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -23,6 +24,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -37,6 +39,8 @@ public class InterventionController {
      IInterventionService interventionService;
 
      InterventionMapper interventionMapper;
+     
+     MaintenanceSchedulerService maintenanceSchedulerService;
 
     // ====================== GESTION DES TICKETS ======================
 
@@ -275,17 +279,45 @@ public class InterventionController {
     @PutMapping("/{id}/terminer")
     public ResponseEntity<InterventionDTO> terminerTicket(
             @PathVariable Long id,
-            @RequestParam String diagnostic,
-            @RequestParam String solution,
+            @RequestParam(required = false) String diagnostic,
+            @RequestParam(required = false) String solution,
             @RequestParam(required = false) String observations,
             @RequestParam(required = false) Double coutReel,
             @RequestParam Long technicienId) {
         try {
-            Intervention intervention = interventionService.terminerIntervention(id, diagnostic, solution, observations, coutReel, technicienId);
+            // Use empty strings if parameters are null
+            String diagText = diagnostic != null ? diagnostic : "";
+            String solText = solution != null ? solution : "";
+            Intervention intervention = interventionService.terminerIntervention(id, diagText, solText, observations, coutReel, technicienId);
             InterventionDTO interventionDTO = interventionMapper.toDTO(intervention);
             return ResponseEntity.ok(interventionDTO);
         } catch (Exception e) {
             log.error("Erreur lors de la finalisation du ticket: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        }
+    }
+    
+    /**
+     * Terminer un ticket simplement (marquer comme terminé sans détails supplémentaires)
+     */
+    @PutMapping("/{id}/terminer-simple")
+    public ResponseEntity<InterventionDTO> terminerTicketSimple(
+            @PathVariable Long id,
+            @RequestParam Long technicienId) {
+        try {
+            // Call the same method but with empty/default values
+            Intervention intervention = interventionService.terminerIntervention(
+                id, 
+                "Intervention terminée", // Default diagnostic
+                "Problème résolu", // Default solution
+                null, // No observations
+                null, // No cost
+                technicienId
+            );
+            InterventionDTO interventionDTO = interventionMapper.toDTO(intervention);
+            return ResponseEntity.ok(interventionDTO);
+        } catch (Exception e) {
+            log.error("Erreur lors de la finalisation simplifiée du ticket: {}", e.getMessage());
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         }
     }
@@ -469,6 +501,64 @@ public class InterventionController {
         } catch (Exception e) {
             log.error("Erreur lors de la récupération des interventions actives pour le contrat " + contratId, e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    /**
+     * Endpoint pour planifier manuellement des maintenances préventives
+     * Cet endpoint est réservé aux administrateurs et permet de déclencher
+     * manuellement la planification des maintenances préventives
+     */
+    @PostMapping("/planifier-maintenances-preventives")
+    public ResponseEntity<Map<String, String>> planifierMaintenancesPreventives() {
+        try {
+            // Appeler le service de planification
+            maintenanceSchedulerService.schedulePreventiveMaintenance();
+            
+            Map<String, String> response = new HashMap<>();
+            response.put("message", "Planification des maintenances préventives déclenchée avec succès");
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            log.error("Erreur lors de la planification des maintenances préventives: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+    
+    /**
+     * Endpoint pour envoyer manuellement les notifications de maintenance préventive
+     * Cet endpoint est réservé aux administrateurs et permet de déclencher
+     * manuellement l'envoi des notifications pour les maintenances à venir
+     */
+    @PostMapping("/envoyer-notifications-maintenance")
+    public ResponseEntity<Map<String, String>> envoyerNotificationsMaintenance() {
+        try {
+            // Appeler le service d'envoi de notifications
+            maintenanceSchedulerService.sendMaintenanceNotifications();
+            
+            Map<String, String> response = new HashMap<>();
+            response.put("message", "Envoi des notifications de maintenance déclenché avec succès");
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            log.error("Erreur lors de l'envoi des notifications de maintenance: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    /**
+     * Enregistrer le diagnostic technique d'une intervention
+     */
+    @PutMapping("/{id}/diagnostic")
+    public ResponseEntity<InterventionDTO> enregistrerDiagnostic(
+            @PathVariable Long id,
+            @RequestParam Long technicienId,
+            @RequestParam String diagnosticTechnique,
+            @RequestParam String symptomesDetailles) {
+        try {
+            InterventionDTO intervention = interventionService.enregistrerDiagnostic(id, technicienId, diagnosticTechnique, symptomesDetailles);
+            return ResponseEntity.ok(intervention);
+        } catch (Exception e) {
+            log.error("Erreur lors de l'enregistrement du diagnostic: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         }
     }
 }

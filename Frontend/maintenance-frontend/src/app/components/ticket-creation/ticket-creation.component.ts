@@ -21,6 +21,7 @@ export class TicketCreationComponent implements OnInit {
   contratsFiltered: any[] = [];
   imprimantes: Imprimante[] = [];
   selectedImprimantes: Imprimante[] = [];
+  submitError: string | null = null;
   
   // Variables pour la recherche de contrats
   contratSearchTerm = '';
@@ -31,15 +32,15 @@ export class TicketCreationComponent implements OnInit {
   createSingleTicket = true; // true = un ticket pour toutes les imprimantes, false = un ticket par imprimante
   
   typeOptions = [
-    { value: TypeIntervention.CORRECTIVE, label: 'Corrective' },
-    { value: TypeIntervention.PREVENTIVE, label: 'Préventive' },
-    { value: TypeIntervention.URGENTE, label: 'Urgente' },
-    { value: TypeIntervention.INSTALLATION, label: 'Installation' },
-    { value: TypeIntervention.MISE_A_JOUR, label: 'Mise à jour' },
-    { value: TypeIntervention.DIAGNOSTIC, label: 'Diagnostic' },
-    { value: TypeIntervention.FORMATION, label: 'Formation' },
-    { value: TypeIntervention.NETTOYAGE, label: 'Nettoyage' },
-    { value: TypeIntervention.MAINTENANCE, label: 'Maintenance' }
+    { value: TypeIntervention.CORRECTIVE, label: 'Corrective - Réparation suite à panne' },
+    { value: TypeIntervention.PREVENTIVE, label: 'Préventive - Maintenance planifiée' },
+    { value: TypeIntervention.URGENTE, label: 'Urgente - Intervention prioritaire' },
+    { value: TypeIntervention.INSTALLATION, label: 'Installation - Nouveau matériel' },
+    { value: TypeIntervention.MISE_A_JOUR, label: 'Mise à jour - Logiciel/firmware' },
+    { value: TypeIntervention.DIAGNOSTIC, label: 'Diagnostic - Analyse technique' },
+    { value: TypeIntervention.FORMATION, label: 'Formation - Support utilisateur' },
+    { value: TypeIntervention.NETTOYAGE, label: 'Nettoyage - Entretien périodique' },
+    { value: TypeIntervention.MAINTENANCE, label: 'Maintenance - Entretien régulier' }
   ];
   
   prioriteOptions = [
@@ -243,9 +244,15 @@ export class TicketCreationComponent implements OnInit {
   onSubmit(): void {
     if (this.ticketForm.valid && !this.isSubmitting) {
       this.isSubmitting = true;
+      // Clear any previous errors
+      this.submitError = null;
       
       const formValue = this.ticketForm.value;
       const selectedImprIds = this.imprimanteIdsFormArray.value;
+      
+      // Log the form values for debugging
+      console.log('Form values:', formValue);
+      console.log('Selected type:', formValue.type);
       
       // Création du DTO de base
       const baseIntervention: InterventionCreateDTO = {
@@ -291,7 +298,7 @@ export class TicketCreationComponent implements OnInit {
             },
             error: (error) => {
               console.error('Erreur lors de la création du ticket multi-imprimantes:', error);
-              this.isSubmitting = false;
+              this.handleSubmitError(error);
             }
           });
         } else {
@@ -325,7 +332,7 @@ export class TicketCreationComponent implements OnInit {
             },
             error: (error) => {
               console.error('Erreur lors de la création des tickets par imprimante:', error);
-              this.isSubmitting = false;
+              this.handleSubmitError(error);
             }
           });
         }
@@ -358,7 +365,7 @@ export class TicketCreationComponent implements OnInit {
           },
           error: (error) => {
             console.error('Erreur lors de la création du ticket:', error);
-            this.isSubmitting = false;
+            this.handleSubmitError(error);
           }
         });
       } 
@@ -371,13 +378,46 @@ export class TicketCreationComponent implements OnInit {
           },
           error: (error) => {
             console.error('Erreur lors de la création du ticket:', error);
-            this.isSubmitting = false;
+            this.handleSubmitError(error);
           }
         });
       }
     } else {
       this.markFormGroupTouched();
     }
+  }
+  
+  private handleSubmitError(error: any): void {
+    this.isSubmitting = false;
+    
+    // Check if there's a specific error message from the server
+    let errorMessage = 'Une erreur est survenue lors de la création du ticket.';
+    
+    if (error && error.error && error.error.message) {
+      errorMessage = error.error.message;
+    } else if (error && error.error && typeof error.error === 'string') {
+      errorMessage = error.error;
+    } else if (error && error.message) {
+      errorMessage = error.message;
+    }
+    
+    // Check if it's a validation constraint error
+    if (errorMessage.includes('contrainte') || errorMessage.includes('constraint')) {
+      if (errorMessage.includes('type_intervention')) {
+        errorMessage = 'Le type d\'intervention sélectionné n\'est pas valide. Veuillez en choisir un autre.';
+      }
+    }
+    
+    // Set the error message to display in the UI
+    this.submitError = errorMessage;
+    
+    // Scroll to the error message
+    setTimeout(() => {
+      window.scrollTo({
+        top: document.body.scrollHeight,
+        behavior: 'smooth'
+      });
+    }, 100);
   }
 
   // Vérifier si une imprimante est sélectionnée

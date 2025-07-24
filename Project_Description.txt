@@ -1,0 +1,90 @@
+# Projet de Système de Gestion de Maintenance d'Imprimantes
+
+## Résumé du Projet
+Le système de gestion de maintenance d'imprimantes est une application web complète développée avec Angular pour le frontend et Spring Boot pour le backend. L'application permet de gérer efficacement les tickets de maintenance pour les imprimantes et autres équipements, en suivant leur cycle de vie complet depuis la création jusqu'à la résolution et l'évaluation de la satisfaction client.
+
+## Fonctionnalités Principales
+
+### Gestion des Tickets
+- Création et suivi des tickets d'intervention
+- Différents statuts de ticket: En attente, En cours, En pause, Terminée, Annulée
+- Niveaux de priorité personnalisables: Basse, Normale, Élevée, Urgente
+- Assignation de techniciens aux tickets
+- Historique complet des actions et modifications
+
+### Flux de Travail d'Intervention
+1. Création du ticket par le client ou l'administrateur
+2. Assignation du technicien
+3. Démarrage de l'intervention
+4. Ajout du diagnostic technique
+5. Documentation de la solution appliquée
+6. Clôture du ticket
+7. Évaluation de la satisfaction client
+
+### Gestion des Équipements
+- Suivi des imprimantes et autres équipements
+- Association de plusieurs imprimantes à un ticket
+- Historique des interventions par équipement
+- Détails techniques des équipements (modèle, numéro de série, emplacement)
+
+### Gestion des Contrats
+- Association des contrats de maintenance aux tickets
+- Suivi des interventions par contrat
+- Différents types d'interventions selon les termes contractuels
+
+### Interface Utilisateur
+- Design moderne et professionnel
+- Interface responsive adaptée aux différents appareils
+- Composants visuels intuitifs (badges, icônes, timeline)
+- Système d'actions contextuel selon le statut du ticket
+- Visualisation efficace du flux de travail
+
+### Fonctionnalités Techniques
+- Authentification et gestion des droits d'accès
+- Validation des formulaires
+- Filtrage et recherche avancés
+- Export PDF des tickets
+- Notifications et alertes
+
+## Architecture Technique
+
+### Frontend
+- Framework: Angular
+- Bibliothèque UI: Bootstrap 5
+- Icônes: Bootstrap Icons
+- Animations CSS personnalisées
+- Composants réutilisables
+- Services pour la communication avec l'API
+
+### Backend
+- Framework: Spring Boot
+- Base de données: SQL (avec Hibernate ORM)
+- API RESTful
+- Validation des données
+- Gestion des contraintes de base de données
+
+### Bonnes Pratiques Implémentées
+- Code structuré et bien commenté
+- Design responsive et accessible
+- Gestion des erreurs et états de chargement
+- Expérience utilisateur optimisée
+- Protection contre les références nulles (null safety)
+- Séparation des préoccupations (modèles, services, composants)
+
+## Améliorations Futures
+- Implémentation de tableaux de bord analytiques
+- Système de notifications en temps réel
+- Intégration avec des systèmes de surveillance d'imprimantes
+- Application mobile compagnon
+- Fonctionnalités d'IA pour la prédiction de maintenance préventive
+- Optimisation des performances pour de grands volumes de données
+- Intégration de chatbots d'assistance
+
+## Valeur Ajoutée Pour l'Entreprise
+- Réduction du temps de résolution des problèmes techniques
+- Meilleure traçabilité des interventions
+- Amélioration de la satisfaction client grâce au suivi transparent
+- Optimisation de l'allocation des ressources techniques
+- Données analytiques pour la prise de décision
+- Standardisation du processus de maintenance
+- Réduction des erreurs humaines dans le suivi des tickets

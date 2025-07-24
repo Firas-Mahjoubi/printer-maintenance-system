@@ -380,22 +380,6 @@ export class InterventionService {
     return this.http.get<InterventionDTO[]>(`${this.apiUrl}/retard`);
   }
 
-  // ====================== SATISFACTION CLIENT ======================
-
-  /**
-   * Enregistrer la satisfaction client
-   */
-  enregistrerSatisfaction(id: number, noteSatisfaction: number, commentaireSatisfaction?: string): Observable<InterventionDTO> {
-    let params = new HttpParams()
-      .set('noteSatisfaction', noteSatisfaction.toString());
-    
-    if (commentaireSatisfaction) {
-      params = params.set('commentaireSatisfaction', commentaireSatisfaction);
-    }
-    
-    return this.http.put<InterventionDTO>(`${this.apiUrl}/${id}/satisfaction`, null, { params });
-  }
-
   // ====================== UTILITAIRES ======================
 
   /**
@@ -519,5 +503,114 @@ export class InterventionService {
    */
   obtenirContratsAvecInterventionsActives(): Observable<number[]> {
     return this.http.get<number[]>(`${this.apiUrl}/contrats-avec-interventions-actives`);
+  }
+
+  /**
+   * Récupérer un ticket par son ID
+   */
+  getInterventionById(id: number): Observable<InterventionDTO> {
+    return this.http.get<InterventionDTO>(`${this.apiUrl}/${id}`);
+  }
+
+  /**
+   * Enregistrer le diagnostic technique d'une intervention
+   */
+  enregistrerDiagnostic(
+    interventionId: number, 
+    technicienId: number, 
+    diagnosticTechnique: string, 
+    symptomesDetailles: string
+  ): Observable<InterventionDTO> {
+    const params = new HttpParams()
+      .set('technicienId', technicienId.toString())
+      .set('diagnosticTechnique', diagnosticTechnique)
+      .set('symptomesDetailles', symptomesDetailles);
+      
+    return this.http.put<InterventionDTO>(`${this.apiUrl}/${interventionId}/diagnostic`, null, { params });
+  }
+
+  /**
+   * Enregistrer la solution technique et le coût d'une intervention
+   * Note: This is a workaround using the update endpoint until the backend implements /solution endpoint
+   */
+  enregistrerSolution(
+    interventionId: number, 
+    technicienId: number, 
+    solutionTechnique: string, 
+    coutIntervention: number,
+    commentaireInterne?: string
+  ): Observable<InterventionDTO> {
+    // Use the general update endpoint as a workaround
+    const updateData = {
+      solution: solutionTechnique,
+      coutIntervention: coutIntervention,
+      commentaireInterne: commentaireInterne
+    };
+    
+    return this.http.put<InterventionDTO>(`${this.apiUrl}/${interventionId}`, updateData);
+  }
+  
+  /**
+   * Démarrer une intervention (change le statut à EN_COURS)
+   */
+  demarrerIntervention(interventionId: number, technicienId: number): Observable<InterventionDTO> {
+    const params = new HttpParams().set('technicienId', technicienId.toString());
+    return this.http.put<InterventionDTO>(`${this.apiUrl}/${interventionId}/demarrer`, null, { params });
+  }
+  
+  /**
+   * Mettre en pause une intervention (change le statut à EN_PAUSE)
+   */
+  mettreEnPauseIntervention(interventionId: number, technicienId: number, raison: string): Observable<InterventionDTO> {
+    const params = new HttpParams()
+      .set('technicienId', technicienId.toString())
+      .set('raisonPause', raison);
+    return this.http.put<InterventionDTO>(`${this.apiUrl}/${interventionId}/pause`, null, { params });
+  }
+  
+  /**
+   * Reprendre une intervention (change le statut à EN_COURS)
+   */
+  reprendreIntervention(interventionId: number, technicienId: number): Observable<InterventionDTO> {
+    const params = new HttpParams().set('technicienId', technicienId.toString());
+    return this.http.put<InterventionDTO>(`${this.apiUrl}/${interventionId}/reprendre`, null, { params });
+  }
+  
+  /**
+   * Terminer une intervention (change le statut à TERMINEE)
+   */
+  terminerIntervention(interventionId: number, technicienId: number): Observable<InterventionDTO> {
+    const params = new HttpParams().set('technicienId', technicienId.toString());
+    return this.http.put<InterventionDTO>(`${this.apiUrl}/${interventionId}/terminer`, null, { params });
+  }
+  
+  /**
+   * Annuler une intervention (change le statut à ANNULEE)
+   */
+  annulerIntervention(interventionId: number, technicienId: number, raison: string): Observable<InterventionDTO> {
+    const params = new HttpParams()
+      .set('utilisateurId', technicienId.toString())
+      .set('raisonAnnulation', raison);
+    return this.http.put<InterventionDTO>(`${this.apiUrl}/${interventionId}/annuler`, null, { params });
+  }
+  
+  /**
+   * Enregistrer la satisfaction client
+   */
+  enregistrerSatisfaction(
+    interventionId: number, 
+    clientId: number, 
+    noteSatisfaction: number, 
+    commentaireSatisfaction?: string
+  ): Observable<InterventionDTO> {
+    let params = new HttpParams()
+      .set('clientId', clientId.toString())
+      .set('noteSatisfaction', noteSatisfaction.toString());
+      
+    if (commentaireSatisfaction) {
+      params = params.set('commentaireSatisfaction', commentaireSatisfaction);
+    }
+      
+    return this.http.put<InterventionDTO>(`${this.apiUrl}/${interventionId}/satisfaction`, null, { params });
   }
 }

@@ -1,0 +1,149 @@
+/* Add these styles to the ticket-details.component.css file */
+
+/* Ticket details grid */
+.ticket-details-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+  margin: 1.5rem 0;
+}
+
+.detail-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.detail-label {
+  font-size: 0.8rem;
+  color: #6c757d;
+  font-weight: 600;
+}
+
+.detail-value {
+  font-size: 1rem;
+  color: #343a40;
+}
+
+/* Progress steps */
+.ticket-progress {
+  margin-top: 2rem;
+}
+
+.progress-steps {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.progress-step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  position: relative;
+  z-index: 2;
+}
+
+.step-indicator {
+  width: 2.5rem;
+  height: 2.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background-color: #f8f9fa;
+  color: #adb5bd;
+  transition: all 0.3s ease;
+  border: 2px solid #dee2e6;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.step-indicator i {
+  font-size: 1.5rem;
+}
+
+.step-label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #6c757d;
+  text-align: center;
+}
+
+.progress-connector {
+  flex-grow: 1;
+  height: 2px;
+  background-color: #dee2e6;
+  margin: 0 -5px;
+  position: relative;
+  z-index: 1;
+  transform: translateY(-1.25rem);
+}
+
+/* Active and completed states */
+.progress-step.active .step-indicator {
+  border-color: #007bff;
+  color: #007bff;
+  background-color: #e7f5ff;
+}
+
+.progress-step.completed .step-indicator {
+  background-color: #007bff;
+  border-color: #007bff;
+  color: white;
+}
+
+.progress-step.active .step-label {
+  color: #343a40;
+}
+
+.progress-step.completed .step-label {
+  color: #007bff;
+}
+
+.progress-connector.active {
+  background-color: #007bff;
+}
+
+/* Priority badge */
+.priority-badge {
+  display: inline-block;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  text-align: center;
+}
+
+.priority-badge.priority-haute {
+  background-color: rgba(220, 53, 69, 0.2);
+  color: #dc3545;
+}
+
+.priority-badge.priority-moyenne {
+  background-color: rgba(255, 193, 7, 0.2);
+  color: #ff9800;
+}
+
+.priority-badge.priority-basse {
+  background-color: rgba(40, 167, 69, 0.2);
+  color: #28a745;
+}
+
+/* Ticket status header */
+.ticket-status-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  padding-bottom: 1rem;
+}
+
+.ticket-status-header .ticket-number {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #343a40;
+}

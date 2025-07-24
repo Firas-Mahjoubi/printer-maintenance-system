@@ -1,0 +1,100 @@
+<div class="maintenance-scheduler-container">
+    <div class="maintenance-scheduler-header">
+        <div class="maintenance-scheduler-title">
+            <i class="bi bi-calendar-check"></i> Planification des maintenances préventives
+        </div>
+    </div>
+
+    <div *ngIf="alert.show" class="alert alert-{{ alert.type }} alert-dismissible fade show" role="alert">
+        <i class="bi" [ngClass]="{'bi-check-circle-fill': alert.type === 'success', 'bi-exclamation-triangle-fill': alert.type === 'danger', 'bi-info-circle-fill': alert.type === 'info'}"></i>
+        {{ alert.message }}
+        <button type="button" class="btn-close" (click)="alert.show = false" aria-label="Close"></button>
+    </div>
+
+    <div class="actions-container">
+        <div class="action-card">
+            <div class="action-title">
+                <i class="bi bi-calendar-plus"></i> Planifier des maintenances préventives
+            </div>
+            <div class="action-description">
+                Planifie automatiquement des interventions de maintenance préventive tous les 6 mois pour les contrats actifs.
+            </div>
+            <button class="btn btn-primary btn-scheduler" (click)="planifierMaintenancesPreventives()" [disabled]="schedulingInProgress">
+                <i class="bi" [ngClass]="schedulingInProgress ? 'bi-hourglass-split' : 'bi-calendar-plus'"></i>
+                {{ schedulingInProgress ? 'Planification en cours...' : 'Planifier les maintenances' }}
+            </button>
+        </div>
+
+        <div class="action-card">
+            <div class="action-title">
+                <i class="bi bi-envelope"></i> Envoyer les notifications
+            </div>
+            <div class="action-description">
+                Envoie des notifications aux clients pour les informer des maintenances préventives programmées dans un mois.
+            </div>
+            <button class="btn btn-info btn-scheduler" (click)="envoyerNotificationsMaintenance()" [disabled]="notificationsInProgress">
+                <i class="bi" [ngClass]="notificationsInProgress ? 'bi-hourglass-split' : 'bi-envelope'"></i>
+                {{ notificationsInProgress ? 'Envoi en cours...' : 'Envoyer les notifications' }}
+            </button>
+        </div>
+    </div>
+
+    <div class="dashboard-card">
+        <div class="dashboard-card-title">
+            <i class="bi bi-list-check"></i> Maintenances préventives planifiées
+        </div>
+
+        <div *ngIf="loading" class="loading-spinner">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Chargement...</span>
+            </div>
+        </div>
+
+        <div *ngIf="!loading && maintenancesPreventives.length === 0" class="no-data">
+            Aucune maintenance préventive planifiée pour le moment.
+        </div>
+
+        <div *ngIf="!loading && maintenancesPreventives.length > 0" class="table-responsive">
+            <table class="maintenance-table">
+                <thead>
+                    <tr>
+                        <th>Numéro de ticket</th>
+                        <th>Titre</th>
+                        <th>Contrat</th>
+                        <th>Date planifiée</th>
+                        <th>Technicien</th>
+                        <th>Statut</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr *ngFor="let maintenance of maintenancesPreventives">
+                        <td><strong>{{ maintenance.numero || 'N/A' }}</strong></td>
+                        <td>{{ maintenance.titre || 'N/A' }}</td>
+                        <td>{{ maintenance.contratNumero || 'N/A' }}</td>
+                        <td>{{ formatDate(maintenance.datePlanifiee) }}</td>
+                        <td>{{ maintenance.technicienNom || 'Non assigné' }}</td>
+                        <td>
+                            <span class="status-badge status-planifiee">
+                                <i class="bi bi-calendar-check-fill me-1"></i> {{ maintenance.statut || 'PLANIFIÉE' }}
+                            </span>
+                        </td>
+                        <td class="text-center">
+                            <a class="btn-link" [routerLink]="['/tickets', maintenance.id]">
+                                <i class="bi bi-eye"></i> Détails
+                            </a>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div *ngIf="!loading && maintenancesPreventives.length > 0" class="pagination">
+            <div class="page-item" *ngFor="let page of pages">
+                <span class="page-link" [class.active]="page === currentPage" (click)="changePage(page)">
+                    {{ page + 1 }}
+                </span>
+            </div>
+        </div>
+    </div>
+</div>

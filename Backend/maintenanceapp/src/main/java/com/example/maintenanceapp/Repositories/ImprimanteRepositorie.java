@@ -10,5 +10,6 @@ import java.util.List;
 public interface ImprimanteRepositorie extends JpaRepository<Imprimante, Long> {
     List<Imprimante> findByContrat_Id(Long contratId);
     void deleteAllByContrat_Id(Long contratId);
+    List<Imprimante> findByContratId(Long contratId);
 
 }

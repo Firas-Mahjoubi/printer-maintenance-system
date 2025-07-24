@@ -99,6 +99,10 @@
             <i class="fas fa-comments"></i>
             Chat
           </button>
+          <button class="btn-feedback" (click)="giveFeedback(request.id)" *ngIf="request.status === 'completed' && !request.hasFeedback">
+            <i class="fas fa-star"></i>
+            Évaluer
+          </button>
           <button class="btn-cancel" (click)="cancelRequest(request.id)" *ngIf="request.status === 'pending'">
             <i class="fas fa-times"></i>
             Annuler

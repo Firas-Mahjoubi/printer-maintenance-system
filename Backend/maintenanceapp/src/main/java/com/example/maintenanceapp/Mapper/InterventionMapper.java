@@ -32,7 +32,7 @@ public class InterventionMapper {
         dto.setStatut(intervention.getStatutIntervention());
         
         dto.setDateCreation(intervention.getDateCreation());
-        dto.setDatePlanifiee(intervention.getDateDemande());
+        dto.setDatePlanifiee(intervention.getDatePlanifiee());
         dto.setDateDebut(intervention.getDateDebutIntervention());
         dto.setDateFin(intervention.getDateFinIntervention());
         dto.setDateModification(intervention.getDerniereModification());
@@ -94,6 +94,7 @@ public class InterventionMapper {
         intervention.setTypeIntervention(createDTO.getType());
         intervention.setPriorite(createDTO.getPriorite());
         intervention.setDateDemande(createDTO.getDatePlanifiee());
+        intervention.setDatePlanifiee(createDTO.getDatePlanifiee());
         
         return intervention;
     }
@@ -120,6 +121,7 @@ public class InterventionMapper {
         }
         if (updateDTO.getDatePlanifiee() != null) {
             intervention.setDateDemande(updateDTO.getDatePlanifiee());
+            intervention.setDatePlanifiee(updateDTO.getDatePlanifiee());
         }
         if (updateDTO.getDiagnostic() != null) {
             intervention.setDiagnosticTechnique(updateDTO.getDiagnostic());

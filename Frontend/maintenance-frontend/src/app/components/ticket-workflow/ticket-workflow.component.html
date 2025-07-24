@@ -1,0 +1,29 @@
+<div class="workflow-container">
+    <div class="workflow-title">Cycle de vie de l'intervention</div>
+    
+    <div class="workflow-steps">
+        <div *ngFor="let step of steps; let i = index" class="workflow-step"
+             [ngClass]="{'active': step.active, 'completed': step.completed}">
+            <div class="step-icon">
+                <i class="bi" [ngClass]="step.icon"></i>
+            </div>
+            <div class="step-connector" *ngIf="i < steps.length - 1"></div>
+            <div class="step-label">{{ step.label }}</div>
+        </div>
+    </div>
+    
+    <div class="workflow-legend">
+        <div class="legend-item">
+            <div class="legend-color completed"></div>
+            <div class="legend-text">Étape terminée</div>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color active"></div>
+            <div class="legend-text">Étape en cours</div>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color"></div>
+            <div class="legend-text">Étape à venir</div>
+        </div>
+    </div>
+</div>

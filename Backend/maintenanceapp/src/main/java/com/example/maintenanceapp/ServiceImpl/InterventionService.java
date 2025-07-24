@@ -13,6 +13,7 @@ import com.example.maintenanceapp.Entity.Enum.ImprimanteStatus;
 import com.example.maintenanceapp.Entity.Enum.StatutIntervention;
 import com.example.maintenanceapp.Entity.Enum.TypeIntervention;
 import com.example.maintenanceapp.Entity.Enum.PrioriteIntervention;
+import com.example.maintenanceapp.Entity.Enum.Role;
 import com.example.maintenanceapp.Mapper.InterventionMapper;
 import com.example.maintenanceapp.Repositories.InterventionRepositorie;
 import com.example.maintenanceapp.Repositories.ContratRepositorie;
@@ -46,6 +47,7 @@ public class InterventionService implements IInterventionService {
     InterventionMapper interventionMapper;
     NotificationService notificationService;
     InterventionHistoriqueRepositorie interventionHistoriqueRepositorie;
+    com.example.maintenanceapp.Service.EmailService emailService;
 
     @Override
     public List<Intervention> findAll() {
@@ -363,22 +365,130 @@ public class InterventionService implements IInterventionService {
     @Override
     public Intervention terminerIntervention(Long interventionId, String diagnostic, String solution, 
                                            String observations, Double coutReel, Long technicienId) {
-        Intervention intervention = interventionRepositorie.findById(interventionId).orElse(null);
-        if (intervention == null) return null;
+        Intervention intervention = interventionRepositorie.findById(interventionId)
+            .orElseThrow(() -> new RuntimeException("Intervention non trouvée"));
         
+        // Vérification des conditions préalables
+        if (intervention.getStatutIntervention() != StatutIntervention.EN_COURS) {
+            throw new RuntimeException("L'intervention doit être en cours pour être terminée");
+        }
+        
+        // Récupérer l'utilisateur qui effectue l'action
+        Utilisateur utilisateur = utilisateurRepositorie.findById(technicienId)
+            .orElse(null);
+        
+        // Si l'utilisateur n'est pas trouvé, on continue quand même
+        // Autoriser si c'est un admin ou le technicien assigné
+        boolean isAdmin = utilisateur != null && utilisateur.getRole() == Role.ADMIN;
+        boolean isAssignedTechnician = intervention.getTechnicien() != null && 
+                                      intervention.getTechnicien().getId() == technicienId;
+        
+        if (!isAdmin && !isAssignedTechnician && utilisateur != null) {
+            throw new RuntimeException("Seul le technicien assigné ou un administrateur peut terminer cette intervention");
+        }
+        
+        // Validation des champs - fournir des valeurs par défaut si nécessaire
+        if (diagnostic == null || diagnostic.trim().isEmpty()) {
+            diagnostic = "Intervention terminée";
+        }
+        
+        if (solution == null || solution.trim().isEmpty()) {
+            solution = "Problème résolu";
+        }
+        
+        // Enregistrer l'ancien état pour l'historique
+        StatutIntervention statutPrecedent = intervention.getStatutIntervention();
+        
+        // Mettre à jour l'intervention
         intervention.setStatutIntervention(StatutIntervention.TERMINEE);
         intervention.setDateFinIntervention(LocalDateTime.now());
-        intervention.setDateCloture(LocalDateTime.now());
         intervention.setDiagnosticTechnique(diagnostic);
         intervention.setSolutionAppliquee(solution);
         intervention.setObservations(observations);
         intervention.setCoutReel(coutReel);
         intervention.setDerniereModification(LocalDateTime.now());
         
-        // Update printer status to ACTIF (fixed)
+        Utilisateur technicien = utilisateurRepositorie.findById(technicienId)
+            .orElse(null);
+        intervention.setModifiePar(technicien);
+        
+        // Mettre à jour le statut de l'imprimante
         updatePrinterStatus(intervention, StatutIntervention.TERMINEE);
         
-        return interventionRepositorie.save(intervention);
+        // Enregistrer l'intervention
+        Intervention savedIntervention = interventionRepositorie.save(intervention);
+        
+        // Créer l'historique
+        InterventionHistorique historique = new InterventionHistorique();
+        historique.setIntervention(savedIntervention);
+        historique.setUtilisateur(technicien); // May be null, but that's okay
+        historique.setAncienStatut(statutPrecedent);
+        historique.setNouveauStatut(StatutIntervention.TERMINEE);
+        historique.setAction("Intervention terminée");
+        historique.setCommentaire("Diagnostic: " + diagnostic + "\nSolution: " + solution + 
+                                  (observations != null ? "\nObservations: " + observations : "") + 
+                                  (coutReel != null ? "\nCoût réel: " + coutReel + " €" : ""));
+        
+        interventionHistoriqueRepositorie.save(historique);
+        
+        // Envoyer une notification au client
+        notifierInterventionTerminee(savedIntervention);
+        
+        log.info("Intervention {} terminée par technicien {}", interventionId, technicienId);
+        return savedIntervention;
+    }
+    
+    /**
+     * Notifier le client que l'intervention est terminée
+     */
+    private void notifierInterventionTerminee(Intervention intervention) {
+        try {
+            if (intervention.getDemandeur() != null && intervention.getDemandeur().getEmail() != null) {
+                String sujet = "Intervention terminée - " + intervention.getNumeroTicket();
+                
+                try {
+                    // Essayer d'envoyer un email HTML plus détaillé
+                    String htmlContent = "<div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;'>" +
+                        "<div style='background-color: #4f46e5; color: white; padding: 20px; text-align: center;'>" +
+                        "<h2>Intervention terminée</h2>" +
+                        "</div>" +
+                        "<div style='padding: 20px; border: 1px solid #e0e0e0; background-color: #f9f9f9;'>" +
+                        "<p>Bonjour " + intervention.getDemandeur().getPrenom() + ",</p>" +
+                        "<p>Nous vous informons que votre intervention <strong>" + intervention.getNumeroTicket() + "</strong> a été terminée avec succès.</p>" +
+                        "<div style='background-color: white; border-left: 4px solid #4f46e5; padding: 15px; margin: 15px 0;'>" +
+                        "<h3 style='margin-top: 0; color: #333;'>Détails de l'intervention</h3>" +
+                        "<p><strong>Titre:</strong> " + intervention.getTitre() + "</p>" +
+                        "<p><strong>Diagnostic:</strong> " + intervention.getDiagnosticTechnique() + "</p>" +
+                        "<p><strong>Solution appliquée:</strong> " + intervention.getSolutionAppliquee() + "</p>" +
+                        (intervention.getObservations() != null ? "<p><strong>Observations:</strong> " + intervention.getObservations() + "</p>" : "") +
+                        "</div>" +
+                        "<p>Nous vous invitons à évaluer la qualité de cette intervention en vous connectant à votre espace client.</p>" +
+                        "<p>Merci de votre confiance,</p>" +
+                        "<p>L'équipe de maintenance</p>" +
+                        "</div>" +
+                        "</div>";
+                    
+                    emailService.sendHtmlEmail(intervention.getDemandeur().getEmail(), sujet, htmlContent);
+                } catch (Exception e) {
+                    // En cas d'échec, envoyer un email simple comme fallback
+                    String contenu = "Bonjour " + intervention.getDemandeur().getPrenom() + ",\n\n" +
+                            "Nous vous informons que votre intervention " + intervention.getNumeroTicket() + 
+                            " a été terminée avec succès.\n\n" +
+                            "Diagnostic: " + intervention.getDiagnosticTechnique() + "\n" +
+                            "Solution appliquée: " + intervention.getSolutionAppliquee() + "\n" +
+                            (intervention.getObservations() != null ? "Observations: " + intervention.getObservations() + "\n\n" : "\n") +
+                            "Nous vous invitons à évaluer la qualité de cette intervention en vous connectant à votre espace client.\n\n" +
+                            "Merci de votre confiance,\n" +
+                            "L'équipe de maintenance";
+                    
+                    emailService.sendEmail(intervention.getDemandeur().getEmail(), sujet, contenu);
+                }
+                
+                log.info("Notification d'intervention terminée envoyée au client {}", intervention.getDemandeur().getEmail());
+            }
+        } catch (Exception e) {
+            log.error("Erreur lors de l'envoi de la notification d'intervention terminée: {}", e.getMessage());
+        }
     }
 
     @Override
@@ -686,7 +796,11 @@ public class InterventionService implements IInterventionService {
         // TODO: Implémenter les filtres de manière plus robuste
         Page<Intervention> interventions;
         
-        if (statut != null) {
+        if (type != null && statut != null) {
+            // Si nous avons à la fois le type et le statut, utiliser la méthode qui filtre sur les deux
+            interventions = interventionRepositorie.findByTypeInterventionAndStatutInterventionOrderByDatePlanifieeDesc(
+                type, statut, pageable);
+        } else if (statut != null) {
             interventions = interventionRepositorie.findByStatutInterventionOrderByDateCreationDesc(statut, pageable);
         } else if (type != null) {
             interventions = interventionRepositorie.findByTypeInterventionOrderByDateCreationDesc(type, pageable);
@@ -889,6 +1003,19 @@ public class InterventionService implements IInterventionService {
             Intervention intervention = interventionRepositorie.findById(interventionId).orElse(null);
             if (intervention == null) {
                 throw new RuntimeException("Intervention non trouvée");
+            }
+            
+            // Récupérer l'utilisateur qui effectue l'action
+            Utilisateur utilisateur = utilisateurRepositorie.findById(technicienId)
+                .orElseThrow(() -> new RuntimeException("Utilisateur non trouvé"));
+            
+            // Autoriser si c'est un admin ou le technicien assigné
+            boolean isAdmin = utilisateur.getRole() == Role.ADMIN;
+            boolean isAssignedTechnician = intervention.getTechnicien() != null && 
+                                          intervention.getTechnicien().getId() == technicienId;
+            
+            if (!isAdmin && !isAssignedTechnician) {
+                throw new RuntimeException("Seul le technicien assigné ou un administrateur peut clôturer cette intervention");
             }
             
             StatutIntervention ancienStatut = intervention.getStatutIntervention();
@@ -1175,7 +1302,16 @@ public class InterventionService implements IInterventionService {
             intervention.setDemandeur(demandeur);
             intervention.setContrat(contrat);
             intervention.setTechnicien(technicien);
-            intervention.setStatutIntervention(StatutIntervention.EN_ATTENTE);
+            
+            // Pour les maintenances préventives avec une date planifiée, définir le statut à PLANIFIEE
+            if (intervention.getTypeIntervention() == TypeIntervention.PREVENTIVE 
+                && createDTO.getDatePlanifiee() != null) {
+                intervention.setStatutIntervention(StatutIntervention.PLANIFIEE);
+                intervention.setDatePlanifiee(createDTO.getDatePlanifiee());
+            } else {
+                intervention.setStatutIntervention(StatutIntervention.EN_ATTENTE);
+            }
+            
             intervention.setDateCreation(LocalDateTime.now());
             intervention.setNumeroTicket(genererNumeroTicket());
             
@@ -1270,6 +1406,187 @@ public class InterventionService implements IInterventionService {
         } catch (Exception e) {
             log.error("Erreur lors de la création des interventions par imprimante: {}", e.getMessage());
             throw new RuntimeException("Erreur lors de la création des interventions", e);
+        }
+    }
+
+    /**
+     * Récupère la date de la dernière maintenance préventive pour un contrat
+     * @param contratId ID du contrat
+     * @return Date de la dernière maintenance ou null si aucune maintenance trouvée
+     */
+    public LocalDateTime getLastPreventiveMaintenanceDate(Long contratId) {
+        // Rechercher la dernière intervention de type PREVENTIVE pour ce contrat
+        Intervention lastMaintenance = interventionRepositorie.findTopByContratIdAndTypeInterventionOrderByDatePlanifieeDesc(
+                contratId, TypeIntervention.PREVENTIVE);
+        
+        if (lastMaintenance != null) {
+            return lastMaintenance.getDatePlanifiee() != null ? 
+                    lastMaintenance.getDatePlanifiee() : lastMaintenance.getDateCreation();
+        }
+        
+        return null;
+    }
+    
+    /**
+     * Trouve les interventions préventives planifiées à une date spécifique
+     * @param date Date à laquelle les interventions sont planifiées
+     * @return Liste des interventions avec les informations nécessaires pour les notifications
+     */
+    public List<Object[]> findUpcomingPreventiveMaintenances(LocalDate date) {
+        // Cette requête devrait être implémentée dans le repository
+        LocalDateTime startOfDay = date.atStartOfDay();
+        LocalDateTime endOfDay = date.atTime(23, 59, 59);
+        
+        // Retourne un tableau d'objets contenant:
+        // - ID de l'intervention
+        // - Numéro de contrat
+        // - Date planifiée
+        // - Email du client
+        // - Nom du client
+        return interventionRepositorie.findUpcomingPreventiveMaintenances(startOfDay, endOfDay);
+    }
+    
+    /**
+     * Met à jour le statut d'une imprimante en fonction du statut de l'intervention
+     */
+    /**
+     * @deprecated This method is deprecated. Use {@link #updatePrinterStatus(Intervention, StatutIntervention)} instead.
+     */
+    @Deprecated
+    private void updatePrinterStatus(Long imprimanteId, StatutIntervention statutIntervention) {
+        if (imprimanteId == null) {
+            return;
+        }
+        
+        Imprimante imprimante = imprimanteRepositorie.findById(imprimanteId).orElse(null);
+        if (imprimante == null) {
+            return;
+        }
+        
+        // Déterminer le nouveau statut en fonction du statut de l'intervention
+        ImprimanteStatus newStatus;
+        switch (statutIntervention) {
+            case EN_ATTENTE:
+            case PLANIFIEE:
+                newStatus = ImprimanteStatus.EN_PANNE;
+                break;
+            case EN_COURS:
+            case ATTENTE_PIECES:
+            case ATTENTE_CLIENT:
+                newStatus = ImprimanteStatus.EN_MAINTENANCE;
+                break;
+            case TERMINEE:
+            case ANNULEE:
+                newStatus = ImprimanteStatus.ACTIF;
+                break;
+            case REJETEE:
+                newStatus = ImprimanteStatus.HORS_SERVICE;
+                break;
+            default:
+                newStatus = imprimante.getStatus();
+                break;
+        }
+        
+        // Mettre à jour le statut seulement s'il a changé
+        if (imprimante.getStatus() != newStatus) {
+            imprimante.setStatus(newStatus);
+            imprimanteRepositorie.save(imprimante);
+            log.info("Statut de l'imprimante {} mis à jour: {} -> {}", 
+                    imprimanteId, imprimante.getStatus(), newStatus);
+        }
+    }
+
+    /**
+     * Enregistrer le diagnostic technique d'une intervention
+     * Cette étape se produit pendant l'intervention, après son démarrage et avant sa finalisation
+     */
+    @Override
+    public InterventionDTO enregistrerDiagnostic(Long interventionId, Long technicienId, String diagnosticTechnique, String symptomesDetailles) {
+        try {
+            Intervention intervention = interventionRepositorie.findById(interventionId)
+                .orElseThrow(() -> new RuntimeException("Intervention non trouvée"));
+            
+            // Vérifier que l'intervention est bien en cours
+            if (intervention.getStatutIntervention() != StatutIntervention.EN_COURS) {
+                throw new RuntimeException("L'intervention doit être en cours pour enregistrer un diagnostic");
+            }
+            
+            // Vérifier que le technicien est bien assigné à cette intervention
+           // if (intervention.getTechnicien() == null || intervention.getTechnicien().getId() != technicienId) {
+              //  throw new RuntimeException("Seul le technicien assigné peut enregistrer un diagnostic");
+           // }
+            
+            // Enregistrer l'ancien diagnostic pour l'historique
+            String ancienDiagnostic = intervention.getDiagnosticTechnique();
+            String anciensSymptomes = intervention.getSymptomes();
+            
+            // Mettre à jour l'intervention
+            intervention.setDiagnosticTechnique(diagnosticTechnique);
+            intervention.setSymptomes(symptomesDetailles);
+            intervention.setDerniereModification(LocalDateTime.now());
+            
+            // Get technician if it exists, but don't throw exception if not found
+            Utilisateur technicien = utilisateurRepositorie.findById(technicienId).orElse(null);
+            intervention.setModifiePar(technicien);
+            
+            intervention = interventionRepositorie.save(intervention);
+            
+            // Enregistrer l'action dans l'historique
+            String message = "Diagnostic technique enregistré";
+            if (ancienDiagnostic == null || ancienDiagnostic.isEmpty()) {
+                message = "Diagnostic technique initial enregistré";
+            } else {
+                message = "Diagnostic technique mis à jour";
+            }
+            
+            InterventionHistorique historique = new InterventionHistorique();
+            historique.setIntervention(intervention);
+            historique.setUtilisateur(technicien); // This may be null, but that's ok
+            historique.setDateAction(LocalDateTime.now());
+            historique.setAncienStatut(intervention.getStatutIntervention());
+            historique.setNouveauStatut(intervention.getStatutIntervention());
+            historique.setAction(message);
+            historique.setCommentaire("Ancien diagnostic: " + (ancienDiagnostic != null ? ancienDiagnostic : "Non défini") + 
+                    "\nNouveau diagnostic: " + diagnosticTechnique + 
+                    "\nAnciens symptômes: " + (anciensSymptomes != null ? anciensSymptomes : "Non définis") + 
+                    "\nNouveaux symptômes: " + symptomesDetailles);
+            
+            interventionHistoriqueRepositorie.save(historique);
+            
+            // Notifier le client que le diagnostic a été effectué
+            notifierDiagnosticEffectue(intervention);
+            
+            log.info("Diagnostic enregistré pour l'intervention {} par technicien ID {}", 
+                    interventionId, technicienId);
+            return interventionMapper.toDTO(intervention);
+        } catch (Exception e) {
+            log.error("Erreur lors de l'enregistrement du diagnostic: {}", e.getMessage());
+            throw new RuntimeException("Erreur lors de l'enregistrement du diagnostic", e);
+        }
+    }
+    
+    /**
+     * Notifier le client que le diagnostic a été effectué
+     */
+    private void notifierDiagnosticEffectue(Intervention intervention) {
+        try {
+            if (intervention.getDemandeur() != null && intervention.getDemandeur().getEmail() != null) {
+                String sujet = "Diagnostic effectué pour votre demande d'intervention " + intervention.getNumeroTicket();
+                
+                String contenu = "Bonjour " + intervention.getDemandeur().getPrenom() + ",\n\n" +
+                        "Le diagnostic technique pour votre demande d'intervention " + intervention.getNumeroTicket() + 
+                        " a été effectué.\n\n" +
+                        "Diagnostic réalisé: " + intervention.getDiagnosticTechnique() + "\n\n" +
+                        "Le technicien travaille actuellement à la résolution du problème.\n\n" +
+                        "Cordialement,\n" +
+                        "L'équipe de maintenance";
+                
+                // Utiliser EmailService pour envoyer l'email
+                emailService.sendEmail(intervention.getDemandeur().getEmail(), sujet, contenu);
+                log.info("Notification de diagnostic envoyée au client {}", intervention.getDemandeur().getEmail());
+            }
+        } catch (Exception e) {
+            log.error("Erreur lors de l'envoi de la notification de diagnostic: {}", e.getMessage());
         }
     }
 }

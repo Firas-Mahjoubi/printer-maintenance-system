@@ -1,8 +1,12 @@
-import { NgModule } from '@angular/core';
+import { NgModule, LOCALE_ID } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
-import { CommonModule } from '@angular/common';
+import { CommonModule, registerLocaleData } from '@angular/common';
 import { RouterModule } from '@angular/router';
+import localeFr from '@angular/common/locales/fr';
+
+// Register French locale
+registerLocaleData(localeFr);
 
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
@@ -25,7 +29,7 @@ import { NotificationsComponent } from './components/notifications/notifications
 import { ToastNotificationsComponent } from './components/toast-notifications/toast-notifications.component';
 import { TicketCreationComponent } from './components/ticket-creation/ticket-creation.component';
 import { TicketListComponent } from './components/ticket-list/ticket-list.component';
-import { TicketDetailsComponent } from './components/ticket-details/ticket-details.component';
+import { TicketDetailsComponent } from './components/ticket_details/ticket-details.component';
 import { PrinterHistoryComponent } from './components/printer-history/printer-history.component';
 import { PrinterListComponent } from './components/printer-list/printer-list.component';
 import { PrinterHistorySelectorComponent } from './components/printer-history-selector/printer-history-selector.component';
@@ -37,12 +41,20 @@ import { ClientEquipmentComponent } from './client-equipment/client-equipment.co
 import { ClientHistoryComponent } from './client-history/client-history.component';
 import { ContratHistoryComponent } from './components/contrat-history/contrat-history.component';
 import { TechnicianCalendarComponent } from './components/technician-calendar/technician-calendar.component';
+import { MaintenanceSchedulerComponent } from './components/maintenance-scheduler/maintenance-scheduler.component';
+import { DiagnosticTechniqueComponent } from './components/diagnostic-technique/diagnostic-technique.component';
+import { SolutionTechniqueComponent } from './components/solution-technique/solution-technique.component';
+import { SatisfactionClientComponent } from './components/satisfaction-client/satisfaction-client.component';
+import { TicketWorkflowComponent } from './components/ticket-workflow/ticket-workflow.component';
 
 // FullCalendar Modules
 import { FullCalendarModule } from '@fullcalendar/angular';
 
 // Chart.js
 import { NgChartsModule } from 'ng2-charts';
+
+// NgBootstrap
+import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
 
 @NgModule({
   declarations: [
@@ -74,6 +86,11 @@ import { NgChartsModule } from 'ng2-charts';
     ClientHistoryComponent,
     ContratHistoryComponent,
     TechnicianCalendarComponent,
+    MaintenanceSchedulerComponent,
+    DiagnosticTechniqueComponent,
+    SolutionTechniqueComponent,
+    SatisfactionClientComponent,
+    TicketWorkflowComponent,
   ],
   imports: [
     BrowserModule,
@@ -86,10 +103,12 @@ import { NgChartsModule } from 'ng2-charts';
     AppRoutingModule,
     AngularEditorModule,
     FullCalendarModule,
-    NgChartsModule
+    NgChartsModule,
+    NgbModule
   ],
   providers: [
-     {
+    { provide: LOCALE_ID, useValue: 'fr-FR' },
+    {
       provide: HTTP_INTERCEPTORS,
       useClass: JwtInterceptor,
       multi: true

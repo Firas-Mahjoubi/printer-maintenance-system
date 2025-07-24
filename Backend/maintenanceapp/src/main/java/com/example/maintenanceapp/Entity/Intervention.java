@@ -45,6 +45,7 @@ public class Intervention {
     // Dates importantes
     LocalDateTime dateCreation; // Date de création du ticket
     LocalDateTime dateDemande; // Date demandée pour l'intervention
+    LocalDateTime datePlanifiee; // Date planifiée pour l'intervention
     LocalDateTime dateDebutIntervention; // Date de début réelle
     LocalDateTime dateFinIntervention; // Date de fin réelle
     LocalDateTime dateCloture; // Date de clôture du ticket

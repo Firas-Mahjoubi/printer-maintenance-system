@@ -87,7 +87,7 @@
     </div>
 
     <!-- Client Cards -->
-    <div class="client-card" *ngFor="let client of filteredClients; trackBy: trackByClientId">
+    <div class="client-card" *ngFor="let client of paginatedClients; trackBy: trackByClientId">
       <div class="client-header">
         <div class="client-avatar">
           <img 
@@ -140,6 +140,35 @@
           Historique
         </button>
       </div>
+    </div>
+  </div>
+  
+  <!-- Pagination -->
+  <div class="pagination-container" *ngIf="!loading && !error && filteredClients.length > 0">
+    <div class="pagination">
+      <button class="pagination-btn" [disabled]="currentPage === 1" (click)="goToPage(currentPage - 1)">
+        <i class="fas fa-chevron-left"></i>
+      </button>
+      
+      <div class="pagination-pages">
+        <ng-container *ngFor="let page of getPageNumbers()">
+          <button *ngIf="page !== -1" 
+                  class="pagination-page" 
+                  [class.active]="page === currentPage"
+                  (click)="goToPage(page)">
+            {{ page }}
+          </button>
+          <span *ngIf="page === -1" class="pagination-ellipsis">...</span>
+        </ng-container>
+      </div>
+      
+      <button class="pagination-btn" [disabled]="currentPage === totalPages" (click)="goToPage(currentPage + 1)">
+        <i class="fas fa-chevron-right"></i>
+      </button>
+    </div>
+    
+    <div class="pagination-info">
+      Affichage {{ (currentPage - 1) * itemsPerPage + 1 }} à {{ Math.min(currentPage * itemsPerPage, filteredClients.length) }} sur {{ filteredClients.length }} clients
     </div>
   </div>
 </div>

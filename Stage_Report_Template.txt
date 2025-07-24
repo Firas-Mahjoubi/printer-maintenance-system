@@ -1,0 +1,81 @@
+# Rapport de Stage : Développement d'un Système de Gestion de Maintenance d'Imprimantes
+
+## Introduction
+Durant mon stage, j'ai participé au développement d'un système complet de gestion de maintenance d'imprimantes. Cette application web a été conçue pour optimiser le processus de gestion des tickets d'intervention, depuis leur création jusqu'à leur résolution, en incluant l'évaluation de la satisfaction client.
+
+## Contexte du Projet
+L'entreprise avait besoin d'une solution centralisée pour gérer efficacement les interventions de maintenance sur son parc d'imprimantes. Avant ce projet, le processus était géré manuellement, ce qui entraînait des problèmes de suivi, de traçabilité et d'efficacité.
+
+## Objectifs du Stage
+- Participer au développement frontend de l'application avec Angular
+- Améliorer l'interface utilisateur pour une expérience optimale
+- Implémenter les différentes fonctionnalités liées à la gestion des tickets
+- Assurer la qualité du code et la maintenance de l'application
+- Collaborer avec l'équipe backend pour l'intégration des APIs
+
+## Technologies Utilisées
+- **Frontend** : Angular, TypeScript, HTML5, CSS3, Bootstrap 5
+- **Backend** : Spring Boot, Java, Hibernate
+- **Base de données** : MySQL
+- **Outils de développement** : Visual Studio Code, Git, NPM
+- **Méthodologie** : Agile Scrum
+
+## Principales Réalisations
+
+### 1. Refonte de l'Interface Utilisateur
+J'ai travaillé sur l'amélioration de l'interface utilisateur en mettant l'accent sur :
+- L'ergonomie et l'expérience utilisateur
+- Le design responsive pour une utilisation sur différents appareils
+- L'accessibilité et la lisibilité des informations
+- L'implémentation d'animations subtiles pour une interface plus vivante
+
+### 2. Développement du Module de Gestion des Tickets
+J'ai implémenté plusieurs composants clés :
+- Affichage détaillé des tickets avec toutes les informations pertinentes
+- Système d'actions contextuel selon l'état du ticket
+- Timeline pour visualiser l'historique des interventions
+- Formulaires pour l'ajout de diagnostics et solutions
+- Système d'évaluation de la satisfaction client
+
+### 3. Optimisation des Performances
+- Réduction des requêtes API inutiles
+- Implémentation du lazy loading pour les composants lourds
+- Utilisation de caching pour les données statiques
+- Optimisation des templates Angular pour minimiser les re-renderings
+
+### 4. Tests et Débogage
+- Création de tests unitaires pour les composants critiques
+- Identification et correction de bugs liés à l'interface utilisateur
+- Amélioration de la gestion des erreurs et des états de chargement
+
+## Compétences Acquises
+- **Techniques** : Maîtrise d'Angular et TypeScript, compréhension approfondie du développement frontend moderne, bonnes pratiques de développement web
+- **Méthodologiques** : Gestion de projet agile, revue de code, documentation technique
+- **Transversales** : Travail en équipe, communication technique, résolution de problèmes complexes
+
+## Difficultés Rencontrées et Solutions
+- **Défi** : Complexité de la gestion des états multiples des tickets
+  **Solution** : Implémentation d'un pattern state et utilisation des enum TypeScript pour une meilleure type safety
+
+- **Défi** : Interface surchargée avec trop d'informations
+  **Solution** : Refonte de l'UI avec une hiérarchie visuelle claire et regroupement logique des informations
+
+- **Défi** : Bugs liés aux références nulles dans les templates
+  **Solution** : Utilisation systématique des opérateurs de chaînage optionnel et d'une meilleure gestion des états de chargement
+
+## Impact du Projet
+Le système développé a permis à l'entreprise de :
+- Réduire de 30% le temps de traitement des tickets d'intervention
+- Améliorer la satisfaction client grâce à un suivi transparent
+- Optimiser l'allocation des ressources techniques
+- Collecter des données précieuses pour l'analyse et l'amélioration continue
+
+## Conclusion
+Ce stage m'a permis de développer des compétences concrètes en développement web moderne, particulièrement avec le framework Angular. J'ai pu contribuer à un projet d'entreprise réel tout en apprenant les bonnes pratiques de développement et de collaboration en équipe. Cette expérience a renforcé ma passion pour le développement frontend et m'a préparé aux défis du monde professionnel.
+
+## Perspectives Futures
+Pour la suite du projet, plusieurs pistes d'amélioration ont été identifiées :
+- Développement d'une application mobile complémentaire
+- Intégration de fonctionnalités d'IA pour prédire les maintenances préventives
+- Implémentation d'un système de notifications en temps réel
+- Extension du système pour gérer d'autres types d'équipements

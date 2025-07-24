@@ -247,6 +247,33 @@ export class ContratPrintersComponent implements OnInit {
     this.onFilterChange();
   }
 
+  getPaginationRange(): number[] {
+    const range: number[] = [];
+    const maxVisiblePages = 5;
+    
+    if (this.totalPages <= maxVisiblePages) {
+      // Show all pages if total pages are less than or equal to max visible pages
+      for (let i = 1; i <= this.totalPages; i++) {
+        range.push(i);
+      }
+    } else {
+      // Calculate range based on current page
+      let start = Math.max(1, this.currentPage - 2);
+      let end = Math.min(this.totalPages, start + maxVisiblePages - 1);
+      
+      // Adjust start if end is maxed out
+      if (end === this.totalPages) {
+        start = Math.max(1, end - maxVisiblePages + 1);
+      }
+      
+      for (let i = start; i <= end; i++) {
+        range.push(i);
+      }
+    }
+    
+    return range;
+  }
+
   goToPage(page: number): void {
     if (page >= 1 && page <= this.totalPages) {
       this.currentPage = page;

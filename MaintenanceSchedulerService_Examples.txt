@@ -1,0 +1,135 @@
+# EXEMPLES DE CALCUL DE DATES DE MAINTENANCE PRÉVENTIVE
+
+Ce document présente des exemples concrets pour illustrer comment le système calcule les dates de maintenance préventive.
+
+## PRINCIPE DE BASE
+
+Les maintenances préventives sont planifiées tous les 6 mois à partir de la date de début du contrat, selon cette formule :
+
+```
+Date prochaine maintenance = Date début contrat + (périodes_écoulées + 1) * 6 mois
+
+où périodes_écoulées = nombre de mois depuis début du contrat / 6 (division entière)
+```
+
+## EXEMPLE 1: CONTRAT RÉCENT (moins de 6 mois)
+
+**Données:**
+- Date de début du contrat: 15 mars 2025
+- Date actuelle: 17 juillet 2025
+- Mois écoulés: 4 mois
+
+**Calcul:**
+- Périodes de 6 mois écoulées: 4 / 6 = 0 (division entière)
+- Prochaine maintenance = 15 mars 2025 + (0 + 1) * 6 mois = 15 septembre 2025
+
+La maintenance sera planifiée pour le 15 septembre 2025, soit 6 mois après le début du contrat.
+
+## EXEMPLE 2: CONTRAT DE PLUS D'UN AN
+
+**Données:**
+- Date de début du contrat: 10 janvier 2024
+- Date actuelle: 17 juillet 2025
+- Mois écoulés: 18 mois
+
+**Calcul:**
+- Périodes de 6 mois écoulées: 18 / 6 = 3 (division entière)
+- Prochaine maintenance = 10 janvier 2024 + (3 + 1) * 6 mois = 10 janvier 2024 + 24 mois = 10 janvier 2026
+
+La maintenance sera planifiée pour le 10 janvier 2026.
+
+## EXEMPLE 3: CONTRAT SANS DERNIÈRE MAINTENANCE
+
+**Scénario:**
+Un contrat a débuté le 1er février 2023, mais aucune maintenance n'a jamais été planifiée.
+
+**Données:**
+- Date de début: 1er février 2023
+- Date actuelle: 17 juillet 2025
+- Mois écoulés: 29 mois
+
+**Calcul:**
+- Périodes de 6 mois écoulées: 29 / 6 = 4 (division entière)
+- Prochaine maintenance = 1er février 2023 + (4 + 1) * 6 mois = 1er février 2023 + 30 mois = 1er août 2025
+
+La maintenance sera planifiée pour le 1er août 2025, dans environ deux semaines.
+
+## EXEMPLE 4: CONTRAT AVEC DERNIÈRE MAINTENANCE RÉCENTE
+
+**Scénario:**
+Un contrat a débuté le 5 mai 2023, et la dernière maintenance a été réalisée le 5 mai 2025 (exactement selon le calendrier).
+
+**Données:**
+- Date de début: 5 mai 2023
+- Dernière maintenance: 5 mai 2025 
+- Date actuelle: 17 juillet 2025
+- Mois écoulés depuis début: 26 mois
+
+**Calcul:**
+- Périodes de 6 mois écoulées: 26 / 6 = 4 (division entière)
+- Prochaine maintenance théorique = 5 mai 2023 + (4 + 1) * 6 mois = 5 mai 2023 + 30 mois = 5 novembre 2025
+
+**Décision:**
+Comme la dernière maintenance a eu lieu il y a seulement 2 mois, et que la prochaine est prévue dans environ 4 mois, le système ne planifiera pas de nouvelle maintenance.
+
+## EXEMPLE 5: CONTRAT AVEC MAINTENANCE PLANIFIÉE POUR LA MAUVAISE DATE
+
+**Scénario:**
+Un contrat a débuté le 20 février 2024, mais par erreur, une maintenance a été planifiée pour le 15 septembre 2025 au lieu du 20 août 2025.
+
+**Données:**
+- Date de début: 20 février 2024
+- Dernière maintenance planifiée: 15 septembre 2025
+- Date actuelle: 17 juillet 2025
+- Mois écoulés depuis début: 17 mois
+
+**Calcul:**
+- Périodes de 6 mois écoulées: 17 / 6 = 2 (division entière)
+- Prochaine maintenance théorique = 20 février 2024 + (2 + 1) * 6 mois = 20 février 2024 + 18 mois = 20 août 2025
+
+**Décision:**
+La différence entre la maintenance planifiée (15 septembre) et la date théorique (20 août) est de 26 jours, ce qui dépasse la tolérance de 14 jours. Le système va donc planifier une nouvelle maintenance pour le 20 août 2025 et annuler celle du 15 septembre.
+
+## EXEMPLE 6: CONTRAT AVEC DATE DE DÉBUT DANS LE FUTUR
+
+**Scénario:**
+Un contrat vient d'être signé mais démarre le 1er septembre 2025.
+
+**Données:**
+- Date de début: 1er septembre 2025 (futur)
+- Date actuelle: 17 juillet 2025
+
+**Calcul:**
+Comme la date de début est dans le futur, le calcul est simplifié:
+- Prochaine maintenance = 1er septembre 2025 + 6 mois = 1er mars 2026
+
+La première maintenance sera planifiée pour le 1er mars 2026.
+
+## EXEMPLE 7: CONTRAT SANS DATE DE DÉBUT
+
+**Scénario:**
+Un contrat existe dans le système mais n'a pas de date de début définie.
+
+**Données:**
+- Date de début: NULL
+- Date actuelle: 17 juillet 2025
+
+**Calcul:**
+En l'absence de date de début, le système utilise la date actuelle + 6 mois:
+- Prochaine maintenance = 17 juillet 2025 + 6 mois = 17 janvier 2026
+
+Une alerte est également générée dans les logs pour signaler cette anomalie.
+
+## NOTES IMPORTANTES
+
+1. **Tolérance:** Le système utilise une tolérance de 14 jours pour comparer les dates de maintenance planifiées avec les dates théoriques. Cela permet d'éviter de replanifier des maintenances pour de petites différences de dates.
+
+2. **Notification:** Une notification est envoyée au client 1 mois avant la date de maintenance planifiée.
+
+3. **Statut:** Les maintenances créées ont automatiquement le statut "PLANIFIÉE".
+
+4. **Contraintes:**
+   - Un contrat doit être actif pour être considéré pour la maintenance
+   - Un contrat doit avoir au moins une imprimante associée
+   - Un contrat doit avoir un client associé
+   - Au moins un technicien doit exister dans le système

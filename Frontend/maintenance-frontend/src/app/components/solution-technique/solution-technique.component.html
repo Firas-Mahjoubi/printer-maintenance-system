@@ -1,0 +1,144 @@
+<div class="solution-container">
+    <div class="solution-header">
+        <h2><i class="bi bi-tools"></i> Solution technique</h2>
+        <p class="subtitle">Intervention #{{intervention?.numero}}</p>
+    </div>
+
+    <div class="alert alert-info" role="alert">
+        <i class="bi bi-info-circle-fill me-2"></i>
+        La solution technique documentera les actions réalisées pour résoudre le problème et les coûts associés.
+    </div>
+
+    <div *ngIf="loading" class="loading-spinner">
+        <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Chargement...</span>
+        </div>
+    </div>
+
+    <div *ngIf="!loading" class="solution-content">
+        <div class="intervention-info">
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="info-card">
+                        <h4>Informations de l'intervention</h4>
+                        <p><strong>Titre:</strong> {{intervention?.titre}}</p>
+                        <p><strong>Description initiale:</strong> {{intervention?.description}}</p>
+                        <p><strong>Date de création:</strong> {{intervention?.dateCreation | date:'dd/MM/yyyy HH:mm'}}</p>
+                        <p><strong>Statut:</strong> <span class="badge bg-primary">{{intervention?.statut}}</span></p>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="info-card">
+                        <h4>Diagnostic posé</h4>
+                        <p><strong>Symptômes:</strong> {{intervention?.symptomes || 'Non renseigné'}}</p>
+                        <p><strong>Diagnostic:</strong> {{intervention?.diagnosticTechnique || 'Non renseigné'}}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <form [formGroup]="solutionForm" (ngSubmit)="onSubmit()" class="solution-form">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5><i class="bi bi-wrench"></i> Solution appliquée</h5>
+                </div>
+                <div class="card-body">
+                    <div class="form-group">
+                        <label for="solutionTechnique">Solution technique</label>
+                        <textarea 
+                            id="solutionTechnique" 
+                            class="form-control" 
+                            rows="6" 
+                            formControlName="solutionTechnique"
+                            placeholder="Décrivez les actions réalisées pour résoudre le problème..."
+                        ></textarea>
+                        <div *ngIf="solutionForm.get('solutionTechnique')?.invalid && solutionForm.get('solutionTechnique')?.touched" class="text-danger mt-1">
+                            <small *ngIf="solutionForm.get('solutionTechnique')?.errors?.['required']">La solution technique est requise.</small>
+                            <small *ngIf="solutionForm.get('solutionTechnique')?.errors?.['minlength']">La solution technique doit contenir au moins 10 caractères.</small>
+                        </div>
+                    </div>
+                    
+                    <div class="solutions-suggestions mt-3">
+                        <h6>Solutions fréquentes</h6>
+                        <div class="suggestions-container">
+                            <button 
+                                type="button" 
+                                class="btn btn-outline-secondary suggestion-btn" 
+                                *ngFor="let solution of solutionsFrequentes"
+                                (click)="addSolution(solution)">
+                                {{solution}}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5><i class="bi bi-cash-coin"></i> Coût de l'intervention</h5>
+                </div>
+                <div class="card-body">
+                    <div class="form-group">
+                        <label for="coutIntervention">Coût total (€)</label>
+                        <div class="input-group">
+                            <span class="input-group-text">€</span>
+                            <input 
+                                type="number" 
+                                id="coutIntervention" 
+                                class="form-control" 
+                                formControlName="coutIntervention"
+                                placeholder="0.00"
+                                min="0"
+                                step="0.01"
+                            >
+                        </div>
+                        <div *ngIf="solutionForm.get('coutIntervention')?.invalid && solutionForm.get('coutIntervention')?.touched" class="text-danger mt-1">
+                            <small *ngIf="solutionForm.get('coutIntervention')?.errors?.['required']">Le coût est requis.</small>
+                            <small *ngIf="solutionForm.get('coutIntervention')?.errors?.['min']">Le coût ne peut pas être négatif.</small>
+                        </div>
+                    </div>
+                    
+                    <div class="cout-suggestions mt-3">
+                        <h6>Coûts typiques</h6>
+                        <div class="row">
+                            <div class="col-md-6 mb-2" *ngFor="let cout of coutTypiques">
+                                <div class="cout-card" (click)="applyCout(cout.prix)">
+                                    <div class="cout-label">{{cout.label}}</div>
+                                    <div class="cout-prix">{{cout.prix}} €</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5><i class="bi bi-chat-left-text"></i> Commentaire interne</h5>
+                </div>
+                <div class="card-body">
+                    <div class="form-group">
+                        <label for="commentaireInterne">Commentaire (visible uniquement par les techniciens)</label>
+                        <textarea 
+                            id="commentaireInterne" 
+                            class="form-control" 
+                            rows="4" 
+                            formControlName="commentaireInterne"
+                            placeholder="Notes internes, remarques pour suivi..."
+                        ></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <div class="action-buttons">
+                <button type="button" class="btn btn-outline-secondary" [routerLink]="['/tickets', interventionId]">
+                    <i class="bi bi-arrow-left"></i> Retour
+                </button>
+                <button type="submit" class="btn btn-primary" [disabled]="solutionForm.invalid || submitting">
+                    <i class="bi" [ngClass]="submitting ? 'bi-hourglass-split' : 'bi-save'"></i>
+                    {{submitting ? 'Enregistrement...' : 'Enregistrer la solution'}}
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
